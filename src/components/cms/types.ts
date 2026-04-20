@@ -1,0 +1,401 @@
+// =============================================================================
+// Smart CMS — TypeScript Interfaces, Constants & Helpers
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// Entity Interfaces (mirrors Prisma schema, JSON-serialisable)
+// ---------------------------------------------------------------------------
+
+export interface Post {
+  id: string
+  title: string
+  slug: string
+  content: string
+  excerpt: string
+  status: 'draft' | 'published' | 'archived'
+  featured: boolean
+  authorId: string
+  categoryId: string | null
+  publishedAt: string | null
+  createdAt: string
+  updatedAt: string
+  author?: User
+  category?: Category
+  tags?: Tag[]
+  comments?: Comment[]
+  _count?: { comments: number }
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'editor' | 'author' | 'viewer'
+  avatar: string
+  status: 'active' | 'inactive' | 'suspended'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  company: string
+  status: 'active' | 'inactive' | 'lead' | 'churned'
+  value: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Project {
+  id: string
+  title: string
+  description: string
+  status: 'planning' | 'active' | 'on-hold' | 'completed' | 'cancelled'
+  progress: number
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  startDate: string | null
+  dueDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TeamMember {
+  id: string
+  name: string
+  email: string
+  role: 'admin' | 'manager' | 'member' | 'intern'
+  department: string
+  avatar: string
+  status: 'active' | 'inactive' | 'on-leave'
+  joinedAt: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Comment {
+  id: string
+  content: string
+  author: string
+  email: string
+  status: 'pending' | 'approved' | 'rejected' | 'spam'
+  postId: string
+  createdAt: string
+  updatedAt: string
+  post?: Post
+}
+
+export interface MediaItem {
+  id: string
+  name: string
+  filename: string
+  url: string
+  type: 'image' | 'video' | 'audio' | 'document' | 'other'
+  size: number
+  alt: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Category {
+  id: string
+  name: string
+  slug: string
+  color: string
+  postCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Tag {
+  id: string
+  name: string
+  slug: string
+  posts?: Post[]
+  _count?: { posts: number }
+}
+
+export interface ActivityLog {
+  id: string
+  action: string
+  details: string
+  userId: string | null
+  createdAt: string
+  user?: Pick<User, 'id' | 'name' | 'email' | 'avatar'>
+}
+
+export interface Setting {
+  id: string
+  key: string
+  value: string
+  group: 'general' | 'seo' | 'ai' | 'content' | 'security' | 'appearance' | 'notifications'
+}
+
+export interface WPSyncConfig {
+  id: string
+  siteUrl: string
+  apiKey: string
+  username: string
+  syncFreq: 'manual' | 'hourly' | 'daily' | 'weekly'
+  lastSync: string | null
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+// ---------------------------------------------------------------------------
+// Dashboard & Chart Types
+// ---------------------------------------------------------------------------
+
+export interface Stats {
+  totalPosts: number
+  totalUsers: number
+  totalCustomers: number
+  totalProjects: number
+  totalViews: number
+  totalComments: number
+  publishedPosts: number
+  draftPosts: number
+  revenue: number
+  activeProjects: number
+  completedProjects: number
+  teamMembers: number
+  mediaCount: number
+}
+
+export interface ChartData {
+  monthlyViews: { month: string; views: number }[]
+  categoryDistribution: { name: string; value: number; color: string }[]
+  weeklyActivity: { day: string; posts: number; comments: number }[]
+  contentStatus: { status: string; count: number }[]
+  popularPosts: { title: string; views: number; id: string }[]
+}
+
+// ---------------------------------------------------------------------------
+// AI Assistant Types
+// ---------------------------------------------------------------------------
+
+export interface AIChatMessage {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  content: string
+  timestamp: string
+}
+
+export interface AITab {
+  id: string
+  name: string
+  icon: string
+  description: string
+}
+
+// ---------------------------------------------------------------------------
+// Notification Types
+// ---------------------------------------------------------------------------
+
+export interface Notification {
+  id: string
+  title: string
+  message: string
+  type: 'info' | 'success' | 'warning' | 'error'
+  read: boolean
+  createdAt: string
+}
+
+// ---------------------------------------------------------------------------
+// 14 Tab Definitions
+// ---------------------------------------------------------------------------
+
+export interface CMSTab {
+  id: string
+  name: string
+  icon: string
+  gradient: string
+  badge?: string
+}
+
+export const CMS_TABS: CMSTab[] = [
+  { id: 'dashboard',    name: 'Dashboard',    icon: 'LayoutDashboard', gradient: 'from-slate-500 to-slate-700' },
+  { id: 'content',      name: 'Content',      icon: 'FileText',        gradient: 'from-cyan-500 to-cyan-700' },
+  { id: 'media',        name: 'Media',        icon: 'Image',          gradient: 'from-rose-500 to-rose-700' },
+  { id: 'users',        name: 'Users',        icon: 'Users',          gradient: 'from-emerald-500 to-emerald-700' },
+  { id: 'team',         name: 'Team',         icon: 'UserCog',        gradient: 'from-indigo-500 to-indigo-700' },
+  { id: 'customers',    name: 'Customers',    icon: 'UserCircle',     gradient: 'from-amber-500 to-amber-700' },
+  { id: 'projects',     name: 'Projects',     icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700' },
+  { id: 'ai-assistant', name: 'AI Assistant', icon: 'Bot',            gradient: 'from-violet-500 to-violet-700' },
+  { id: 'reports',      name: 'Reports',      icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700' },
+  { id: 'activities',   name: 'Activities',   icon: 'Activity',       gradient: 'from-lime-500 to-lime-700' },
+  { id: 'comments',     name: 'Comments',     icon: 'MessageCircle',  gradient: 'from-orange-500 to-orange-700' },
+  { id: 'notifications',name: 'Notifications',icon: 'Bell',           gradient: 'from-purple-500 to-purple-700' },
+  { id: 'wordpress',    name: 'WordPress',    icon: 'Globe',          gradient: 'from-blue-500 to-blue-700' },
+  { id: 'settings',     name: 'Settings',     icon: 'Settings',       gradient: 'from-teal-500 to-teal-700' },
+]
+
+// ---------------------------------------------------------------------------
+// SEO Assistant Tab Definitions
+// ---------------------------------------------------------------------------
+
+export const AI_SEO_TABS: AITab[] = [
+  { id: 'guide',       name: 'SEO Guide',          icon: 'BookOpen',     description: 'Comprehensive SEO guide' },
+  { id: 'what-is',     name: 'What is SEO?',       icon: 'HelpCircle',   description: 'SEO fundamentals explained' },
+  { id: 'tips',        name: 'SEO Tips',            icon: 'Lightbulb',    description: 'Practical optimization tips' },
+  { id: 'backlinks',   name: 'Backlinks',           icon: 'Link',         description: 'Backlink strategy & analysis' },
+  { id: 'schema',      name: 'Schema Markup',       icon: 'Code',         description: 'Structured data implementation' },
+  { id: 'optimization',name: 'Optimization',        icon: 'TrendingUp',   description: 'Performance optimization' },
+  { id: 'content-gen', name: 'Content Generation',  icon: 'FileEdit',     description: 'AI-powered content creation' },
+  { id: 'keywords',    name: 'Keywords',            icon: 'Search',       description: 'Keyword research & analysis' },
+  { id: 'competitor',  name: 'Competitor Analysis', icon: 'Swords',       description: 'Competitive intelligence' },
+  { id: 'advanced',    name: 'Advanced SEO',        icon: 'Rocket',       description: 'Advanced techniques' },
+  { id: 'page-seo',    name: 'Page SEO',            icon: 'FileCheck',    description: 'On-page SEO checker' },
+]
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Status Colors
+// ---------------------------------------------------------------------------
+
+type ColorVariant = 'default' | 'secondary' | 'destructive' | 'outline'
+
+export function getStatusColor(status: string): { bg: string; text: string; badge: ColorVariant } {
+  const map: Record<string, { bg: string; text: string; badge: ColorVariant }> = {
+    // Post statuses
+    draft:     { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300', badge: 'secondary' },
+    published: { bg: 'bg-green-100 dark:bg-green-900/30',   text: 'text-green-700 dark:text-green-300',   badge: 'default' },
+    archived:  { bg: 'bg-gray-100 dark:bg-gray-800/30',    text: 'text-gray-500 dark:text-gray-400',     badge: 'outline' },
+    // Common statuses
+    active:    { bg: 'bg-green-100 dark:bg-green-900/30',   text: 'text-green-700 dark:text-green-300',   badge: 'default' },
+    inactive:  { bg: 'bg-gray-100 dark:bg-gray-800/30',    text: 'text-gray-500 dark:text-gray-400',     badge: 'outline' },
+    pending:   { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300', badge: 'secondary' },
+    approved:  { bg: 'bg-green-100 dark:bg-green-900/30',   text: 'text-green-700 dark:text-green-300',   badge: 'default' },
+    rejected:  { bg: 'bg-red-100 dark:bg-red-900/30',       text: 'text-red-700 dark:text-red-300',       badge: 'destructive' },
+    spam:      { bg: 'bg-red-100 dark:bg-red-900/30',       text: 'text-red-700 dark:text-red-300',       badge: 'destructive' },
+    suspended: { bg: 'bg-red-100 dark:bg-red-900/30',       text: 'text-red-700 dark:text-red-300',       badge: 'destructive' },
+    'on-leave':{ bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', badge: 'secondary' },
+    lead:      { bg: 'bg-blue-100 dark:bg-blue-900/30',     text: 'text-blue-700 dark:text-blue-300',     badge: 'secondary' },
+    churned:   { bg: 'bg-red-100 dark:bg-red-900/30',       text: 'text-red-700 dark:text-red-300',       badge: 'destructive' },
+    planning:  { bg: 'bg-blue-100 dark:bg-blue-900/30',     text: 'text-blue-700 dark:text-blue-300',     badge: 'secondary' },
+    'on-hold': { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', badge: 'secondary' },
+    completed: { bg: 'bg-green-100 dark:bg-green-900/30',   text: 'text-green-700 dark:text-green-300',   badge: 'default' },
+    cancelled: { bg: 'bg-red-100 dark:bg-red-900/30',       text: 'text-red-700 dark:text-red-300',       badge: 'destructive' },
+  }
+  return map[status] ?? { bg: 'bg-gray-100 dark:bg-gray-800/30', text: 'text-gray-500 dark:text-gray-400', badge: 'outline' }
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Role Badges
+// ---------------------------------------------------------------------------
+
+export function getRoleBadge(role: string): { label: string; variant: ColorVariant } {
+  const map: Record<string, { label: string; variant: ColorVariant }> = {
+    admin:    { label: 'Admin',    variant: 'default' },
+    editor:   { label: 'Editor',   variant: 'secondary' },
+    author:   { label: 'Author',   variant: 'secondary' },
+    viewer:   { label: 'Viewer',   variant: 'outline' },
+    manager:  { label: 'Manager',  variant: 'default' },
+    member:   { label: 'Member',   variant: 'secondary' },
+    intern:   { label: 'Intern',   variant: 'outline' },
+  }
+  return map[role] ?? { label: role, variant: 'outline' }
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Priority Colors
+// ---------------------------------------------------------------------------
+
+export function getPriorityColor(priority: string): { bg: string; text: string; dot: string } {
+  const map: Record<string, { bg: string; text: string; dot: string }> = {
+    low:      { bg: 'bg-gray-100 dark:bg-gray-800/30', text: 'text-gray-600 dark:text-gray-400', dot: 'bg-gray-400' },
+    medium:   { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-500' },
+    high:     { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' },
+    critical: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300', dot: 'bg-red-500' },
+  }
+  return map[priority] ?? { bg: 'bg-gray-100 dark:bg-gray-800/30', text: 'text-gray-500 dark:text-gray-400', dot: 'bg-gray-400' }
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — File Size Formatter
+// ---------------------------------------------------------------------------
+
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B'
+  const units = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(1024))
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Date Formatter
+// ---------------------------------------------------------------------------
+
+export function formatDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+export function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr)
+  return d.toLocaleString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
+export function formatRelativeTime(dateStr: string): string {
+  const now = new Date()
+  const d = new Date(dateStr)
+  const diff = now.getTime() - d.getTime()
+  const seconds = Math.floor(diff / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 30) return formatDate(dateStr)
+  if (days > 0) return `${days}d ago`
+  if (hours > 0) return `${hours}h ago`
+  if (minutes > 0) return `${minutes}m ago`
+  return 'Just now'
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Notification Type Colors
+// ---------------------------------------------------------------------------
+
+export function getNotificationColor(type: string): { bg: string; icon: string } {
+  const map: Record<string, { bg: string; icon: string }> = {
+    info:    { bg: 'bg-blue-100 dark:bg-blue-900/30',    icon: 'ℹ️' },
+    success: { bg: 'bg-green-100 dark:bg-green-900/30',  icon: '✅' },
+    warning: { bg: 'bg-yellow-100 dark:bg-yellow-900/30',icon: '⚠️' },
+    error:   { bg: 'bg-red-100 dark:bg-red-900/30',      icon: '❌' },
+  }
+  return map[type] ?? map.info
+}
+
+// ---------------------------------------------------------------------------
+// Helper Functions — Tab Gradient Utilities
+// ---------------------------------------------------------------------------
+
+export function getTabGradient(tabId: string): string {
+  const tab = CMS_TABS.find(t => t.id === tabId)
+  return tab?.gradient ?? 'from-slate-500 to-slate-700'
+}
+
+export function getTabAccentClass(tabId: string): string {
+  const accentMap: Record<string, string> = {
+    dashboard:     'text-slate-600 dark:text-slate-300',
+    content:       'text-cyan-600 dark:text-cyan-300',
+    media:         'text-rose-600 dark:text-rose-300',
+    users:         'text-emerald-600 dark:text-emerald-300',
+    team:          'text-indigo-600 dark:text-indigo-300',
+    customers:     'text-amber-600 dark:text-amber-300',
+    projects:      'text-sky-600 dark:text-sky-300',
+    'ai-assistant':'text-violet-600 dark:text-violet-300',
+    reports:       'text-fuchsia-600 dark:text-fuchsia-300',
+    activities:    'text-lime-600 dark:text-lime-300',
+    comments:      'text-orange-600 dark:text-orange-300',
+    notifications: 'text-purple-600 dark:text-purple-300',
+    wordpress:     'text-blue-600 dark:text-blue-300',
+    settings:      'text-teal-600 dark:text-teal-300',
+  }
+  return accentMap[tabId] ?? 'text-slate-600 dark:text-slate-300'
+}

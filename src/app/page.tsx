@@ -1,91 +1,190 @@
 'use client'
 
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { CMSProvider } from '@/components/cms/context'
+import { CMS_TABS, getTabAccentClass, type CMSPage } from '@/components/cms/types'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Code, Rocket, Sparkles } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
+  Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
+  Menu, ChevronRight, ChevronLeft, Moon, Sun,
+} from 'lucide-react'
+import { useTheme } from 'next-themes'
+
+// ─── Dynamic imports to reduce bundle size ──────────────────────────────
+
+const LoadingFallback = () => (
+  <div className="p-6 space-y-4">
+    <Skeleton className="h-8 w-48" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[1,2,3,4].map(i => <Skeleton key={i} className="h-32 rounded-xl" />)}
+    </div>
+    <Skeleton className="h-64 rounded-xl" />
+  </div>
+)
+
+const pageComponents: Record<string, React.ComponentType> = {
+  dashboard: dynamic(() => import('@/components/cms/DashboardPage'), { loading: LoadingFallback, ssr: false }),
+  content: dynamic(() => import('@/components/cms/ContentPage'), { loading: LoadingFallback, ssr: false }),
+  media: dynamic(() => import('@/components/cms/MediaPage'), { loading: LoadingFallback, ssr: false }),
+  users: dynamic(() => import('@/components/cms/UsersPage'), { loading: LoadingFallback, ssr: false }),
+  team: dynamic(() => import('@/components/cms/TeamPage'), { loading: LoadingFallback, ssr: false }),
+  customers: dynamic(() => import('@/components/cms/CustomersPage'), { loading: LoadingFallback, ssr: false }),
+  projects: dynamic(() => import('@/components/cms/ProjectsPage'), { loading: LoadingFallback, ssr: false }),
+  'ai-assistant': dynamic(() => import('@/components/cms/AIAssistantPage'), { loading: LoadingFallback, ssr: false }),
+  reports: dynamic(() => import('@/components/cms/ReportsPage'), { loading: LoadingFallback, ssr: false }),
+  activities: dynamic(() => import('@/components/cms/ActivitiesPage'), { loading: LoadingFallback, ssr: false }),
+  comments: dynamic(() => import('@/components/cms/CommentsPage'), { loading: LoadingFallback, ssr: false }),
+  notifications: dynamic(() => import('@/components/cms/NotificationsPage'), { loading: LoadingFallback, ssr: false }),
+  wordpress: dynamic(() => import('@/components/cms/WordPressPage'), { loading: LoadingFallback, ssr: false }),
+  settings: dynamic(() => import('@/components/cms/SettingsPage'), { loading: LoadingFallback, ssr: false }),
+}
+
+// ─── Icon Map ──────────────────────────────────────────────────────────
+
+const iconComponents: Record<string, React.ComponentType<{className?: string}>> = {
+  LayoutDashboard, FileText, Image: ImageIcon, Users, UserCog, UserCircle,
+  FolderKanban, Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
+}
+
+function TabIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = iconComponents[name]
+  return Icon ? <Icon className={className} /> : <Settings className={className} />
+}
+
+// ─── Main App ──────────────────────────────────────────────────────────
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState('dashboard')
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const { theme, setTheme } = useTheme()
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: { queries: { staleTime: 60_000, retry: 1 } }
+  }))
+
+  const PageComponent = pageComponents[activeTab] ?? pageComponents.dashboard
+  const activeTabData = CMS_TABS.find(t => t.id === activeTab)
+
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2">
-            <img src="/logo.svg" alt="Z.ai Logo" className="h-8 w-8" />
-            <span className="text-lg font-bold">Z.ai Code</span>
-          </div>
-          <nav className="flex items-center gap-2">
-            <Button variant="ghost" size="sm">Home</Button>
-            <Button variant="outline" size="sm">Get Started</Button>
-          </nav>
-        </div>
-      </header>
+    <QueryClientProvider client={queryClient}>
+      <CMSProvider>
+        <TooltipProvider delayDuration={0}>
+          <div className="min-h-screen flex bg-background" dir="rtl">
+            {/* ─── Sidebar ─── */}
+            <aside
+              className={`sticky top-0 h-screen border-l border-border bg-card/50 backdrop-blur-sm transition-all duration-300 flex flex-col z-30 ${
+                sidebarOpen ? 'w-[220px]' : 'w-[60px]'
+              }`}
+            >
+              {/* Logo */}
+              <div className="h-14 flex items-center justify-between px-3 border-b border-border/50 shrink-0">
+                {sidebarOpen && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                      <Bot className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="font-bold text-sm">Smart CMS</span>
+                  </div>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                >
+                  {sidebarOpen ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                </Button>
+              </div>
 
-      {/* Hero Section */}
-      <main className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="max-w-3xl text-center space-y-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm">
-              <Sparkles className="h-4 w-4" />
-              <span>Powered by AI</span>
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              Build Faster with
-              <span className="block text-primary/80">Z.ai Code</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Modern Next.js scaffold optimized for AI-powered development. 
-              Built with TypeScript, Tailwind CSS, and shadcn/ui.
-            </p>
-          </div>
+              {/* Nav Items */}
+              <ScrollArea className="flex-1 py-2">
+                <nav className="space-y-0.5 px-2" dir="rtl">
+                  {CMS_TABS.map(tab => (
+                    <Tooltip key={tab.id}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className={`w-full gap-3 h-9 transition-all ${
+                            activeTab === tab.id
+                              ? `bg-gradient-to-r ${tab.gradient} text-white shadow-sm`
+                              : `hover:bg-accent/50 ${getTabAccentClass(tab.id)}`
+                          } ${sidebarOpen ? 'justify-start px-3' : 'justify-center px-0'}`}
+                          onClick={() => setActiveTab(tab.id)}
+                        >
+                          <span className="shrink-0">
+                            <TabIcon name={tab.icon} className="h-5 w-5" />
+                          </span>
+                          {sidebarOpen && <span className="text-sm truncate">{tab.name}</span>}
+                        </Button>
+                      </TooltipTrigger>
+                      {!sidebarOpen && (
+                        <TooltipContent side="left" className="text-xs">
+                          {tab.name}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  ))}
+                </nav>
+              </ScrollArea>
 
-          <div className="flex items-center justify-center gap-4">
-            <Button size="lg">
-              <Rocket className="mr-2 h-4 w-4" />
-              Get Started
-            </Button>
-            <Button variant="outline" size="lg">
-              <Code className="mr-2 h-4 w-4" />
-              View Docs
-            </Button>
-          </div>
+              {/* Theme Toggle */}
+              <div className="border-t border-border/50 p-2 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={`w-full gap-2 ${sidebarOpen ? 'justify-start px-3' : 'justify-center px-0'}`}
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  {sidebarOpen && (
+                    <span className="text-sm">{theme === 'dark' ? 'حالت روشن' : 'حالت تاریک'}</span>
+                  )}
+                </Button>
+              </div>
+            </aside>
 
-          {/* Feature Cards */}
-          <div className="grid sm:grid-cols-3 gap-4 pt-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">TypeScript</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>Full type safety with strict TypeScript configuration</CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Tailwind CSS</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>Utility-first styling with shadcn/ui components</CardDescription>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">AI-Powered</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription>Optimized for AI-assisted development workflows</CardDescription>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
+            {/* ─── Main Content ─── */}
+            <main className="flex-1 min-w-0">
+              {/* Top Bar */}
+              <header className="sticky top-0 z-20 h-14 border-b border-border bg-background/80 backdrop-blur-sm flex items-center justify-between px-4 md:px-6">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="md:hidden h-8 w-8"
+                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                  >
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                  {activeTabData && (
+                    <div className="flex items-center gap-2">
+                      <span className={getTabAccentClass(activeTabData.id)}>
+                        <TabIcon name={activeTabData.icon} className="h-5 w-5" />
+                      </span>
+                      <h2 className="font-semibold text-sm">{activeTabData.name}</h2>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                    A
+                  </div>
+                </div>
+              </header>
 
-      {/* Footer */}
-      <footer className="border-t py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          Built with Z.ai Code
-        </div>
-      </footer>
-    </div>
+              {/* Page Content */}
+              <div className="p-4 md:p-6 max-w-7xl">
+                <PageComponent />
+              </div>
+            </main>
+          </div>
+        </TooltipProvider>
+      </CMSProvider>
+    </QueryClientProvider>
   )
 }
