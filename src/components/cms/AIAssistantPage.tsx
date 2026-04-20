@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -128,6 +129,7 @@ function getTabIcon(id: string) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AIAssistantPage() {
+  useEnsureData([])
   const { stats } = useCMS()
 
   // Chat state

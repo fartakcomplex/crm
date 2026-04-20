@@ -76,6 +76,15 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Custom properties for animations & utilities */
+  --glass-bg: oklch(1 0 0 / 60%);
+  --glass-border: oklch(0 0 0 / 8%);
+  --glass-blur: 16px;
+  --dot-color: oklch(0 0 0 / 7%);
+  --scrollbar-thumb: oklch(0.708 0 0 / 50%);
+  --scrollbar-track: transparent;
+  --gradient-start: oklch(0.55 0.2 270);
+  --gradient-end: oklch(0.65 0.2 180);
 }
 
 .dark {
@@ -110,7 +119,72 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  /* Dark mode overrides */
+  --glass-bg: oklch(0.205 0 0 / 55%);
+  --glass-border: oklch(1 0 0 / 8%);
+  --dot-color: oklch(1 0 0 / 5%);
+  --scrollbar-thumb: oklch(0.556 0 0 / 50%);
+  --gradient-start: oklch(0.7 0.2 270);
+  --gradient-end: oklch(0.75 0.2 180);
 }
+
+/* ========================================================================== */
+/*  KEYFRAME ANIMATIONS                                                      */
+/* ========================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.55 0.2 270 / 30%);
+  }
+  50% {
+    box-shadow: 0 0 16px 4px oklch(0.55 0.2 270 / 18%);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+/* ========================================================================== */
+/*  BASE STYLES                                                              */
+/* ========================================================================== */
 
 @layer base {
   * {
@@ -119,4 +193,167 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ========================================================================== */
+/*  SUBTLE BACKGROUND DOT-GRID PATTERN                                        */
+/* ========================================================================== */
+
+body {
+  background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ========================================================================== */
+/*  SCROLLBAR STYLES                                                         */
+/* ========================================================================== */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.556 0 0 / 70%);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* ========================================================================== */
+/*  UTILITY CLASSES                                                          */
+/* ========================================================================== */
+
+/* Glass morphism card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hover lift effect */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 24px oklch(0 0 0 / 8%),
+    0 2px 8px oklch(0 0 0 / 5%);
+}
+
+/* Shine / glare effect on hover */
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine-effect::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    oklch(1 0 0 / 15%) 45%,
+    oklch(1 0 0 / 25%) 50%,
+    oklch(1 0 0 / 15%) 55%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.shine-effect:hover::after {
+  transform: translateX(100%);
+}
+
+/* Stat card specific styling */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 0 0 0 80px;
+  background: linear-gradient(
+    135deg,
+    oklch(0.55 0.2 270 / 8%),
+    oklch(0.65 0.2 180 / 5%)
+  );
+  pointer-events: none;
+}
+
+/* Animate-in: fade + slide up for page content */
+.animate-in {
+  animation: fadeIn 0.4s ease-out, slideUp 0.4s ease-out;
+}
+
+/* Page enter transition */
+.page-enter {
+  animation: fadeIn 0.3s ease-out, slideInRight 0.35s ease-out;
+}
+
+/* Sidebar item smooth transitions */
+.sidebar-item {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    padding-left 0.2s ease,
+    padding-right 0.2s ease;
+}
+
+/* Loading shimmer placeholder */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    oklch(0.92 0 0 / 50%) 37%,
+    var(--muted) 63%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+.dark .loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    oklch(0.269 0 0) 25%,
+    oklch(0.32 0 0 / 60%) 37%,
+    oklch(0.269 0 0) 63%
+  );
+  background-size: 800px 100%;
 }

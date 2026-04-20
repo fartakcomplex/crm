@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -55,6 +56,7 @@ function getActionConfig(action: string) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ActivitiesPage() {
+  useEnsureData(['activities', 'users'])
   const { activities } = useCMS()
   const activitiesData = activities.data ?? []
 

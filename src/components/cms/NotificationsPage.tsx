@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -59,6 +60,7 @@ function getTypeConfig(type: string) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function NotificationsPage() {
+  useEnsureData(['notifications'])
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
   const [filterType, setFilterType] = useState('all')
   const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all')

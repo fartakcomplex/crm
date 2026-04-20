@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -62,6 +63,7 @@ const labels = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function WordPressPage() {
+  useEnsureData(['wp-config'])
   const { wpConfig, saveWPConfig, syncWP, posts } = useCMS()
   const configData = wpConfig.data ?? []
 

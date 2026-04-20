@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CMSProvider } from '@/components/cms/context'
@@ -12,9 +12,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
-  Menu, ChevronRight, ChevronLeft, Moon, Sun,
+  Menu, ChevronRight, ChevronLeft, Moon, Sun, Search,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { SearchDialog } from '@/components/cms/SearchDialog'
 
 // ─── Dynamic imports to reduce bundle size ──────────────────────────────
 
@@ -62,7 +63,24 @@ function TabIcon({ name, className }: { name: string; className?: string }) {
 export default function Home() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [searchOpen, setSearchOpen] = useState(false)
   const { theme, setTheme } = useTheme()
+
+  // Ctrl+K / Cmd+K → open search dialog
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setSearchOpen(prev => !prev)
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
+
+  const handleSearchNavigate = useCallback((tabId: string) => {
+    setActiveTab(tabId)
+  }, [])
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: { queries: { staleTime: 60_000, retry: 1 } }
   }))
@@ -171,6 +189,26 @@ export default function Home() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden sm:flex items-center gap-2 h-8 text-xs text-muted-foreground cursor-pointer"
+                    onClick={() => setSearchOpen(true)}
+                  >
+                    <Search className="h-3.5 w-3.5" />
+                    <span>جستجو...</span>
+                    <kbd className="pointer-events-none ml-1 inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1 font-mono text-[10px] font-medium text-muted-foreground">
+                      ⌘K
+                    </kbd>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="sm:hidden h-8 w-8"
+                    onClick={() => setSearchOpen(true)}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
                     A
                   </div>
@@ -184,6 +222,11 @@ export default function Home() {
             </main>
           </div>
         </TooltipProvider>
+        <SearchDialog
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onNavigate={handleSearchNavigate}
+        />
       </CMSProvider>
     </QueryClientProvider>
   )

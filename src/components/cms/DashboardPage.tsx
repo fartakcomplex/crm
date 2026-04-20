@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -121,6 +122,7 @@ function Section({ title, defaultOpen, children }: {
 // ────────────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
+  useEnsureData(['stats', 'charts', 'activities', 'posts'])
   const { stats, charts, activities, comments } = useCMS()
   const statsData = stats.data
   const chartData = charts.data

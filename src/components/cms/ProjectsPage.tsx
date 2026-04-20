@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { Project } from './types'
 import { getStatusColor, getPriorityColor, formatDate } from './types'
 import { Card, CardContent } from '@/components/ui/card'
@@ -77,6 +78,7 @@ const emptyProject: Partial<Project> = {
 }
 
 export default function ProjectsPage() {
+  useEnsureData(['projects'])
   const { projects, createProject, updateProject, deleteProject } = useCMS()
   const projectsData = projects.data ?? []
 

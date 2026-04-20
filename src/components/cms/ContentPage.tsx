@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { Post } from './types'
 import { getStatusColor, formatDate } from './types'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -70,6 +71,7 @@ const emptyPost: Partial<Post> = {
 }
 
 export default function ContentPage() {
+  useEnsureData(['posts', 'categories', 'tags', 'users'])
   const { posts, categories, users, createPost, updatePost, deletePost } = useCMS()
   const postsData = posts.data ?? []
   const categoriesData = categories.data ?? []

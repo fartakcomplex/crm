@@ -43,29 +43,32 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 // ---------------------------------------------------------------------------
-// useCMSData — central data-hook that every page can consume via context
+// useCMSData — all queries are DISABLED by default (enabled: false).
+// Each page calls queryClient.prefetchQuery or enables per-query via
+// the refetch/ensureData pattern. This prevents 15 simultaneous API calls
+// on mount that caused OOM crashes.
 // ---------------------------------------------------------------------------
 
 export function useCMSData() {
   const qc = useQueryClient()
 
-  // ────────────────────────────── Queries ──────────────────────────────
+  // ────────────────────────────── Queries (lazy) ────────────────────────
 
-  const posts          = useQuery({ queryKey: ['posts'],          queryFn: () => fetchJSON<Post[]>(api.posts) })
-  const users          = useQuery({ queryKey: ['users'],          queryFn: () => fetchJSON<User[]>(api.users) })
-  const customers      = useQuery({ queryKey: ['customers'],      queryFn: () => fetchJSON<Customer[]>(api.customers) })
-  const projects       = useQuery({ queryKey: ['projects'],       queryFn: () => fetchJSON<Project[]>(api.projects) })
-  const team           = useQuery({ queryKey: ['team'],           queryFn: () => fetchJSON<TeamMember[]>(api.team) })
-  const media          = useQuery({ queryKey: ['media'],          queryFn: () => fetchJSON<MediaItem[]>(api.media) })
-  const comments       = useQuery({ queryKey: ['comments'],       queryFn: () => fetchJSON<Comment[]>(api.comments) })
-  const categories     = useQuery({ queryKey: ['categories'],     queryFn: () => fetchJSON<Category[]>(api.categories) })
-  const tags           = useQuery({ queryKey: ['tags'],           queryFn: () => fetchJSON<Tag[]>(api.tags) })
-  const activities     = useQuery({ queryKey: ['activities'],     queryFn: () => fetchJSON<ActivityLog[]>(api.activities) })
-  const settings       = useQuery({ queryKey: ['settings'],       queryFn: () => fetchJSON<Setting[]>(api.settings) })
-  const stats          = useQuery({ queryKey: ['stats'],          queryFn: () => fetchJSON<Stats>(api.stats) })
-  const charts         = useQuery({ queryKey: ['charts'],         queryFn: () => fetchJSON<ChartData>(api.charts) })
-  const notifications  = useQuery({ queryKey: ['notifications'],  queryFn: () => fetchJSON<Notification[]>(api.notifications) })
-  const wpConfig       = useQuery({ queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config') })
+  const posts          = useQuery({ queryKey: ['posts'],          queryFn: () => fetchJSON<Post[]>(api.posts),          enabled: false })
+  const users          = useQuery({ queryKey: ['users'],          queryFn: () => fetchJSON<User[]>(api.users),          enabled: false })
+  const customers      = useQuery({ queryKey: ['customers'],      queryFn: () => fetchJSON<Customer[]>(api.customers),  enabled: false })
+  const projects       = useQuery({ queryKey: ['projects'],       queryFn: () => fetchJSON<Project[]>(api.projects),   enabled: false })
+  const team           = useQuery({ queryKey: ['team'],           queryFn: () => fetchJSON<TeamMember[]>(api.team),    enabled: false })
+  const media          = useQuery({ queryKey: ['media'],          queryFn: () => fetchJSON<MediaItem[]>(api.media),     enabled: false })
+  const comments       = useQuery({ queryKey: ['comments'],       queryFn: () => fetchJSON<Comment[]>(api.comments),   enabled: false })
+  const categories     = useQuery({ queryKey: ['categories'],     queryFn: () => fetchJSON<Category[]>(api.categories), enabled: false })
+  const tags           = useQuery({ queryKey: ['tags'],           queryFn: () => fetchJSON<Tag[]>(api.tags),           enabled: false })
+  const activities     = useQuery({ queryKey: ['activities'],     queryFn: () => fetchJSON<ActivityLog[]>(api.activities), enabled: false })
+  const settings       = useQuery({ queryKey: ['settings'],       queryFn: () => fetchJSON<Setting[]>(api.settings),   enabled: false })
+  const stats          = useQuery({ queryKey: ['stats'],          queryFn: () => fetchJSON<Stats>(api.stats),          enabled: false })
+  const charts         = useQuery({ queryKey: ['charts'],         queryFn: () => fetchJSON<ChartData>(api.charts),     enabled: false })
+  const notifications  = useQuery({ queryKey: ['notifications'],  queryFn: () => fetchJSON<Notification[]>(api.notifications), enabled: false })
+  const wpConfig       = useQuery({ queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config'), enabled: false })
 
   // ──────────────────────────── Post Mutations ─────────────────────────
 

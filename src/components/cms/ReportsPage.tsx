@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -58,6 +59,7 @@ function CircleChart({ value, max, color, label }: { value: number; max: number;
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+  useEnsureData(['stats', 'charts', 'posts', 'users', 'customers', 'projects'])
   const { stats, charts } = useCMS()
   const statsData = stats.data
   const chartData = charts.data

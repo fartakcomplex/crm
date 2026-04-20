@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +51,7 @@ const statusLabelMap: Record<string, string> = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function CommentsPage() {
+  useEnsureData(['comments', 'posts'])
   const { comments, updateComment } = useCMS()
   const commentsData = comments.data ?? []
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { TeamMember } from './types'
 import { getStatusColor, formatDate } from './types'
 import { Card, CardContent } from '@/components/ui/card'
@@ -79,6 +80,7 @@ const emptyMember: Partial<TeamMember> = {
 }
 
 export default function TeamPage() {
+  useEnsureData(['team'])
   const { team, createTeamMember, updateTeamMember, deleteTeamMember } = useCMS()
   const teamData = team.data ?? []
 

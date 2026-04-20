@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { User } from './types'
 import { getStatusColor, getRoleBadge, formatDate } from './types'
 import { Card, CardContent } from '@/components/ui/card'
@@ -72,6 +73,7 @@ const emptyUser: Partial<User> = {
 }
 
 export default function UsersPage() {
+  useEnsureData(['users'])
   const { users, createUser, updateUser, deleteUser } = useCMS()
   const usersData = users.data ?? []
 

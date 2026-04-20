@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { MediaItem } from './types'
 import { formatFileSize, formatDate } from './types'
 import { Card, CardContent } from '@/components/ui/card'
@@ -68,6 +69,7 @@ const typeColors: Record<string, string> = {
 }
 
 export default function MediaPage() {
+  useEnsureData(['media'])
   const { media, uploadMedia, deleteMedia } = useCMS()
   const mediaData = media.data ?? []
 

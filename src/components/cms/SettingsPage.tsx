@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -104,6 +105,7 @@ const defaultSettings: SettingsForm = {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
+  useEnsureData(['settings'])
   const { bulkUpdateSettings } = useCMS()
 
   const [form, setForm] = useState<SettingsForm>(defaultSettings)
