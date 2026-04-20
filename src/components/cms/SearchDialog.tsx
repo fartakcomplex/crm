@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { useCMS } from '@/components/cms/context'
 import {
   Search, FileText, Users, FolderKanban, UserCircle,
-  Image, MessageCircle, Bot, BarChart3, Settings, Globe,
+  Image as ImageIcon, MessageCircle, Bot, BarChart3, Settings, Globe,
   Loader2,
 } from 'lucide-react'
 
@@ -23,7 +23,7 @@ const iconMap: Record<string, React.ReactNode> = {
   user: <Users className="h-4 w-4" />,
   customer: <UserCircle className="h-4 w-4" />,
   project: <FolderKanban className="h-4 w-4" />,
-  media: <Image className="h-4 w-4" />,
+  media: <ImageIcon className="h-4 w-4" />,
   comment: <MessageCircle className="h-4 w-4" />,
   team: <Users className="h-4 w-4" />,
 }

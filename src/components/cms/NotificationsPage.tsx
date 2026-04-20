@@ -48,11 +48,11 @@ const mockNotifications: Notification[] = [
 // ─── Notification Type Config ─────────────────────────────────────────────────
 
 function getTypeConfig(type: string) {
-  const map: Record<string, { icon: React.ReactNode; bg: string; border: string; text: string; iconBg: string }> = {
-    info:    { icon: <Info className="h-4 w-4" />, bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200/50 dark:border-blue-800/30', text: 'text-blue-700 dark:text-blue-300', iconBg: 'bg-blue-100 dark:bg-blue-900/40' },
-    success: { icon: <CheckCircle className="h-4 w-4" />, bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200/50 dark:border-green-800/30', text: 'text-green-700 dark:text-green-300', iconBg: 'bg-green-100 dark:bg-green-900/40' },
-    warning: { icon: <AlertTriangle className="h-4 w-4" />, bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200/50 dark:border-yellow-800/30', text: 'text-yellow-700 dark:text-yellow-300', iconBg: 'bg-yellow-100 dark:bg-yellow-900/40' },
-    error:   { icon: <AlertCircle className="h-4 w-4" />, bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200/50 dark:border-red-800/30', text: 'text-red-700 dark:text-red-300', iconBg: 'bg-red-100 dark:bg-red-900/40' },
+  const map: Record<string, { icon: React.ReactNode; bg: string; border: string; borderAccent: string; text: string; iconBg: string }> = {
+    info:    { icon: <Info className="h-4 w-4" />, bg: 'bg-blue-50 dark:bg-blue-900/20', border: 'border-blue-200/50 dark:border-blue-800/30', borderAccent: 'border-l-4 border-l-blue-500', text: 'text-blue-700 dark:text-blue-300', iconBg: 'bg-blue-100 dark:bg-blue-900/40' },
+    success: { icon: <CheckCircle className="h-4 w-4" />, bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200/50 dark:border-green-800/30', borderAccent: 'border-l-4 border-l-green-500', text: 'text-green-700 dark:text-green-300', iconBg: 'bg-green-100 dark:bg-green-900/40' },
+    warning: { icon: <AlertTriangle className="h-4 w-4" />, bg: 'bg-yellow-50 dark:bg-yellow-900/20', border: 'border-yellow-200/50 dark:border-yellow-800/30', borderAccent: 'border-l-4 border-l-yellow-500', text: 'text-yellow-700 dark:text-yellow-300', iconBg: 'bg-yellow-100 dark:bg-yellow-900/40' },
+    error:   { icon: <AlertCircle className="h-4 w-4" />, bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200/50 dark:border-red-800/30', borderAccent: 'border-l-4 border-l-red-500', text: 'text-red-700 dark:text-red-300', iconBg: 'bg-red-100 dark:bg-red-900/40' },
   }
   return map[type] ?? map.info
 }
@@ -88,35 +88,27 @@ export default function NotificationsPage() {
   }
 
   const typeLabels: Record<string, string> = {
-    info: 'اطلاعات',
-    success: 'موفقیت',
-    warning: 'هشدار',
-    error: 'خطا',
+    info: 'اطلاعات', success: 'موفقیت', warning: 'هشدار', error: 'خطا',
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
-          <p className="text-sm text-muted-foreground">{labels.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-0">
+            <Badge className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-0 shadow-sm">
               <Bell className="h-3 w-3 ml-1" />
               {unreadCount} خوانده نشده
             </Badge>
           )}
-          <Button
-            variant="outline"
-            onClick={handleMarkAllRead}
-            disabled={unreadCount === 0}
-            className="gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10"
-          >
+          <Button variant="outline" onClick={handleMarkAllRead} disabled={unreadCount === 0} className="gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
             <CheckCheck className="h-4 w-4" />
             {labels.markAllRead}
           </Button>
@@ -124,40 +116,29 @@ export default function NotificationsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-br from-purple-500/5 to-purple-600/5 border-purple-200/30 dark:border-purple-800/30">
+      <Card className="glass-card shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Filter className="h-4 w-4" />
             {labels.filterType}:
           </div>
           <div className="flex flex-wrap gap-2">
-            <Badge
-              variant={filterRead === 'all' ? 'default' : 'outline'}
-              className={`cursor-pointer ${filterRead === 'all' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'}`}
-              onClick={() => setFilterRead('all')}
-            >
-              {labels.all}
-            </Badge>
-            <Badge
-              variant={filterRead === 'unread' ? 'default' : 'outline'}
-              className={`cursor-pointer ${filterRead === 'unread' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'}`}
-              onClick={() => setFilterRead('unread')}
-            >
-              {labels.unread}
-            </Badge>
-            <Badge
-              variant={filterRead === 'read' ? 'default' : 'outline'}
-              className={`cursor-pointer ${filterRead === 'read' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'}`}
-              onClick={() => setFilterRead('read')}
-            >
-              {labels.read}
-            </Badge>
+            {['all', 'unread', 'read'].map(val => (
+              <Badge
+                key={val}
+                variant={filterRead === val ? 'default' : 'outline'}
+                className={`cursor-pointer transition-all duration-200 ${filterRead === val ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.03] active:scale-[0.97]'}`}
+                onClick={() => setFilterRead(val as typeof filterRead)}
+              >
+                {val === 'all' ? labels.all : val === 'unread' ? labels.unread : labels.read}
+              </Badge>
+            ))}
             <div className="w-px h-6 bg-purple-200 dark:bg-purple-800 mx-1" />
             {['info', 'success', 'warning', 'error'].map(type => (
               <Badge
                 key={type}
                 variant={filterType === type ? 'default' : 'outline'}
-                className={`cursor-pointer ${filterType === type ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'}`}
+                className={`cursor-pointer transition-all duration-200 ${filterType === type ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.03] active:scale-[0.97]'}`}
                 onClick={() => setFilterType(filterType === type ? 'all' : type)}
               >
                 {typeLabels[type]}
@@ -169,30 +150,30 @@ export default function NotificationsPage() {
 
       {/* Notifications List */}
       {filtered.length === 0 ? (
-        <Card className="bg-gradient-to-br from-purple-500/5 to-purple-600/5 border-purple-200/30 dark:border-purple-800/30">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Bell className="h-12 w-12 mb-3 opacity-20" />
-            <p>{labels.noNotifications}</p>
+        <Card className="glass-card shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/20 dark:to-purple-800/20 flex items-center justify-center mb-4">
+              <Bell className="h-10 w-10 text-purple-300" />
+            </div>
+            <p className="text-base font-medium">{labels.noNotifications}</p>
           </CardContent>
         </Card>
       ) : (
         <ScrollArea className="max-h-[600px]">
-          <div className="space-y-2">
-            {filtered.map(n => {
+          <div className="space-y-2 pr-1">
+            {filtered.map((n, idx) => {
               const config = getTypeConfig(n.type)
               return (
                 <Card
                   key={n.id}
-                  className={`${config.bg} ${config.border} border transition-all hover:shadow-sm ${!n.read ? 'ring-1 ring-purple-300/50 dark:ring-purple-700/50' : ''}`}
+                  className={`${config.bg} ${config.border} ${config.borderAccent} transition-all duration-300 hover-lift shadow-sm animate-in ${!n.read ? 'ring-1 ring-purple-300/50 dark:ring-purple-700/50' : ''}`}
+                  style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      {/* Icon */}
-                      <div className={`rounded-lg p-2 shrink-0 ${config.iconBg} ${config.text}`}>
+                      <div className={`rounded-xl p-2.5 shrink-0 ${config.iconBg} ${config.text} shadow-sm`}>
                         {config.icon}
                       </div>
-
-                      {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <p className={`text-sm font-semibold ${!n.read ? '' : 'opacity-70'}`}>
@@ -200,27 +181,22 @@ export default function NotificationsPage() {
                           </p>
                           <div className="flex items-center gap-2 shrink-0">
                             {!n.read && (
-                              <div className="w-2 h-2 rounded-full bg-purple-500" />
+                              <div className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
                             )}
-                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap bg-background/30 px-2 py-0.5 rounded-md">
                               {formatRelativeTime(n.createdAt)}
                             </span>
                           </div>
                         </div>
-                        <p className={`text-sm mt-1 ${!n.read ? 'text-foreground/80' : 'text-muted-foreground'}`}>
+                        <p className={`text-sm mt-1.5 ${!n.read ? 'text-foreground/80' : 'text-muted-foreground'}`}>
                           {n.message}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className={`text-[10px] ${config.bg} ${config.text} border-0`}>
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <Badge variant="outline" className={`text-[10px] ${config.bg} ${config.text} border-0 shadow-sm`}>
                             {typeLabels[n.type]}
                           </Badge>
                           {!n.read && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-xs text-purple-500 hover:text-purple-600 hover:bg-purple-500/10 gap-1 h-6"
-                              onClick={() => handleMarkRead(n.id)}
-                            >
+                            <Button size="sm" variant="ghost" className="text-xs text-purple-500 hover:text-purple-600 hover:bg-purple-500/10 gap-1 h-6 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleMarkRead(n.id)}>
                               <Check className="h-3 w-3" />
                               {labels.markRead}
                             </Button>

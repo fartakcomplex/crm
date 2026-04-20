@@ -357,3 +357,228 @@ body {
   );
   background-size: 800px 100%;
 }
+
+/* ========================================================================== */
+/*  ADDITIONAL KEYFRAME ANIMATIONS                                             */
+/* ========================================================================== */
+
+@keyframes slideInFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    border-color: oklch(0.55 0.2 270 / 20%);
+  }
+  50% {
+    border-color: oklch(0.55 0.2 270 / 50%);
+  }
+}
+
+/* ========================================================================== */
+/*  ENHANCED UTILITY CLASSES                                                   */
+/* ========================================================================== */
+
+/* Animated gradient background */
+.gradient-animate {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* Typing animation for chat */
+.typing-dot {
+  animation: typing-bounce 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Floating animation */
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scale in animation */
+.scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Border glow animation */
+.border-glow {
+  animation: border-glow 2s ease-in-out infinite;
+}
+
+/* Card hover with subtle gradient border */
+.card-gradient-border {
+  position: relative;
+}
+
+.card-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    oklch(0.55 0.2 270 / 0%),
+    oklch(0.65 0.2 180 / 30%),
+    oklch(0.55 0.2 270 / 0%)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card-gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Smooth focus ring */
+.focus-ring {
+  outline: none;
+}
+
+.focus-ring:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--background),
+    0 0 0 4px oklch(0.55 0.2 270 / 40%);
+  border-radius: var(--radius);
+}
+
+/* Tooltip enhancement */
+.tooltip-enhanced {
+  animation: fadeIn 0.15s ease-out, scaleIn 0.15s ease-out;
+}
+
+/* Badge pulse */
+.badge-pulse {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Responsive container with smooth width transitions */
+.container-smooth {
+  transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark mode dot grid - more subtle */
+.dark body {
+  background-image: radial-gradient(circle, var(--dot-color) 1px, transparent 1px);
+}
+
+/* Enhanced scrollbar for dark mode */
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.708 0 0 / 80%);
+}
+
+/* Smooth transitions for interactive elements */
+button, a, [role="button"] {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dialog overlay animation */
+[data-state="open"] {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Dropdown menu animation */
+[data-side] {
+  animation: scaleIn 0.15s ease-out;
+}
+
+/* Selection styling */
+::selection {
+  background: oklch(0.55 0.2 270 / 25%);
+}
+
+.dark ::selection {
+  background: oklch(0.7 0.2 270 / 30%);
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid oklch(0.55 0.2 270 / 50%);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Enhanced table styling */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Smooth text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

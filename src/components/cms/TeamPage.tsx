@@ -65,14 +65,25 @@ const deptLabels: Record<string, string> = {
 }
 
 const deptColors: Record<string, string> = {
-  engineering: 'from-blue-400 to-blue-600',
+  engineering: 'from-cyan-400 to-cyan-600',
   design: 'from-pink-400 to-pink-600',
   marketing: 'from-orange-400 to-orange-600',
-  sales: 'from-green-400 to-green-600',
+  sales: 'from-emerald-400 to-emerald-600',
   hr: 'from-purple-400 to-purple-600',
   support: 'from-teal-400 to-teal-600',
   finance: 'from-amber-400 to-amber-600',
-  product: 'from-indigo-400 to-indigo-600',
+  product: 'from-rose-400 to-rose-600',
+}
+
+const deptBadgeColors: Record<string, string> = {
+  engineering: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
+  design: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300 border-pink-200 dark:border-pink-800',
+  marketing: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+  sales: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+  hr: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+  support: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+  finance: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+  product: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 border-rose-200 dark:border-rose-800',
 }
 
 const emptyMember: Partial<TeamMember> = {
@@ -126,22 +137,22 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
-          <p className="text-sm text-muted-foreground">{labels.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white" onClick={openCreate}>
+        <Button className="gap-2 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-br from-indigo-500/5 to-indigo-600/5 border-indigo-200/30 dark:border-indigo-800/30">
+      <Card className="glass-card shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -163,57 +174,63 @@ export default function TeamPage() {
 
       {/* Team Grid */}
       {filtered.length === 0 ? (
-        <Card className="bg-gradient-to-br from-indigo-500/5 to-indigo-600/5 border-indigo-200/30 dark:border-indigo-800/30">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <UserCog className="h-12 w-12 mb-3 opacity-30" />
-            <p>{search ? labels.noResults : labels.noMembers}</p>
+        <Card className="glass-card shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center mb-4">
+              <UserCog className="h-10 w-10 text-violet-300" />
+            </div>
+            <p className="text-base font-medium">{search ? labels.noResults : labels.noMembers}</p>
+            <p className="text-sm mt-1 opacity-60">عضو جدیدی به تیم اضافه کنید</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map(member => {
+          {filtered.map((member, idx) => {
             const sc = getStatusColor(member.status)
             const gradient = deptColors[member.department] ?? 'from-gray-400 to-gray-500'
+            const badgeColor = deptBadgeColors[member.department] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300 border-gray-200 dark:border-gray-700'
             return (
               <Card
                 key={member.id}
-                className="bg-gradient-to-br from-indigo-500/5 to-indigo-600/5 border-indigo-200/30 dark:border-indigo-800/30 overflow-hidden group hover:shadow-lg transition-all"
+                className="overflow-hidden group hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in border-0"
+                style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
               >
                 {/* Avatar header */}
-                <div className={`h-20 bg-gradient-to-r ${gradient} flex items-center justify-center relative`}>
-                  <div className="h-16 w-16 rounded-full bg-white shadow-lg flex items-center justify-center text-xl font-bold text-indigo-600">
+                <div className={`h-24 bg-gradient-to-r ${gradient} flex items-center justify-center relative`}>
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-all duration-300" />
+                  <div className="h-16 w-16 rounded-2xl bg-white shadow-lg flex items-center justify-center text-xl font-bold transition-transform duration-300 group-hover:scale-105 group-hover:rotate-3" style={{ color: 'var(--foreground)' }}>
                     {member.name.charAt(0)}
                   </div>
-                  <Badge className={`${sc.bg} ${sc.text} border-0 absolute top-2 left-2 text-[10px]`}>
+                  <Badge className={`${sc.bg} ${sc.text} border-0 absolute top-2.5 left-2.5 text-[10px] shadow-sm`}>
                     {statusLabels[member.status] ?? member.status}
                   </Badge>
                 </div>
                 {/* Info */}
                 <CardContent className="p-4 space-y-3">
                   <div className="text-center">
-                    <p className="font-semibold">{member.name}</p>
-                    <p className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-1">
+                    <p className="font-semibold text-base">{member.name}</p>
+                    <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5 mt-1.5">
                       <Mail className="h-3 w-3" />
                       <span dir="ltr">{member.email}</span>
                     </p>
                   </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <Badge variant="secondary">{roleLabels[member.role] ?? member.role}</Badge>
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
+                    <Badge variant="secondary" className="shadow-sm">{roleLabels[member.role] ?? member.role}</Badge>
                     {member.department && (
-                      <Badge variant="outline" className="gap-1">
+                      <Badge variant="outline" className={`gap-1 ${badgeColor}`}>
                         <Building2 className="h-3 w-3" />
                         {deptLabels[member.department] ?? member.department}
                       </Badge>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground text-center pt-1">
                     {labels.joinDate}: {formatDate(member.joinedAt)}
                   </p>
                   <div className="flex gap-2 justify-center pt-1">
-                    <Button size="sm" variant="outline" className="gap-1 h-8" onClick={() => openEdit(member)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(member)}>
                       <Pencil className="h-3 w-3" />{labels.edit}
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => handleDelete(member.id)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleDelete(member.id)}>
                       <Trash2 className="h-3 w-3" />{labels.delete}
                     </Button>
                   </div>
@@ -226,9 +243,9 @@ export default function TeamPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md glass-card shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-indigo-700 dark:text-indigo-300">
+            <DialogTitle className="text-violet-700 dark:text-violet-300">
               {editingMember ? labels.edit : labels.create}
             </DialogTitle>
             <DialogDescription>
@@ -282,8 +299,8 @@ export default function TeamPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-700 hover:to-indigo-600 text-white" onClick={handleSave} disabled={!form.name || !form.email}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.name || !form.email}>
               {labels.save}
             </Button>
           </DialogFooter>

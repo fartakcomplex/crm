@@ -65,11 +65,18 @@ const priorityLabels: Record<string, string> = {
 }
 
 const statusGradients: Record<string, string> = {
-  planning: 'from-blue-400 to-blue-600',
-  active: 'from-green-400 to-green-600',
+  planning: 'from-cyan-400 to-cyan-600',
+  active: 'from-emerald-400 to-emerald-600',
   'on-hold': 'from-orange-400 to-orange-600',
-  completed: 'from-emerald-400 to-emerald-600',
+  completed: 'from-green-400 to-green-600',
   cancelled: 'from-red-400 to-red-600',
+}
+
+const priorityGradients: Record<string, string> = {
+  low: 'from-gray-100 to-gray-200 dark:from-gray-800/30 dark:to-gray-700/30',
+  medium: 'from-amber-100 to-amber-200 dark:from-amber-900/30 dark:to-amber-800/30',
+  high: 'from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30',
+  critical: 'from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30',
 }
 
 const emptyProject: Partial<Project> = {
@@ -138,22 +145,22 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-sky-600 to-sky-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
-          <p className="text-sm text-muted-foreground">{labels.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white" onClick={openCreate}>
+        <Button className="gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-br from-sky-500/5 to-sky-600/5 border-sky-200/30 dark:border-sky-800/30">
+      <Card className="glass-card shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -177,64 +184,74 @@ export default function ProjectsPage() {
 
       {/* Project Cards Grid */}
       {filtered.length === 0 ? (
-        <Card className="bg-gradient-to-br from-sky-500/5 to-sky-600/5 border-sky-200/30 dark:border-sky-800/30">
-          <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <FolderKanban className="h-12 w-12 mb-3 opacity-30" />
-            <p>{search ? labels.noResults : labels.noProjects}</p>
+        <Card className="glass-card shadow-sm">
+          <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 dark:from-sky-900/20 dark:to-sky-800/20 flex items-center justify-center mb-4">
+              <FolderKanban className="h-10 w-10 text-sky-300" />
+            </div>
+            <p className="text-base font-medium">{search ? labels.noResults : labels.noProjects}</p>
+            <p className="text-sm mt-1 opacity-60">پروژه جدیدی ایجاد کنید</p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(project => {
+          {filtered.map((project, idx) => {
             const sc = getStatusColor(project.status)
             const pc = getPriorityColor(project.priority)
             const gradient = statusGradients[project.status] ?? 'from-gray-400 to-gray-500'
+            const prioGrad = priorityGradients[project.priority] ?? priorityGradients.medium
             return (
               <Card
                 key={project.id}
-                className="bg-gradient-to-br from-sky-500/5 to-sky-600/5 border-sky-200/30 dark:border-sky-800/30 overflow-hidden group hover:shadow-lg transition-all"
+                className="overflow-hidden group hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in border-0"
+                style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
               >
                 {/* Header bar */}
-                <div className={`h-2 bg-gradient-to-r ${gradient}`} />
-                <CardContent className="p-4 space-y-3">
+                <div className={`h-1.5 bg-gradient-to-r ${gradient} transition-all duration-500`} />
+                <CardContent className="p-5 space-y-3.5">
                   {/* Title + badges */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold truncate">{project.title}</h3>
+                      <h3 className="font-semibold truncate text-base">{project.title}</h3>
                       <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{project.description}</p>
                     </div>
                   </div>
 
                   {/* Badges row */}
                   <div className="flex flex-wrap gap-1.5">
-                    <Badge className={`${sc.bg} ${sc.text} border-0 text-[10px]`}>
+                    <Badge className={`${sc.bg} ${sc.text} border-0 text-[10px] shadow-sm`}>
                       {statusLabels[project.status] ?? project.status}
                     </Badge>
-                    <Badge className={`${pc.bg} ${pc.text} border-0 gap-1 text-[10px]`}>
+                    <Badge className={`border text-[10px] shadow-sm bg-gradient-to-r ${prioGrad}`} style={{ borderWidth: 0 }}>
                       <span className={`h-1.5 w-1.5 rounded-full ${pc.dot}`} />
                       {priorityLabels[project.priority] ?? project.priority}
                     </Badge>
                   </div>
 
                   {/* Progress */}
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">{labels.progress}</span>
-                      <span className="font-medium text-sky-600 dark:text-sky-400">{project.progress}%</span>
+                      <span className="font-bold text-sky-600 dark:text-sky-400 tabular-nums">{project.progress}%</span>
                     </div>
-                    <Progress value={project.progress} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-sky-500 [&>div]:to-sky-400" />
+                    <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
+                        style={{ width: `${project.progress}%` }}
+                      />
+                    </div>
                   </div>
 
                   {/* Dates */}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     {project.startDate && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <Calendar className="h-3 w-3" />
                         {formatDate(project.startDate)}
                       </span>
                     )}
                     {project.dueDate && (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1.5">
                         <Target className="h-3 w-3" />
                         {formatDate(project.dueDate)}
                       </span>
@@ -243,10 +260,10 @@ export default function ProjectsPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2 pt-1">
-                    <Button size="sm" variant="outline" className="flex-1 gap-1 h-8" onClick={() => openEdit(project)}>
+                    <Button size="sm" variant="outline" className="flex-1 gap-1.5 h-8 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(project)}>
                       <Pencil className="h-3 w-3" />{labels.edit}
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => openDelete(project.id)}>
+                    <Button size="sm" variant="outline" className="gap-1 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openDelete(project.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
@@ -259,7 +276,7 @@ export default function ProjectsPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-card shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-sky-700 dark:text-sky-300">
               {editingProject ? labels.edit : labels.create}
@@ -307,38 +324,21 @@ export default function ProjectsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{labels.startDate}</Label>
-                <Input
-                  type="date"
-                  value={form.startDate ?? ''}
-                  onChange={e => setForm({ ...form, startDate: e.target.value })}
-                  dir="ltr"
-                />
+                <Input type="date" value={form.startDate ?? ''} onChange={e => setForm({ ...form, startDate: e.target.value })} dir="ltr" />
               </div>
               <div className="space-y-2">
                 <Label>{labels.dueDate}</Label>
-                <Input
-                  type="date"
-                  value={form.dueDate ?? ''}
-                  onChange={e => setForm({ ...form, dueDate: e.target.value })}
-                  dir="ltr"
-                />
+                <Input type="date" value={form.dueDate ?? ''} onChange={e => setForm({ ...form, dueDate: e.target.value })} dir="ltr" />
               </div>
             </div>
             <div className="space-y-2">
               <Label>{labels.progress}: {form.progress ?? 0}%</Label>
-              <Input
-                type="range"
-                min={0}
-                max={100}
-                value={form.progress ?? 0}
-                onChange={e => setForm({ ...form, progress: Number(e.target.value) })}
-                className="cursor-pointer"
-              />
+              <Input type="range" min={0} max={100} value={form.progress ?? 0} onChange={e => setForm({ ...form, progress: Number(e.target.value) })} className="cursor-pointer" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white" onClick={handleSave} disabled={!form.title}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.title}>
               {labels.save}
             </Button>
           </DialogFooter>
@@ -347,14 +347,14 @@ export default function ProjectsPage() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card shadow-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>{labels.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>{labels.deleteDesc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{labels.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
               {labels.delete}
             </AlertDialogAction>
           </AlertDialogFooter>

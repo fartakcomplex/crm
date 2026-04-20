@@ -5,15 +5,16 @@ import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { Post } from './types'
 import { getStatusColor, formatDate } from './types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
-  DialogHeader, DialogTitle, DialogTrigger,
+  DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -141,22 +142,22 @@ export default function ContentPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-600 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
-          <p className="text-sm text-muted-foreground">{labels.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white" onClick={openCreate}>
+        <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-br from-cyan-500/5 to-cyan-600/5 border-cyan-200/30 dark:border-cyan-800/30">
+      <Card className="glass-card shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -182,18 +183,19 @@ export default function ContentPage() {
       </Card>
 
       {/* Posts Table */}
-      <Card className="bg-gradient-to-br from-cyan-500/5 to-cyan-600/5 border-cyan-200/30 dark:border-cyan-800/30">
+      <Card className="glass-card shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <FileText className="h-12 w-12 mb-3 opacity-30" />
-              <p>{search ? labels.noResults : labels.noPosts}</p>
+              <FileText className="h-16 w-16 mb-4 opacity-15" />
+              <p className="text-base font-medium">{search ? labels.noResults : labels.noPosts}</p>
+              <p className="text-sm mt-1 opacity-60">برای شروع یک مطلب جدید ایجاد کنید</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-cyan-200/20 dark:border-cyan-800/20">
+                  <TableRow className="hover:bg-transparent">
                     <TableHead>{labels.postTitle}</TableHead>
                     <TableHead>{labels.status}</TableHead>
                     <TableHead className="hidden md:table-cell">{labels.author}</TableHead>
@@ -203,22 +205,37 @@ export default function ContentPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map(post => {
+                  {filtered.map((post, idx) => {
                     const sc = getStatusColor(post.status)
                     return (
-                      <TableRow key={post.id} className="border-cyan-200/10 dark:border-cyan-800/10 hover:bg-cyan-500/5">
+                      <TableRow
+                        key={post.id}
+                        className="hover-lift transition-all duration-200 animate-in cursor-pointer"
+                        style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
+                        onClick={() => openEdit(post)}
+                      >
                         <TableCell>
-                          <div className="font-medium max-w-[200px] truncate">{post.title}</div>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
+                              <FileText className="h-4 w-4" />
+                            </div>
+                            <div className="font-medium max-w-[200px] truncate">{post.title}</div>
+                          </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={`${sc.bg} ${sc.text} border-0`}>
+                          <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm`}>
                             {statusLabels[post.status] ?? post.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-sm">
-                          {getAuthorName(post)}
+                          <div className="flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                              {getAuthorName(post).charAt(0)}
+                            </div>
+                            {getAuthorName(post)}
+                          </div>
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell text-sm">
+                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {post.category?.name ?? '—'}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
@@ -226,10 +243,10 @@ export default function ContentPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(post)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => openDelete(post.id)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -246,7 +263,7 @@ export default function ContentPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-card shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-cyan-700 dark:text-cyan-300">
               {editingPost ? labels.edit : labels.create}
@@ -258,7 +275,7 @@ export default function ContentPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>{labels.postTitle}</Label>
-              <Input value={form.title ?? ''} onChange={e => setForm({ ...form, title: e.target.value })} />
+              <Input value={form.title ?? ''} onChange={e => setForm({ ...form, title: e.target.value })} className="transition-all duration-200 focus:shadow-sm" />
             </div>
             <div className="space-y-2">
               <Label>{labels.slug}</Label>
@@ -298,8 +315,8 @@ export default function ContentPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white" onClick={handleSave} disabled={!form.title}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.title}>
               {labels.save}
             </Button>
           </DialogFooter>
@@ -308,14 +325,14 @@ export default function ContentPage() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card shadow-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>{labels.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>{labels.deleteDesc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{labels.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
               {labels.delete}
             </AlertDialogAction>
           </AlertDialogFooter>

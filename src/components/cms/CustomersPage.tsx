@@ -5,7 +5,7 @@ import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { Customer } from './types'
 import { getStatusColor, formatDate } from './types'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -24,7 +24,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import { UserCircle, Plus, Pencil, Trash2, Search, DollarSign, Building2 } from 'lucide-react'
+import { UserCircle, Plus, Pencil, Trash2, Search, DollarSign, Building2, TrendingUp, Users } from 'lucide-react'
 
 const labels = {
   title: 'مدیریت مشتریان',
@@ -62,7 +62,7 @@ const statusLabels: Record<string, string> = {
 const statusDotColors: Record<string, string> = {
   active: 'bg-green-500',
   inactive: 'bg-gray-400',
-  lead: 'bg-blue-500',
+  lead: 'bg-amber-500',
   churned: 'bg-red-500',
 }
 
@@ -77,6 +77,7 @@ export default function CustomersPage() {
 
   const totalValue = customersData.reduce((sum, c) => sum + (c.value ?? 0), 0)
   const activeCount = customersData.filter(c => c.status === 'active').length
+  const leadCount = customersData.filter(c => c.status === 'lead').length
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -133,59 +134,59 @@ export default function CustomersPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-amber-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
-          <p className="text-sm text-muted-foreground">{labels.subtitle}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white" onClick={openCreate}>
+        <Button className="gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-amber-500 to-amber-700 border-0 text-white">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="bg-white/20 rounded-lg p-2.5">
+        <Card className="bg-gradient-to-br from-amber-500 to-amber-700 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+          <CardContent className="p-5 flex items-center gap-3">
+            <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
               <UserCircle className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm opacity-80">کل مشتریان</p>
-              <p className="text-2xl font-bold">{customersData.length}</p>
+              <p className="text-2xl font-bold tabular-nums">{customersData.length}</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-green-500 to-green-700 border-0 text-white">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="bg-white/20 rounded-lg p-2.5">
-              <Building2 className="h-5 w-5" />
+        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
+          <CardContent className="p-5 flex items-center gap-3">
+            <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
+              <TrendingUp className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm opacity-80">{labels.activeCustomers}</p>
-              <p className="text-2xl font-bold">{activeCount}</p>
+              <p className="text-2xl font-bold tabular-nums">{activeCount}</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-700 border-0 text-white">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="bg-white/20 rounded-lg p-2.5">
+        <Card className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+          <CardContent className="p-5 flex items-center gap-3">
+            <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
               <DollarSign className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm opacity-80">{labels.totalValue}</p>
-              <p className="text-2xl font-bold">${totalValue.toLocaleString()}</p>
+              <p className="text-2xl font-bold tabular-nums">${totalValue.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <Card className="bg-gradient-to-br from-amber-500/5 to-amber-600/5 border-amber-200/30 dark:border-amber-800/30">
+      <Card className="glass-card shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -207,18 +208,21 @@ export default function CustomersPage() {
       </Card>
 
       {/* Customers Table */}
-      <Card className="bg-gradient-to-br from-amber-500/5 to-amber-600/5 border-amber-200/30 dark:border-amber-800/30">
+      <Card className="glass-card shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <UserCircle className="h-12 w-12 mb-3 opacity-30" />
-              <p>{search ? labels.noResults : labels.noCustomers}</p>
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-900/20 dark:to-amber-800/20 flex items-center justify-center mb-4">
+                <UserCircle className="h-10 w-10 text-amber-300" />
+              </div>
+              <p className="text-base font-medium">{search ? labels.noResults : labels.noCustomers}</p>
+              <p className="text-sm mt-1 opacity-60">برای شروع مشتری جدیدی اضافه کنید</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-amber-200/20 dark:border-amber-800/20">
+                  <TableRow className="hover:bg-transparent">
                     <TableHead>{labels.name}</TableHead>
                     <TableHead>{labels.email}</TableHead>
                     <TableHead className="hidden md:table-cell">{labels.company}</TableHead>
@@ -229,28 +233,40 @@ export default function CustomersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map(customer => {
+                  {filtered.map((customer, idx) => {
                     const sc = getStatusColor(customer.status)
                     const dotColor = statusDotColors[customer.status] ?? 'bg-gray-400'
                     return (
-                      <TableRow key={customer.id} className="border-amber-200/10 dark:border-amber-800/10 hover:bg-amber-500/5">
+                      <TableRow
+                        key={customer.id}
+                        className="hover-lift transition-all duration-200 animate-in cursor-pointer"
+                        style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
+                        onClick={() => openEdit(customer)}
+                      >
                         <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-xs font-bold">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
                               {customer.name.charAt(0)}
                             </div>
                             <span className="font-medium">{customer.name}</span>
                           </div>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground" dir="ltr">{customer.email}</TableCell>
-                        <TableCell className="hidden md:table-cell text-sm">{customer.company || '—'}</TableCell>
+                        <TableCell className="hidden md:table-cell text-sm">
+                          {customer.company && (
+                            <div className="flex items-center gap-1.5">
+                              <Building2 className="h-3 w-3 text-muted-foreground" />
+                              {customer.company}
+                            </div>
+                          )}
+                        </TableCell>
                         <TableCell>
-                          <Badge className={`${sc.bg} ${sc.text} border-0 gap-1`}>
+                          <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
                             {statusLabels[customer.status] ?? customer.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell text-sm font-medium">
+                        <TableCell className="hidden sm:table-cell text-sm font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
                           ${customer.value.toLocaleString()}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
@@ -258,10 +274,10 @@ export default function CustomersPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(customer)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(customer) }}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => openDelete(customer.id)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(customer.id) }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
@@ -278,7 +294,7 @@ export default function CustomersPage() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md glass-card shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-amber-700 dark:text-amber-300">
               {editingCustomer ? labels.edit : labels.create}
@@ -331,8 +347,8 @@ export default function CustomersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white" onClick={handleSave} disabled={!form.name || !form.email}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.name || !form.email}>
               {labels.save}
             </Button>
           </DialogFooter>
@@ -341,14 +357,14 @@ export default function CustomersPage() {
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card shadow-xl">
           <AlertDialogHeader>
             <AlertDialogTitle>{labels.deleteConfirm}</AlertDialogTitle>
             <AlertDialogDescription>{labels.deleteDesc}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{labels.cancel}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
               {labels.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
