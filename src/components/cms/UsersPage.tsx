@@ -26,6 +26,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Users, Plus, Pencil, Trash2, Search, Shield, UserCheck, UserX, Mail } from 'lucide-react'
+import PaginationControls from './PaginationControls'
 
 const labels = {
   title: 'مدیریت کاربران',
@@ -87,6 +88,8 @@ export default function UsersPage() {
 
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -99,6 +102,13 @@ export default function UsersPage() {
     const matchRole = roleFilter === 'all' || u.role === roleFilter
     return matchSearch && matchRole
   })
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleRoleFilterChange = (v: string) => { setRoleFilter(v); setCurrentPage(1) }
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1) }
 
   const openCreate = () => {
     setEditingUser(null)
@@ -155,9 +165,9 @@ export default function UsersPage() {
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+            <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
           </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
@@ -197,7 +207,7 @@ export default function UsersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((user, idx) => {
+                  {paginatedItems.map((user, idx) => {
                     const sc = getStatusColor(user.status)
                     const rb = getRoleBadge(user.role)
                     const dotColor = roleDotColors[user.role] ?? 'bg-gray-400'
@@ -260,6 +270,17 @@ export default function UsersPage() {
           )}
         </CardContent>
       </Card>
+
+      {filtered.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

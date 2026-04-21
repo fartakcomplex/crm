@@ -18,6 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { UserCog, Plus, Pencil, Trash2, Search, Mail, Building2 } from 'lucide-react'
+import PaginationControls from './PaginationControls'
 
 const labels = {
   title: 'مدیریت تیم',
@@ -99,6 +100,8 @@ export default function TeamPage() {
 
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
   const [form, setForm] = useState<Partial<TeamMember>>(emptyMember)
@@ -109,6 +112,13 @@ export default function TeamPage() {
     const matchDept = deptFilter === 'all' || m.department === deptFilter
     return matchSearch && matchDept
   })
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleDeptFilterChange = (v: string) => { setDeptFilter(v); setCurrentPage(1) }
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1) }
 
   const openCreate = () => {
     setEditingMember(null)
@@ -156,9 +166,9 @@ export default function TeamPage() {
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+            <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
           </div>
-          <Select value={deptFilter} onValueChange={setDeptFilter}>
+          <Select value={deptFilter} onValueChange={handleDeptFilterChange}>
             <SelectTrigger className="w-full sm:w-44">
               <SelectValue />
             </SelectTrigger>
@@ -185,7 +195,7 @@ export default function TeamPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filtered.map((member, idx) => {
+          {paginatedItems.map((member, idx) => {
             const sc = getStatusColor(member.status)
             const gradient = deptColors[member.department] ?? 'from-gray-400 to-gray-500'
             const badgeColor = deptBadgeColors[member.department] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300 border-gray-200 dark:border-gray-700'
@@ -239,6 +249,17 @@ export default function TeamPage() {
             )
           })}
         </div>
+      )}
+
+      {filtered.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
       )}
 
       {/* Create/Edit Dialog */}

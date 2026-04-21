@@ -17,6 +17,10 @@ import {
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter,
+} from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
@@ -27,8 +31,9 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import {
-  FileText, Plus, Pencil, Trash2, Search, Eye,
+  FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X,
 } from 'lucide-react'
+import PaginationControls from './PaginationControls'
 
 const labels = {
   title: 'مدیریت محتوا',
@@ -58,6 +63,9 @@ const labels = {
   archived: 'بایگانی',
   all: 'همه',
   tagsPlaceholder: 'برچسب‌ها را با کاما جدا کنید',
+  preview: 'پیش‌نویس مطلب',
+  wordCount: 'تعداد کلمات',
+  close: 'بستن',
 }
 
 const statusLabels: Record<string, string> = {
@@ -80,9 +88,16 @@ export default function ContentPage() {
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+
+  const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
+  const handlePageSizeChange = (v: string) => { setPageSize(Number(v)); setCurrentPage(1) }
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [previewPost, setPreviewPost] = useState<Post | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Post>>(emptyPost)
 
@@ -92,6 +107,9 @@ export default function ContentPage() {
     const matchStatus = statusFilter === 'all' || p.status === statusFilter
     return matchSearch && matchStatus
   })
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const openCreate = () => {
     setEditingPost(null)
@@ -164,11 +182,11 @@ export default function ContentPage() {
             <Input
               placeholder={labels.search}
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => handleSearchChange(e.target.value)}
               className="pr-10"
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
@@ -205,14 +223,14 @@ export default function ContentPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((post, idx) => {
+                  {paginatedItems.map((post, idx) => {
                     const sc = getStatusColor(post.status)
                     return (
                       <TableRow
                         key={post.id}
                         className="hover-lift transition-all duration-200 animate-in cursor-pointer"
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
-                        onClick={() => openEdit(post)}
+                        onClick={() => setPreviewPost(post)}
                       >
                         <TableCell>
                           <div className="flex items-center gap-3">
@@ -243,6 +261,9 @@ export default function ContentPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
                             <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
@@ -260,6 +281,17 @@ export default function ContentPage() {
           )}
         </CardContent>
       </Card>
+
+      {filtered.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -338,6 +370,116 @@ export default function ContentPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Post Preview Sheet */}
+      <Sheet open={!!previewPost} onOpenChange={open => { if (!open) setPreviewPost(null) }}>
+        <SheetContent side="left" className="sm:max-w-lg glass-card overflow-y-auto">
+          {previewPost && (
+            <>
+              <SheetHeader className="pb-2">
+                <SheetTitle className="text-lg text-cyan-700 dark:text-cyan-300 flex items-center gap-2">
+                  <Eye className="h-5 w-5" />
+                  {labels.preview}
+                </SheetTitle>
+                <SheetDescription className="sr-only">{previewPost.title}</SheetDescription>
+              </SheetHeader>
+
+              <div className="flex-1 px-4 pb-4 space-y-5">
+                {/* Post Title */}
+                <div className="pt-2">
+                  <h1 className="text-xl font-bold leading-relaxed gradient-text">
+                    {previewPost.title}
+                  </h1>
+                  {previewPost.slug && (
+                    <p className="text-xs text-muted-foreground mt-1 font-mono" dir="ltr">
+                      /{previewPost.slug}
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Metadata Bar */}
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-3.5 w-3.5 text-cyan-500" />
+                    <span>{getAuthorName(previewPost)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-cyan-500" />
+                    <span>{formatDate(previewPost.createdAt)}</span>
+                  </div>
+                  {previewPost.category && (
+                    <div className="flex items-center gap-1.5">
+                      <FolderOpen className="h-3.5 w-3.5 text-cyan-500" />
+                      <span>{previewPost.category.name}</span>
+                    </div>
+                  )}
+                  <Badge className={`${getStatusColor(previewPost.status).bg} ${getStatusColor(previewPost.status).text} border-0 text-xs`}>
+                    {statusLabels[previewPost.status] ?? previewPost.status}
+                  </Badge>
+                </div>
+
+                {/* Word Count */}
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-md px-3 py-1.5 w-fit">
+                  <AlignRight className="h-3.5 w-3.5 text-cyan-500" />
+                  <span>{labels.wordCount}:</span>
+                  <span className="font-semibold text-foreground">
+                    {previewPost.content ? previewPost.content.trim().split(/\s+/).filter(Boolean).length : 0}
+                  </span>
+                </div>
+
+                {/* Excerpt */}
+                {previewPost.excerpt && (
+                  <div className="relative rounded-lg border-r-4 border-cyan-500 bg-gradient-to-l from-cyan-50 to-transparent dark:from-cyan-950/20 dark:to-transparent px-4 py-3">
+                    <div className="flex items-center gap-1.5 mb-1.5 text-xs font-semibold text-cyan-700 dark:text-cyan-400">
+                      <AlignRight className="h-3.5 w-3.5" />
+                      {labels.excerpt}
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground whitespace-pre-wrap">
+                      {previewPost.excerpt}
+                    </p>
+                  </div>
+                )}
+
+                {/* Content */}
+                {previewPost.content && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-cyan-700 dark:text-cyan-400">
+                      <Hash className="h-3.5 w-3.5" />
+                      {labels.content}
+                    </div>
+                    <div className="rounded-lg bg-muted/30 border p-4 max-h-72 overflow-y-auto">
+                      <div className="text-sm leading-7 whitespace-pre-wrap text-foreground/90">
+                        {previewPost.content}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer Actions */}
+              <SheetFooter className="border-t bg-muted/20 flex-row gap-2">
+                <Button
+                  className="flex-1 gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                  onClick={() => { openEdit(previewPost); setPreviewPost(null) }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  {labels.edit}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                  onClick={() => setPreviewPost(null)}
+                >
+                  <X className="h-4 w-4" />
+                  {labels.close}
+                </Button>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

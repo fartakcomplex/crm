@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,8 @@ import { Progress } from '@/components/ui/progress'
 import {
   BarChart3, FileText, Users, UserCircle, FolderKanban, Eye,
   DollarSign, TrendingUp, Plus, UserPlus, Clock, Activity,
-  Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap
+  Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
+  CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
 } from 'lucide-react'
 import { formatRelativeTime } from './types'
 
@@ -123,6 +124,48 @@ function Section({ title, defaultOpen, children, delay }: {
   )
 }
 
+// ──────────────────────────── Persian Date ──────────────────────────────
+
+function PersianDate() {
+  const date = useMemo(() => {
+    const now = new Date()
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    }
+    return now.toLocaleDateString('fa-IR', options)
+  }, [])
+  return <span>{date}</span>
+}
+
+// ──────────────────────────── Mini Trend Card ────────────────────────────
+
+function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, delay }: {
+  icon: React.ReactNode; label: string; value: string; change: string; trend: 'up' | 'down' | 'flat';
+  color: string; bgColor: string; delay?: number
+}) {
+  return (
+    <Card className={`hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
+      <CardContent className="p-3.5">
+        <div className="flex items-center justify-between mb-2">
+          <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color}`}>
+            {icon}
+          </div>
+          {trend !== 'flat' && (
+            <Badge className={`text-[10px] gap-0.5 border-0 px-1.5 py-0 ${
+              trend === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+            }`}>
+              {trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+              {change}
+            </Badge>
+          )}
+        </div>
+        <p className="text-lg font-bold tabular-nums">{value}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ────────────────────────────── Skeleton Loader ──────────────────────────
 
 function DashboardSkeleton() {
@@ -161,18 +204,74 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6 page-enter">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold gradient-text">
-            {labels.title}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
-        </div>
-        <Badge variant="secondary" className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 w-fit shadow-sm">
-          <Activity className="h-3 w-3 ml-1" />
-          آنلاین
-        </Badge>
+      {/* Welcome Banner */}
+      <Card className="relative overflow-hidden glass-card border-0 shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-l from-violet-600/10 via-purple-500/5 to-fuchsia-500/10 dark:from-violet-600/20 dark:via-purple-500/10 dark:to-fuchsia-500/10 pointer-events-none" />
+        <CardContent className="p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25 float-animation">
+              <Sparkles className="h-7 w-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold gradient-text">{labels.title}</h1>
+              <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
+              <CalendarDays className="h-4 w-4" />
+              <PersianDate />
+            </div>
+            <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 w-fit shadow-sm gap-1">
+              <Activity className="h-3 w-3" />
+              آنلاین
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Today's Quick Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <MiniTrendCard
+          label="بازدید امروز"
+          value="۱۲۴"
+          change="+۲۳٪"
+          trend="up"
+          icon={<Eye className="h-4 w-4" />}
+          color="text-emerald-600 dark:text-emerald-400"
+          bgColor="bg-emerald-100 dark:bg-emerald-900/20"
+          delay={0}
+        />
+        <MiniTrendCard
+          label="نظرات جدید"
+          value="۸"
+          change="+۴"
+          trend="up"
+          icon={<MessageCircle className="h-4 w-4" />}
+          color="text-amber-600 dark:text-amber-400"
+          bgColor="bg-amber-100 dark:bg-amber-900/20"
+          delay={50}
+        />
+        <MiniTrendCard
+          label="کاربران فعال"
+          value="۳"
+          change="۰٪"
+          trend="flat"
+          icon={<Users className="h-4 w-4" />}
+          color="text-cyan-600 dark:text-cyan-400"
+          bgColor="bg-cyan-100 dark:bg-cyan-900/20"
+          delay={100}
+        />
+        <MiniTrendCard
+          label="تسک‌های فعال"
+          value="۵"
+          change="-۱"
+          trend="down"
+          icon={<Target className="h-4 w-4" />}
+          color="text-rose-600 dark:text-rose-400"
+          bgColor="bg-rose-100 dark:bg-rose-900/20"
+          delay={150}
+        />
       </div>
 
       {/* Stats Row */}

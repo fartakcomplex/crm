@@ -25,6 +25,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { UserCircle, Plus, Pencil, Trash2, Search, DollarSign, Building2, TrendingUp, Users } from 'lucide-react'
+import PaginationControls from './PaginationControls'
 
 const labels = {
   title: 'مدیریت مشتریان',
@@ -81,6 +82,8 @@ export default function CustomersPage() {
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
@@ -94,6 +97,13 @@ export default function CustomersPage() {
     const matchStatus = statusFilter === 'all' || c.status === statusFilter
     return matchSearch && matchStatus
   })
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1) }
 
   const openCreate = () => {
     setEditingCustomer(null)
@@ -190,9 +200,9 @@ export default function CustomersPage() {
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+            <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
@@ -233,7 +243,7 @@ export default function CustomersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((customer, idx) => {
+                  {paginatedItems.map((customer, idx) => {
                     const sc = getStatusColor(customer.status)
                     const dotColor = statusDotColors[customer.status] ?? 'bg-gray-400'
                     return (
@@ -291,6 +301,17 @@ export default function CustomersPage() {
           )}
         </CardContent>
       </Card>
+
+      {filtered.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

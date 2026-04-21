@@ -14,6 +14,7 @@ import {
 import {
   MessageCircle, Check, X, Reply, Search, MessageSquare, Mail, FileText,
 } from 'lucide-react'
+import PaginationControls from './PaginationControls'
 import { formatRelativeTime, getStatusColor } from './types'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
@@ -63,6 +64,8 @@ export default function CommentsPage() {
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
 
@@ -74,6 +77,13 @@ export default function CommentsPage() {
       return matchSearch && matchStatus
     })
   }, [commentsData, search, statusFilter])
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
+  const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
+  const handlePageSizeChange = (size: number) => { setPageSize(size); setCurrentPage(1) }
 
   const pendingCount = commentsData.filter(c => c.status === 'pending').length
   const approvedCount = commentsData.filter(c => c.status === 'approved').length
@@ -118,9 +128,9 @@ export default function CommentsPage() {
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+            <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
             <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
@@ -148,7 +158,7 @@ export default function CommentsPage() {
       ) : (
         <ScrollArea className="max-h-[600px]">
           <div className="space-y-3 pr-1">
-            {filtered.map((comment, idx) => {
+            {paginatedItems.map((comment, idx) => {
               const sc = getStatusColor(comment.status)
               const isReplying = replyingTo === comment.id
               const gradient = statusGradients[comment.status] ?? statusGradients.pending
@@ -232,6 +242,17 @@ export default function CommentsPage() {
             })}
           </div>
         </ScrollArea>
+      )}
+
+      {filtered.length > 0 && (
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={handlePageSizeChange}
+        />
       )}
     </div>
   )
