@@ -24,6 +24,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { FolderKanban, Plus, Pencil, Trash2, Search, Calendar, Flag, Target } from 'lucide-react'
+import { toast } from 'sonner'
 
 const labels = {
   title: 'مدیریت پروژه‌ها',
@@ -130,8 +131,10 @@ export default function ProjectsPage() {
     if (!form.title) return
     if (editingProject) {
       updateProject.mutate({ id: editingProject.id, ...form })
+      toast.success('اطلاعات پروژه بروزرسانی شد')
     } else {
       createProject.mutate(form)
+      toast.success('پروژه جدید ایجاد شد')
     }
     setDialogOpen(false)
   }
@@ -139,6 +142,7 @@ export default function ProjectsPage() {
   const handleDelete = () => {
     if (deletingId) {
       deleteProject.mutate(deletingId)
+      toast.success('پروژه با موفقیت حذف شد')
       setDeleteOpen(false)
       setDeletingId(null)
     }

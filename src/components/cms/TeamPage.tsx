@@ -18,6 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { UserCog, Plus, Pencil, Trash2, Search, Mail, Building2 } from 'lucide-react'
+import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 
 const labels = {
@@ -136,14 +137,17 @@ export default function TeamPage() {
     if (!form.name || !form.email) return
     if (editingMember) {
       updateTeamMember.mutate({ id: editingMember.id, ...form })
+      toast.success('اطلاعات عضو تیم بروزرسانی شد')
     } else {
       createTeamMember.mutate(form)
+      toast.success('عضو جدید به تیم اضافه شد')
     }
     setDialogOpen(false)
   }
 
   const handleDelete = (id: string) => {
     deleteTeamMember.mutate(id)
+    toast.success('عضو تیم با موفقیت حذف شد')
   }
 
   return (

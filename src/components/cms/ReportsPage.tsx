@@ -14,6 +14,8 @@ import {
   Download, Calendar, ArrowUpRight, ArrowDownRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { exportToCSV } from '@/lib/csv-export'
+import { formatDate } from './types'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
 
@@ -61,9 +63,12 @@ function CircleChart({ value, max, color, label }: { value: number; max: number;
 
 export default function ReportsPage() {
   useEnsureData(['stats', 'charts', 'posts', 'users', 'customers', 'projects'])
-  const { stats, charts } = useCMS()
+  const { stats, charts, posts, users, customers } = useCMS()
   const statsData = stats.data
   const chartData = charts.data
+  const postsData = posts.data ?? []
+  const usersData = users.data ?? []
+  const customersData = customers.data ?? []
 
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -79,7 +84,38 @@ export default function ReportsPage() {
   const avgViews = totalPostsCount > 0 ? Math.round((statsData?.totalViews ?? 0) / totalPostsCount) : 0
 
   const handleExport = () => {
-    toast.success(labels.exportSuccess, { description: 'فایل CSV در حال آماده‌سازی...' })
+    // Export comprehensive report data
+    const reportData: Record<string, string | number>[] = [
+      // Summary stats
+      { section: 'خلاصه آمار', metric: 'کل بازدیدها', value: statsData?.totalViews ?? 0 },
+      { section: 'خلاصه آمار', metric: 'کل مطالب', value: totalPostsCount },
+      { section: 'خلاصه آمار', metric: 'مطالب منتشر شده', value: publishedCount },
+      { section: 'خلاصه آمار', metric: 'پیش‌نویس‌ها', value: draftCount },
+      { section: 'خلاصه آمار', metric: 'کل کاربران', value: statsData?.totalUsers ?? 0 },
+      { section: 'خلاصه آمار', metric: 'کل نظرات', value: statsData?.totalComments ?? 0 },
+      { section: 'خلاصه آمار', metric: 'میانگین بازدید', value: avgViews },
+    ]
+
+    // Add monthly views
+    monthlyViews.forEach(m => {
+      reportData.push({ section: 'بازدید ماهانه', metric: m.month, value: m.views })
+    })
+
+    // Add category distribution
+    categoryDist.forEach(c => {
+      reportData.push({ section: 'توزیع دسته‌بندی‌ها', metric: c.name, value: c.value })
+    })
+
+    exportToCSV(
+      reportData,
+      'cms-report',
+      [
+        { key: 'section', label: 'بخش' },
+        { key: 'metric', label: 'مقدار' },
+        { key: 'value', label: 'عدد' },
+      ],
+    )
+    toast.success(labels.exportSuccess)
   }
 
   return (

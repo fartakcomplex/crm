@@ -23,6 +23,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import { Upload, Trash2, Image as ImageIcon, Video, FileText, Music, File, Search, Eye, X } from 'lucide-react'
+import { toast } from 'sonner'
 
 const labels = {
   title: 'مدیریت رسانه',
@@ -95,6 +96,7 @@ export default function MediaPage() {
     formData.append('file', selectedFile)
     uploadMedia.mutate(formData, {
       onSuccess: () => {
+        toast.success('فایل با موفقیت بارگذاری شد')
         setUploadOpen(false)
         setSelectedFile(null)
       },
@@ -109,6 +111,7 @@ export default function MediaPage() {
   const handleDelete = () => {
     if (deletingId) {
       deleteMedia.mutate(deletingId)
+      toast.success('فایل با موفقیت حذف شد')
       setDeleteOpen(false)
       setDeletingId(null)
     }

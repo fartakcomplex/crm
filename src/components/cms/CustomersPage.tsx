@@ -24,7 +24,9 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import { UserCircle, Plus, Pencil, Trash2, Search, DollarSign, Building2, TrendingUp, Users } from 'lucide-react'
+import { UserCircle, Plus, Pencil, Trash2, Search, DollarSign, Building2, TrendingUp, Users, Download, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import { exportToCSV } from '@/lib/csv-export'
+import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 
 const labels = {
@@ -84,11 +86,23 @@ export default function CustomersPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Customer>>(emptyCustomer)
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+    setCurrentPage(1)
+  }
 
   const filtered = customersData.filter(c => {
     const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -96,6 +110,22 @@ export default function CustomersPage() {
       c.company.toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'all' || c.status === statusFilter
     return matchSearch && matchStatus
+  }).sort((a, b) => {
+    if (!sortColumn) return 0
+    if (sortColumn === 'value') {
+      const diff = (a.value ?? 0) - (b.value ?? 0)
+      return sortDirection === 'asc' ? diff : -diff
+    }
+    let valA: string = ''
+    let valB: string = ''
+    switch (sortColumn) {
+      case 'name': valA = a.name; valB = b.name; break
+      case 'status': valA = a.status; valB = b.status; break
+      case 'date': valA = a.createdAt; valB = b.createdAt; break
+      default: return 0
+    }
+    const cmp = valA.localeCompare(valB, 'fa')
+    return sortDirection === 'asc' ? cmp : -cmp
   })
 
   const totalPages = Math.ceil(filtered.length / pageSize)
@@ -129,8 +159,10 @@ export default function CustomersPage() {
     if (!form.name || !form.email) return
     if (editingCustomer) {
       updateCustomer.mutate({ id: editingCustomer.id, ...form })
+      toast.success('اطلاعات مشتری بروزرسانی شد')
     } else {
       createCustomer.mutate(form)
+      toast.success('مشتری جدید اضافه شد')
     }
     setDialogOpen(false)
   }
@@ -138,6 +170,7 @@ export default function CustomersPage() {
   const handleDelete = () => {
     if (deletingId) {
       deleteCustomer.mutate(deletingId)
+      toast.success('مشتری با موفقیت حذف شد')
       setDeleteOpen(false)
       setDeletingId(null)
     }
@@ -153,9 +186,42 @@ export default function CustomersPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
-          <Plus className="h-4 w-4" />{labels.create}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 border-amber-300 dark:border-amber-700 hover:bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            onClick={() => {
+              exportToCSV(
+                filtered.map(c => ({
+                  name: c.name,
+                  email: c.email,
+                  phone: c.phone,
+                  company: c.company,
+                  status: statusLabels[c.status] ?? c.status,
+                  value: c.value ?? 0,
+                  date: formatDate(c.createdAt),
+                })),
+                'customers-list',
+                [
+                  { key: 'name', label: 'نام' },
+                  { key: 'email', label: 'ایمیل' },
+                  { key: 'phone', label: 'تلفن' },
+                  { key: 'company', label: 'شرکت' },
+                  { key: 'status', label: 'وضعیت' },
+                  { key: 'value', label: 'ارزش ($)' },
+                  { key: 'date', label: 'تاریخ' },
+                ],
+              )
+              toast.success('خروجی CSV با موفقیت دانلود شد!')
+            }}
+          >
+            <Download className="h-4 w-4" />
+            خروجی CSV
+          </Button>
+          <Button className="gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+            <Plus className="h-4 w-4" />{labels.create}
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -233,12 +299,32 @@ export default function CustomersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>{labels.name}</TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.name}
+                        {sortColumn === 'name' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead>{labels.email}</TableHead>
                     <TableHead className="hidden md:table-cell">{labels.company}</TableHead>
-                    <TableHead>{labels.status}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{labels.value}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{labels.date}</TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.status}
+                        {sortColumn === 'status' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      <button onClick={() => handleSort('value')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.value}
+                        {sortColumn === 'value' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      <button onClick={() => handleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.date}
+                        {sortColumn === 'date' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead>{labels.actions}</TableHead>
                   </TableRow>
                 </TableHeader>

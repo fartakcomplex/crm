@@ -32,8 +32,12 @@ import {
 } from '@/components/ui/table'
 import {
   FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X,
+  Download, ArrowUpDown, ChevronUp, ChevronDown,
 } from 'lucide-react'
+import { exportToCSV } from '@/lib/csv-export'
+import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
+import RichTextEditor from './RichTextEditor'
 
 const labels = {
   title: 'مدیریت محتوا',
@@ -90,6 +94,8 @@ export default function ContentPage() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
   const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
@@ -101,11 +107,34 @@ export default function ContentPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Post>>(emptyPost)
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+    setCurrentPage(1)
+  }
+
   const filtered = postsData.filter(p => {
     const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) ||
       p.slug.toLowerCase().includes(search.toLowerCase())
     const matchStatus = statusFilter === 'all' || p.status === statusFilter
     return matchSearch && matchStatus
+  }).sort((a, b) => {
+    if (!sortColumn) return 0
+    let valA: string = ''
+    let valB: string = ''
+    switch (sortColumn) {
+      case 'title': valA = a.title; valB = b.title; break
+      case 'status': valA = a.status; valB = b.status; break
+      case 'author': valA = getAuthorName(a); valB = getAuthorName(b); break
+      case 'date': valA = a.createdAt; valB = b.createdAt; break
+      default: return 0
+    }
+    const cmp = valA.localeCompare(valB, 'fa')
+    return sortDirection === 'asc' ? cmp : -cmp
   })
 
   const totalPages = Math.ceil(filtered.length / pageSize)
@@ -142,12 +171,14 @@ export default function ContentPage() {
     } else {
       createPost.mutate(form)
     }
+    toast.success('مطلب با موفقیت ذخیره شد')
     setDialogOpen(false)
   }
 
   const handleDelete = () => {
     if (deletingId) {
       deletePost.mutate(deletingId)
+      toast.success('مطلب با موفقیت حذف شد')
       setDeleteOpen(false)
       setDeletingId(null)
     }
@@ -169,9 +200,40 @@ export default function ContentPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
-          <Plus className="h-4 w-4" />{labels.create}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 border-cyan-300 dark:border-cyan-700 hover:bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            onClick={() => {
+              exportToCSV(
+                filtered.map(p => ({
+                  title: p.title,
+                  slug: p.slug,
+                  status: statusLabels[p.status] ?? p.status,
+                  author: getAuthorName(p),
+                  category: p.category?.name ?? '—',
+                  date: formatDate(p.createdAt),
+                })),
+                'content-posts',
+                [
+                  { key: 'title', label: 'عنوان' },
+                  { key: 'slug', label: 'نامک' },
+                  { key: 'status', label: 'وضعیت' },
+                  { key: 'author', label: 'نویسنده' },
+                  { key: 'category', label: 'دسته‌بندی' },
+                  { key: 'date', label: 'تاریخ' },
+                ],
+              )
+              toast.success('خروجی CSV با موفقیت دانلود شد!')
+            }}
+          >
+            <Download className="h-4 w-4" />
+            خروجی CSV
+          </Button>
+          <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+            <Plus className="h-4 w-4" />{labels.create}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -214,11 +276,31 @@ export default function ContentPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>{labels.postTitle}</TableHead>
-                    <TableHead>{labels.status}</TableHead>
-                    <TableHead className="hidden md:table-cell">{labels.author}</TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('title')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.postTitle}
+                        {sortColumn === 'title' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.status}
+                        {sortColumn === 'status' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <button onClick={() => handleSort('author')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.author}
+                        {sortColumn === 'author' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead className="hidden lg:table-cell">{labels.category}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{labels.date}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      <button onClick={() => handleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.date}
+                        {sortColumn === 'date' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead>{labels.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -319,7 +401,10 @@ export default function ContentPage() {
             </div>
             <div className="space-y-2">
               <Label>{labels.content}</Label>
-              <Textarea value={form.content ?? ''} onChange={e => setForm({ ...form, content: e.target.value })} rows={5} />
+              <RichTextEditor
+                value={form.content ?? ''}
+                onChange={(v) => setForm({ ...form, content: v })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

@@ -59,6 +59,11 @@ const pageComponents: Record<string, React.ComponentType> = {
   settings: dynamic(() => import('@/components/cms/SettingsPage'), { loading: LoadingFallback, ssr: false }),
 }
 
+const DynamicLoginPage = dynamic(
+  () => import('@/components/cms/LoginPage'),
+  { ssr: false }
+)
+
 // ─── Icon Map ──────────────────────────────────────────────────────────
 
 const iconComponents: Record<string, React.ComponentType<{className?: string}>> = {
@@ -308,7 +313,7 @@ function NotificationDropdown({ children }: { children: React.ReactNode }) {
 
 // ─── User Profile Dropdown ─────────────────────────────────────────────
 
-function UserProfileDropdown() {
+function UserProfileDropdown({ onLogout }: { onLogout: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -332,7 +337,10 @@ function UserProfileDropdown() {
           <span className="text-sm">تنظیمات</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600">
+        <DropdownMenuItem
+          className="gap-2 cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
+          onClick={onLogout}
+        >
           <LogOut className="h-4 w-4" />
           <span className="text-sm">خروج</span>
         </DropdownMenuItem>
@@ -348,6 +356,7 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(true)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
 
@@ -386,8 +395,23 @@ function AppContent() {
     setMobileSheetOpen(false)
   }, [])
 
+  const handleLogin = useCallback(() => {
+    setIsLoggedIn(true)
+    setActiveTab('dashboard')
+  }, [])
+
+  const handleLogout = useCallback(() => {
+    setIsLoggedIn(false)
+    setMobileSheetOpen(false)
+  }, [])
+
   const PageComponent = pageComponents[activeTab] ?? pageComponents.dashboard
   const activeTabData = CMS_TABS.find(t => t.id === activeTab)
+
+  // Full-screen login when not authenticated
+  if (!isLoggedIn) {
+    return <DynamicLoginPage onLogin={handleLogin} />
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -512,7 +536,7 @@ function AppContent() {
               </NotificationDropdown>
 
               {/* User Profile */}
-              <UserProfileDropdown />
+              <UserProfileDropdown onLogout={handleLogout} />
             </div>
           </header>
 

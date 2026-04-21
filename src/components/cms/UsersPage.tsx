@@ -25,7 +25,9 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
-import { Users, Plus, Pencil, Trash2, Search, Shield, UserCheck, UserX, Mail } from 'lucide-react'
+import { Users, Plus, Pencil, Trash2, Search, Shield, UserCheck, UserX, Mail, Download, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import { exportToCSV } from '@/lib/csv-export'
+import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 
 const labels = {
@@ -90,17 +92,42 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<User>>(emptyUser)
 
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+    setCurrentPage(1)
+  }
+
   const filtered = usersData.filter(u => {
     const matchSearch = u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase())
     const matchRole = roleFilter === 'all' || u.role === roleFilter
     return matchSearch && matchRole
+  }).sort((a, b) => {
+    if (!sortColumn) return 0
+    let valA: string = ''
+    let valB: string = ''
+    switch (sortColumn) {
+      case 'name': valA = a.name; valB = b.name; break
+      case 'email': valA = a.email; valB = b.email; break
+      case 'role': valA = a.role; valB = b.role; break
+      case 'date': valA = a.createdAt; valB = b.createdAt; break
+      default: return 0
+    }
+    const cmp = valA.localeCompare(valB, 'fa')
+    return sortDirection === 'asc' ? cmp : -cmp
   })
 
   const totalPages = Math.ceil(filtered.length / pageSize)
@@ -131,8 +158,10 @@ export default function UsersPage() {
     if (!form.name || !form.email) return
     if (editingUser) {
       updateUser.mutate({ id: editingUser.id, ...form })
+      toast.success('اطلاعات کاربر بروزرسانی شد')
     } else {
       createUser.mutate(form)
+      toast.success('کاربر جدید اضافه شد')
     }
     setDialogOpen(false)
   }
@@ -140,6 +169,7 @@ export default function UsersPage() {
   const handleDelete = () => {
     if (deletingId) {
       deleteUser.mutate(deletingId)
+      toast.success('کاربر با موفقیت حذف شد')
       setDeleteOpen(false)
       setDeletingId(null)
     }
@@ -155,9 +185,38 @@ export default function UsersPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
-          <Plus className="h-4 w-4" />{labels.create}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            onClick={() => {
+              exportToCSV(
+                filtered.map(u => ({
+                  name: u.name,
+                  email: u.email,
+                  role: roleLabels[u.role] ?? u.role,
+                  status: statusLabels[u.status] ?? u.status,
+                  date: formatDate(u.createdAt),
+                })),
+                'users-list',
+                [
+                  { key: 'name', label: 'نام' },
+                  { key: 'email', label: 'ایمیل' },
+                  { key: 'role', label: 'نقش' },
+                  { key: 'status', label: 'وضعیت' },
+                  { key: 'date', label: 'تاریخ' },
+                ],
+              )
+              toast.success('خروجی CSV با موفقیت دانلود شد!')
+            }}
+          >
+            <Download className="h-4 w-4" />
+            خروجی CSV
+          </Button>
+          <Button className="gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+            <Plus className="h-4 w-4" />{labels.create}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -198,11 +257,31 @@ export default function UsersPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
-                    <TableHead>{labels.name}</TableHead>
-                    <TableHead>{labels.email}</TableHead>
-                    <TableHead>{labels.role}</TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('name')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.name}
+                        {sortColumn === 'name' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('email')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.email}
+                        {sortColumn === 'email' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
+                    <TableHead>
+                      <button onClick={() => handleSort('role')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.role}
+                        {sortColumn === 'role' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead className="hidden sm:table-cell">{labels.status}</TableHead>
-                    <TableHead className="hidden md:table-cell">{labels.date}</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      <button onClick={() => handleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                        {labels.date}
+                        {sortColumn === 'date' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                      </button>
+                    </TableHead>
                     <TableHead>{labels.actions}</TableHead>
                   </TableRow>
                 </TableHeader>
