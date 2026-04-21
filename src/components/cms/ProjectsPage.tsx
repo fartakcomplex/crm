@@ -164,7 +164,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Filters */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card-cyan shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -188,7 +188,7 @@ export default function ProjectsPage() {
 
       {/* Project Cards Grid */}
       {filtered.length === 0 ? (
-        <Card className="glass-card shadow-sm">
+        <Card className="glass-card-cyan shadow-sm">
           <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 dark:from-sky-900/20 dark:to-sky-800/20 flex items-center justify-center mb-4">
               <FolderKanban className="h-10 w-10 text-sky-300" />

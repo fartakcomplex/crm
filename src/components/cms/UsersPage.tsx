@@ -241,7 +241,7 @@ export default function UsersPage() {
       </div>
 
       {/* Search + Role Filter Chips */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card-emerald shadow-sm">
         <CardContent className="p-4 space-y-3">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -291,7 +291,7 @@ export default function UsersPage() {
       </Card>
 
       {/* Users Table */}
-      <Card className="glass-card shadow-sm overflow-hidden">
+      <Card className="glass-card-emerald shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <EmptyState

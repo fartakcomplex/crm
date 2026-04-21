@@ -226,7 +226,7 @@ export default function CustomersPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-amber-500 to-amber-700 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+        <Card className="bg-gradient-to-br from-amber-500 to-amber-700 border-0 text-white stat-card hover-lift shadow-sm animate-in card-enter" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <CardContent className="p-5 flex items-center gap-3">
             <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
               <UserCircle className="h-5 w-5" />
@@ -237,7 +237,7 @@ export default function CustomersPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
+        <Card className="bg-gradient-to-br from-emerald-500 to-emerald-700 border-0 text-white stat-card hover-lift shadow-sm animate-in card-enter" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
           <CardContent className="p-5 flex items-center gap-3">
             <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
               <TrendingUp className="h-5 w-5" />
@@ -248,7 +248,7 @@ export default function CustomersPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-0 text-white stat-card hover-lift shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+        <Card className="bg-gradient-to-br from-emerald-600 to-emerald-800 border-0 text-white stat-card hover-lift shadow-sm animate-in card-enter" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
           <CardContent className="p-5 flex items-center gap-3">
             <div className="bg-white/20 rounded-xl p-3 backdrop-blur-sm">
               <DollarSign className="h-5 w-5" />
@@ -262,7 +262,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Filters */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card-amber shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -284,7 +284,7 @@ export default function CustomersPage() {
       </Card>
 
       {/* Customers Table */}
-      <Card className="glass-card shadow-sm overflow-hidden">
+      <Card className="glass-card-amber shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">

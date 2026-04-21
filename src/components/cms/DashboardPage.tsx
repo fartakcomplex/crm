@@ -32,6 +32,7 @@ import {
   PieChart, Pie, Cell, AreaChart, Area, Legend,
 } from 'recharts'
 import { formatRelativeTime } from './types'
+import { MiniSparkline } from './MiniSparkline'
 
 // Persian labels
 const labels = {
@@ -141,8 +142,9 @@ function useCountUp(target: number, duration = 800, enabled = true) {
 
 // ─────────────────────── Stat Card ───────────────────────────────
 
-function StatCard({ icon, label, value, color, delay, numericValue }: {
+function StatCard({ icon, label, value, color, delay, numericValue, sparklineData, sparklineColor, trend }: {
   icon: React.ReactNode; label: string; value: string | number; color: string; delay?: number; numericValue?: number
+  sparklineData?: number[]; sparklineColor?: string; trend?: 'up' | 'down' | 'flat'
 }) {
   const animatedValue = useCountUp(numericValue ?? 0, 1000, numericValue !== undefined)
   const displayValue = numericValue !== undefined ? animatedValue : value
@@ -158,9 +160,19 @@ function StatCard({ icon, label, value, color, delay, numericValue }: {
       </div>
       <CardContent className="p-4 flex items-center gap-3 relative z-10">
         <div className="bg-white/20 rounded-lg p-2.5 backdrop-blur-sm">{icon}</div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-sm opacity-80">{label}</p>
           <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
+          {sparklineData && sparklineData.length >= 2 && (
+            <div className="mt-1 opacity-70">
+              <MiniSparkline
+                data={sparklineData}
+                color={sparklineColor ?? 'rgba(255,255,255,0.8)'}
+                fillColor={sparklineColor ?? 'rgba(255,255,255,0.6)'}
+                trend={trend}
+              />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -572,12 +584,12 @@ export default function DashboardPage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} />
-        <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} />
-        <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} />
-        <StatCard icon={<FolderKanban className="h-5 w-5" />} label={labels.totalProjects} value={statsData?.totalProjects ?? '—'} numericValue={statsData?.totalProjects} color="from-sky-500 to-sky-700" delay={150} />
-        <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} numericValue={statsData?.totalViews} color="from-emerald-500 to-emerald-700" delay={200} />
-        <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} numericValue={statsData?.revenue} color="from-amber-500 to-amber-700" delay={250} />
+        <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
+        <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} sparklineData={[2, 2, 3, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
+        <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} sparklineData={[1, 2, 2, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
+        <StatCard icon={<FolderKanban className="h-5 w-5" />} label={labels.totalProjects} value={statsData?.totalProjects ?? '—'} numericValue={statsData?.totalProjects} color="from-sky-500 to-sky-700" delay={150} sparklineData={[3, 3, 2, 4, 3, 3, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="flat" />
+        <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} numericValue={statsData?.totalViews} color="from-emerald-500 to-emerald-700" delay={200} sparklineData={[100, 150, 120, 200, 180, 250, 300]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
+        <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} numericValue={statsData?.revenue} color="from-amber-500 to-amber-700" delay={250} sparklineData={[50000, 60000, 45000, 80000, 70000, 90000, 78250]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
       </div>
 
       {/* Collapsible Sections */}

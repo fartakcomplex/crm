@@ -187,7 +187,7 @@ export default function CommentsPage() {
       </div>
 
       {/* Filters + Sort */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card-rose shadow-sm">
         <CardContent className="p-4 space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -229,7 +229,7 @@ export default function CommentsPage() {
 
       {/* Comments List */}
       {filtered.length === 0 ? (
-        <Card className="glass-card shadow-sm">
+        <Card className="glass-card-rose shadow-sm">
           <CardContent>
             <EmptyState
               icon={<MessageCircle className="h-12 w-12" />}

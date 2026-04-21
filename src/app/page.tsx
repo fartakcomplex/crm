@@ -25,6 +25,7 @@ import {
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
+import ProfilePanel from '@/components/cms/ProfilePanel'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { formatRelativeTime } from '@/components/cms/types'
 
@@ -226,7 +227,7 @@ function NotificationBell({ onClick, unreadCount }: { onClick: () => void; unrea
       <Bell className="h-[18px] w-[18px]" />
       {unreadCount > 0 && (
         <>
-          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-background animate-in zoom-in-50 duration-300">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-background badge-pop">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
           <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 rounded-full bg-red-500/50 animate-ping" />
@@ -384,7 +385,7 @@ function NotificationDropdown({ children }: { children: React.ReactNode }) {
 
 // ─── User Profile Dropdown ─────────────────────────────────────────────
 
-function UserProfileDropdown({ onLogout }: { onLogout: () => void }) {
+function UserProfileDropdown({ onLogout, onOpenProfile }: { onLogout: () => void; onOpenProfile: () => void }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -399,7 +400,7 @@ function UserProfileDropdown({ onLogout }: { onLogout: () => void }) {
           <p className="font-semibold text-sm">مدیر سیستم</p>
           <p className="text-xs text-muted-foreground">admin@smartcms.ir</p>
         </div>
-        <DropdownMenuItem className="gap-2 cursor-pointer">
+        <DropdownMenuItem className="gap-2 cursor-pointer" onClick={onOpenProfile}>
           <UserIcon className="h-4 w-4" />
           <span className="text-sm">پروفایل</span>
         </DropdownMenuItem>
@@ -428,6 +429,7 @@ function AppContent() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(true)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
@@ -638,7 +640,7 @@ function AppContent() {
               </NotificationDropdown>
 
               {/* User Profile */}
-              <UserProfileDropdown onLogout={handleLogout} />
+              <UserProfileDropdown onLogout={handleLogout} onOpenProfile={() => setProfileOpen(true)} />
             </div>
           </header>
 
@@ -668,6 +670,15 @@ function AppContent() {
       <KeyboardShortcuts
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
+      />
+
+      {/* Profile Panel */}
+      <ProfilePanel
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        onNavigate={handleTabChange}
+        onToggleSidebar={() => setSidebarOpen(prev => !prev)}
+        sidebarCollapsed={!sidebarOpen}
       />
     </TooltipProvider>
   )
