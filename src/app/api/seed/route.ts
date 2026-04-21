@@ -180,6 +180,100 @@ export async function POST() {
           categoryId: categories[2].id,
         },
       }),
+      // ─── New Posts (6 additional) ───
+      db.post.create({
+        data: {
+          title: 'Tips for Better TypeScript Code',
+          slug: 'tips-for-better-typescript-code',
+          content: 'TypeScript has become the standard for large-scale JavaScript projects. In this article, we cover essential tips including strict mode configuration, utility types, generics best practices, and how to leverage discriminated unions for type-safe state management. We also explore advanced patterns like conditional types and template literal types that can significantly improve your codebase.',
+          excerpt: 'Essential TypeScript tips for writing cleaner, safer, and more maintainable code.',
+          status: 'published',
+          featured: false,
+          authorId: users[0].id,
+          categoryId: categories[0].id,
+          publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          tags: {
+            create: [{ tagId: tags[3].id }, { tagId: tags[0].id }],
+          },
+        },
+      }),
+      db.post.create({
+        data: {
+          title: 'Tailwind CSS v4 New Features',
+          slug: 'tailwind-css-v4-new-features',
+          content: 'Tailwind CSS v4 brings a completely new engine with a CSS-first configuration approach. The new version introduces native cascade layers, container queries support, automatic content detection, and a redesigned color palette system. Performance has been dramatically improved with a new JIT engine that is up to 10x faster than the previous version.',
+          excerpt: 'Explore the groundbreaking new features and improvements in Tailwind CSS v4.',
+          status: 'published',
+          featured: true,
+          authorId: users[1].id,
+          categoryId: categories[1].id,
+          publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          tags: {
+            create: [{ tagId: tags[6].id }, { tagId: tags[4].id }, { tagId: tags[2].id }],
+          },
+        },
+      }),
+      db.post.create({
+        data: {
+          title: 'Understanding React Hooks in Depth',
+          slug: 'understanding-react-hooks-in-depth',
+          content: 'React Hooks revolutionized how we write components. This deep dive covers useState, useEffect, useContext, useReducer, useMemo, useCallback, and useRef with practical examples. We also explore custom hook patterns, the rules of hooks, and common pitfalls that developers encounter when transitioning from class components.',
+          excerpt: 'A comprehensive deep dive into React Hooks patterns and best practices.',
+          status: 'draft',
+          featured: false,
+          authorId: users[2].id,
+          categoryId: categories[0].id,
+          tags: {
+            create: [{ tagId: tags[1].id }, { tagId: tags[3].id }],
+          },
+        },
+      }),
+      db.post.create({
+        data: {
+          title: 'Building REST APIs with Node.js',
+          slug: 'building-rest-apis-with-nodejs',
+          content: 'Node.js is an excellent choice for building REST APIs. This tutorial walks through creating a production-ready API using Express.js with proper error handling, validation, authentication middleware, rate limiting, and database integration with Prisma ORM. We cover RESTful design principles and API versioning strategies.',
+          excerpt: 'Learn how to build scalable REST APIs using Node.js and Express.',
+          status: 'published',
+          featured: false,
+          authorId: users[3].id,
+          categoryId: categories[0].id,
+          publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          tags: {
+            create: [{ tagId: tags[7].id }, { tagId: tags[0].id }, { tagId: tags[3].id }],
+          },
+        },
+      }),
+      db.post.create({
+        data: {
+          title: 'Introduction to Docker Containers',
+          slug: 'introduction-to-docker-containers',
+          content: 'Docker containers have transformed software deployment by providing consistent, isolated environments. This beginner-friendly guide covers Docker fundamentals including images, containers, volumes, networks, and Dockerfile best practices. We also explore Docker Compose for multi-container applications and how to integrate Docker into your CI/CD pipeline.',
+          excerpt: 'A beginner-friendly introduction to Docker and containerization concepts.',
+          status: 'review',
+          featured: false,
+          authorId: users[0].id,
+          categoryId: categories[3].id,
+          tags: {
+            create: [{ tagId: tags[7].id }],
+          },
+        },
+      }),
+      db.post.create({
+        data: {
+          title: 'Machine Learning Basics for Developers',
+          slug: 'machine-learning-basics-for-developers',
+          content: 'Machine learning is no longer just for data scientists. This article introduces core ML concepts for software developers including supervised vs unsupervised learning, model training and evaluation, feature engineering, and how to integrate pre-trained models into your applications using Python and TensorFlow. Practical examples demonstrate sentiment analysis and recommendation systems.',
+          excerpt: 'Essential machine learning concepts every developer should understand.',
+          status: 'archived',
+          featured: false,
+          authorId: users[1].id,
+          categoryId: categories[3].id,
+          tags: {
+            create: [{ tagId: tags[0].id }, { tagId: tags[3].id }],
+          },
+        },
+      }),
     ])
 
     // --- Create Comments ---
@@ -227,6 +321,61 @@ export async function POST() {
           email: 'chris@example.com',
           status: 'approved',
           postId: posts[0].id,
+        },
+      }),
+      // ─── New Comments (6 additional) ───
+      db.comment.create({
+        data: {
+          content: 'This TypeScript article finally made generics click for me. Excellent explanation!',
+          author: 'Daniel Lee',
+          email: 'daniel@example.com',
+          status: 'approved',
+          postId: posts[6].id,
+        },
+      }),
+      db.comment.create({
+        data: {
+          content: 'Tailwind CSS v4 looks amazing. The CSS-first configuration is a game changer.',
+          author: 'Sophie Martin',
+          email: 'sophie@example.com',
+          status: 'approved',
+          postId: posts[7].id,
+        },
+      }),
+      db.comment.create({
+        data: {
+          content: 'Can you add more examples about useCallback and when to use it vs useMemo?',
+          author: 'Ryan Patel',
+          email: 'ryan@example.com',
+          status: 'pending',
+          postId: posts[8].id,
+        },
+      }),
+      db.comment.create({
+        data: {
+          content: 'The Docker Compose section was really helpful for my microservices project.',
+          author: 'Nina Kowalski',
+          email: 'nina@example.com',
+          status: 'pending',
+          postId: posts[10].id,
+        },
+      }),
+      db.comment.create({
+        data: {
+          content: 'Great API tutorial! Would love to see a follow-up on GraphQL comparison.',
+          author: 'Marcus Johnson',
+          email: 'marcus@example.com',
+          status: 'approved',
+          postId: posts[9].id,
+        },
+      }),
+      db.comment.create({
+        data: {
+          content: 'The ML basics section was approachable but I think it needs more code examples.',
+          author: 'Olivia Chen',
+          email: 'olivia@example.com',
+          status: 'pending',
+          postId: posts[11].id,
         },
       }),
     ])
@@ -281,6 +430,37 @@ export async function POST() {
           company: 'Umbrella Corp',
           status: 'inactive',
           value: 4200,
+        },
+      }),
+      // ─── New Customers (3 additional) ───
+      db.customer.create({
+        data: {
+          name: 'Cyberdyne Systems',
+          email: 'info@cyberdyne.com',
+          phone: '+1-555-0106',
+          company: 'Cyberdyne Systems',
+          status: 'active',
+          value: 18700,
+        },
+      }),
+      db.customer.create({
+        data: {
+          name: 'Oscorp Industries',
+          email: 'hello@oscorp.com',
+          phone: '+1-555-0107',
+          company: 'Oscorp Industries',
+          status: 'lead',
+          value: 9500,
+        },
+      }),
+      db.customer.create({
+        data: {
+          name: 'Soylent Corp',
+          email: 'contact@soylent.com',
+          phone: '+1-555-0108',
+          company: 'Soylent Corp',
+          status: 'active',
+          value: 15800,
         },
       }),
     ])
@@ -341,6 +521,28 @@ export async function POST() {
           dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
         },
       }),
+      // ─── New Projects (2 additional) ───
+      db.project.create({
+        data: {
+          title: 'Analytics Dashboard',
+          description: 'Build real-time analytics dashboard with interactive charts and data visualization.',
+          status: 'active',
+          progress: 35,
+          priority: 'high',
+          startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.project.create({
+        data: {
+          title: 'Performance Optimization',
+          description: 'Optimize application performance including bundle size reduction, caching strategies, and database query optimization.',
+          status: 'planning',
+          progress: 0,
+          priority: 'medium',
+          dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+        },
+      }),
     ])
 
     // --- Create Team Members ---
@@ -398,6 +600,29 @@ export async function POST() {
           avatar: '',
           status: 'away',
           joinedAt: new Date('2024-01-05'),
+        },
+      }),
+      // ─── New Team Members (2 additional) ───
+      db.teamMember.create({
+        data: {
+          name: 'Rachel Foster',
+          email: 'rachel@smartcms.com',
+          role: 'senior',
+          department: 'Engineering',
+          avatar: '',
+          status: 'active',
+          joinedAt: new Date('2022-08-15'),
+        },
+      }),
+      db.teamMember.create({
+        data: {
+          name: 'James Nakamura',
+          email: 'james@smartcms.com',
+          role: 'member',
+          department: 'Marketing',
+          avatar: '',
+          status: 'active',
+          joinedAt: new Date('2023-11-01'),
         },
       }),
     ])
@@ -512,6 +737,39 @@ export async function POST() {
           createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
         },
       }),
+      // ─── New Activity Logs (4 additional) ───
+      db.activityLog.create({
+        data: {
+          action: 'post.published',
+          details: 'Published "Tailwind CSS v4 New Features"',
+          userId: users[1].id,
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'customer.created',
+          details: 'Added new customer "Cyberdyne Systems"',
+          userId: users[0].id,
+          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'team.member_added',
+          details: 'Rachel Foster joined the Engineering team',
+          userId: users[0].id,
+          createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'media.uploaded',
+          details: 'Uploaded "Company Logo" for brand assets',
+          userId: users[1].id,
+          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        },
+      }),
     ])
 
     // --- Create Settings ---
@@ -553,11 +811,11 @@ export async function POST() {
         tags: tags.length,
         users: users.length,
         posts: posts.length,
-        customers: 5,
-        projects: 5,
-        teamMembers: 5,
+        customers: 8,
+        projects: 7,
+        teamMembers: 7,
         media: 4,
-        activityLogs: 8,
+        activityLogs: 12,
         settings: defaultSettings.length,
       },
     }, { status: 201 })

@@ -20,7 +20,7 @@ import {
   LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
   Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
-  Zap, Plus, X,
+  Zap, Plus, X, Database, Clock, Wifi,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -211,6 +211,55 @@ function NotificationBell({ onClick, unreadCount }: { onClick: () => void; unrea
         </>
       )}
     </Button>
+  )
+}
+
+// ─── Bottom Status Bar ─────────────────────────────────────────────
+
+function BottomStatusBar() {
+  const [currentTime, setCurrentTime] = useState('')
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      setCurrentTime(
+        new Intl.DateTimeFormat('fa-IR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: false,
+        }).format(now)
+      )
+    }
+    updateTime()
+    const interval = setInterval(updateTime, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <div className="sticky bottom-0 z-10 h-7 w-full border-t border-border/60 bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 text-[11px] text-muted-foreground shrink-0">
+      <div className="flex items-center gap-1.5">
+        <span className="font-medium text-foreground/60">Smart CMS</span>
+        <span className="text-foreground/30">v1.0</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+        </span>
+        <Database className="h-3 w-3" />
+        <span>متصل</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <Wifi className="h-3 w-3" />
+          <Clock className="h-3 w-3" />
+          <span dir="ltr" className="font-mono tabular-nums">{currentTime}</span>
+        </div>
+        <span className="text-emerald-600 dark:text-emerald-400">●</span>
+        <span>وضعیت: فعال</span>
+      </div>
+    </div>
   )
 }
 
@@ -546,6 +595,9 @@ function AppContent() {
               <PageComponent />
             </div>
           </div>
+
+          {/* Bottom Status Bar */}
+          <BottomStatusBar />
         </main>
       </div>
 

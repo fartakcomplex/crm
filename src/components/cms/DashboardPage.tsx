@@ -7,14 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   BarChart3, FileText, Users, UserCircle, FolderKanban, Eye,
   DollarSign, TrendingUp, Plus, UserPlus, Clock, Activity,
   Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
+  Save, PenLine,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, AreaChart, Area, Legend,
+} from 'recharts'
 import { formatRelativeTime } from './types'
 
 // Persian labels
@@ -37,6 +53,14 @@ const labels = {
   weeklyActivity: 'فعالیت هفتگی',
   contentStatus: 'وضعیت محتوا',
   popularArticles: 'مقالات پربازدید',
+  monthlyViewsTrend: 'روند بازدید ماهانه',
+  quickDraft: 'پیش‌نویس سریع',
+  quickDraftTitle: 'عنوان مطلب',
+  quickDraftContent: 'محتوای مطلب...',
+  quickDraftCategory: 'انتخاب دسته‌بندی',
+  quickDraftSave: 'ذخیره به عنوان پیش‌نویس',
+  quickDraftSaved: 'پیش‌نویس با موفقیت ذخیره شد',
+  quickDraftPlaceholder: 'محتوای مطلب را اینجا بنویسید...',
   createPost: 'ایجاد مطلب',
   addUser: 'افزودن کاربر',
   newProject: 'پروژه جدید',
@@ -58,6 +82,7 @@ const labels = {
   repurposeContent: 'استفاده مجدد از محتوا',
   updateMeta: 'بروزرسانی متا داده‌ها',
   optimizeImages: 'بهینه‌سازی تصاویر',
+  noCategory: 'بدون دسته‌بندی',
 }
 
 const statusLabel: Record<string, string> = {
@@ -78,7 +103,23 @@ const aiSuggestions = [
   { icon: <Sparkles className="h-4 w-4" />, text: labels.optimizeImages, desc: 'تصاویر ۴ مطلب نیاز به بهینه‌سازی دارند' },
 ]
 
-// ─────────────────────────────── Stat Card ───────────────────────────────
+// ─────────────── Recharts Color Constants ───────────────────────
+
+const VIOLET_MAIN = '#8b5cf6'
+const VIOLET_LIGHT = '#a78bfa'
+const VIOLET_DARK = '#7c3aed'
+const PURPLE_MAIN = '#a855f7'
+const PURPLE_LIGHT = '#c084fc'
+const FUCHSIA_MAIN = '#d946ef'
+
+// Content status colors
+const CONTENT_STATUS_COLORS: Record<string, string> = {
+  published: '#22c55e',
+  draft: '#eab308',
+  archived: '#9ca3af',
+}
+
+// ─────────────────────── Stat Card ───────────────────────────────
 
 function StatCard({ icon, label, value, color, delay }: {
   icon: React.ReactNode; label: string; value: string | number; color: string; delay?: number
@@ -99,7 +140,7 @@ function StatCard({ icon, label, value, color, delay }: {
   )
 }
 
-// ────────────────────────────── Collapsible Section ──────────────────────
+// ────────────────── Collapsible Section ──────────────────────────
 
 function Section({ title, defaultOpen, children, delay }: {
   title: string; defaultOpen: boolean; children: React.ReactNode; delay?: number
@@ -124,7 +165,7 @@ function Section({ title, defaultOpen, children, delay }: {
   )
 }
 
-// ──────────────────────────── Persian Date ──────────────────────────────
+// ──────────────────── Persian Date ──────────────────────────────
 
 function PersianDate() {
   const date = useMemo(() => {
@@ -137,7 +178,7 @@ function PersianDate() {
   return <span>{date}</span>
 }
 
-// ──────────────────────────── Mini Trend Card ────────────────────────────
+// ──────────────────── Mini Trend Card ────────────────────────────
 
 function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, delay }: {
   icon: React.ReactNode; label: string; value: string; change: string; trend: 'up' | 'down' | 'flat';
@@ -166,7 +207,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
   )
 }
 
-// ────────────────────────────── Skeleton Loader ──────────────────────────
+// ────────────────────── Skeleton Loader ──────────────────────────
 
 function DashboardSkeleton() {
   return (
@@ -189,16 +230,186 @@ function DashboardSkeleton() {
   )
 }
 
-// ────────────────────────────── Main Component ───────────────────────────
+// ────────────── Custom Tooltip for Charts ───────────────────────
+
+function PersianTooltip({ active, payload, label: tooltipLabel, labelKey }: {
+  active?: boolean; payload?: Array<{ value: number; dataKey: string; color: string; name: string }>;
+  label?: string; labelKey?: string
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  return (
+    <div className="glass-card border border-violet-200/50 dark:border-violet-700/50 rounded-lg px-3 py-2 shadow-lg">
+      <p className="text-xs font-medium text-muted-foreground mb-1">{tooltipLabel ?? ''}</p>
+      {payload.map((entry, idx) => (
+        <div key={idx} className="flex items-center gap-2 text-sm">
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          <span className="text-muted-foreground">
+            {labelKey === 'comments' && entry.dataKey === 'comments' ? labels.comments :
+             labelKey === 'comments' && entry.dataKey === 'posts' ? labels.posts :
+             labels.views}
+          </span>
+          <span className="font-bold tabular-nums">{entry.value.toLocaleString('fa-IR')}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function PieTooltip({ active, payload }: {
+  active?: boolean; payload?: Array<{ name: string; value: number; payload: { fill: string; name: string } }>
+}) {
+  if (!active || !payload || payload.length === 0) return null
+  const entry = payload[0]
+  return (
+    <div className="glass-card border border-violet-200/50 dark:border-violet-700/50 rounded-lg px-3 py-2 shadow-lg">
+      <div className="flex items-center gap-2 text-sm">
+        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.payload.fill }} />
+        <span className="font-medium">{entry.name}</span>
+        <span className="font-bold tabular-nums">{entry.value.toLocaleString('fa-IR')}</span>
+      </div>
+    </div>
+  )
+}
+
+// ──────────────── Pie Label Renderer ─────────────────────────────
+
+const RADIAN = Math.PI / 180
+
+function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {
+  cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number
+}): React.ReactNode {
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
+  if (percent < 0.05) return null
+
+  return (
+    <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className="fill-background text-[11px] font-bold">
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  )
+}
+
+// ──────────────────── Quick Draft Widget ─────────────────────────
+
+function QuickDraftWidget({ categories }: { categories: Array<{ id: string; name: string }> }) {
+  const { createPost } = useCMS()
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+
+  const handleSave = () => {
+    if (!title.trim()) {
+      toast.error('لطفاً عنوان مطلب را وارد کنید')
+      return
+    }
+    createPost.mutate({
+      title: title.trim(),
+      content: content.trim(),
+      status: 'draft',
+      categoryId: categoryId || null,
+      slug: title.trim().replace(/\s+/g, '-').toLowerCase().slice(0, 80),
+      excerpt: content.trim().slice(0, 160),
+      featured: false,
+    }, {
+      onSuccess: () => {
+        toast.success(labels.quickDraftSaved)
+        setTitle('')
+        setContent('')
+        setCategoryId('')
+      },
+      onError: () => {
+        toast.error('خطا در ذخیره پیش‌نویس')
+      },
+    })
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Label htmlFor="quick-draft-title" className="text-sm text-muted-foreground">
+          {labels.quickDraftTitle}
+        </Label>
+        <Input
+          id="quick-draft-title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={labels.quickDraftTitle}
+          className="border-violet-200/60 dark:border-violet-800/40 focus:border-violet-400 dark:focus:border-violet-500"
+          dir="rtl"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="quick-draft-content" className="text-sm text-muted-foreground sr-only">
+          {labels.quickDraftContent}
+        </Label>
+        <Textarea
+          id="quick-draft-content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={labels.quickDraftPlaceholder}
+          rows={4}
+          className="border-violet-200/60 dark:border-violet-800/40 focus:border-violet-400 dark:focus:border-violet-500 resize-none"
+          dir="rtl"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-sm text-muted-foreground sr-only">{labels.quickDraftCategory}</Label>
+        <Select value={categoryId} onValueChange={setCategoryId}>
+          <SelectTrigger className="border-violet-200/60 dark:border-violet-800/40">
+            <SelectValue placeholder={labels.quickDraftCategory} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none__">{labels.noCategory}</SelectItem>
+            {categories.map((cat) => (
+              <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button
+        onClick={handleSave}
+        disabled={createPost.isPending || !title.trim()}
+        className="w-full bg-gradient-to-l from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white gap-2 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+      >
+        {createPost.isPending ? (
+          <>
+            <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            در حال ذخیره...
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4" />
+            {labels.quickDraftSave}
+          </>
+        )}
+      </Button>
+    </div>
+  )
+}
+
+// ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
-  useEnsureData(['stats', 'charts', 'activities', 'posts'])
-  const { stats, charts, activities, comments } = useCMS()
+  useEnsureData(['stats', 'charts', 'activities', 'posts', 'categories'])
+  const { stats, charts, activities, comments, categories, createPost } = useCMS()
   const statsData = stats.data
   const chartData = charts.data
   const activitiesData = activities.data ?? []
   const commentsData = comments.data ?? []
-  const isLoading = stats.isLoading || charts.isLoading
+  const categoriesData = categories.data ?? []
+  const isLoading = stats.isLoading || charts.isLoading || categories.isLoading
+
+  // ── Data transforms for Recharts ──
+
+  const contentStatusPieData = useMemo(() => {
+    return (chartData?.contentStatus ?? []).map((cs) => ({
+      name: statusLabel[cs.status] ?? cs.status,
+      value: cs.count,
+      fill: CONTENT_STATUS_COLORS[cs.status] ?? '#9ca3af',
+    }))
+  }, [chartData?.contentStatus])
 
   if (isLoading) return <DashboardSkeleton />
 
@@ -410,103 +621,178 @@ export default function DashboardPage() {
           </div>
         </Section>
 
-        {/* Monthly Views Chart */}
+        {/* ───── Monthly Views BarChart (Recharts) ───── */}
         <Section title={labels.monthlyViews} defaultOpen={true} delay={350}>
-          <div className="flex items-end gap-1.5 h-40">
-            {(chartData?.monthlyViews ?? []).map((m, i) => {
-              const maxVal = Math.max(...(chartData?.monthlyViews ?? []).map(v => v.views), 1)
-              const height = (m.views / maxVal) * 100
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-                  <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">{m.views}</span>
-                  <div
-                    className="w-full bg-gradient-to-t from-violet-600 to-violet-400 rounded-t-md min-h-[4px] transition-all duration-500 group-hover:from-violet-500 group-hover:to-violet-300 group-hover:shadow-lg group-hover:shadow-violet-500/20"
-                    style={{ height: `${height}%`, transitionDelay: `${i * 50}ms` }}
-                  />
-                  <span className="text-[10px] text-muted-foreground">{m.month}</span>
-                </div>
-              )
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={VIOLET_LIGHT} />
+                  <stop offset="100%" stopColor={VIOLET_DARK} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<PersianTooltip />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
+              <Bar
+                dataKey="views"
+                fill="url(#barGradient)"
+                radius={[6, 6, 0, 0]}
+                maxBarSize={40}
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </Section>
 
-        {/* Category Distribution */}
+        {/* ───── Category Distribution PieChart (Recharts) ───── */}
         <Section title={labels.categoryDist} defaultOpen={false} delay={400}>
-          <div className="space-y-3">
-            {(chartData?.categoryDistribution ?? []).map((c, i) => {
-              const maxVal = Math.max(...(chartData?.categoryDistribution ?? []).map(v => v.value), 1)
-              const width = (c.value / maxVal) * 100
-              return (
-                <div key={i} className="space-y-1.5">
-                  <div className="flex justify-between text-sm">
-                    <span>{c.name}</span>
-                    <span className="text-muted-foreground tabular-nums">{c.value}</span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700 ease-out" style={{ width: `${width}%`, backgroundColor: c.color }} />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={260}>
+            <PieChart>
+              <Pie
+                data={chartData?.categoryDistribution ?? []}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={95}
+                paddingAngle={3}
+                dataKey="value"
+                nameKey="name"
+                label={renderPieLabel}
+                labelLine={false}
+                strokeWidth={0}
+              >
+                {(chartData?.categoryDistribution ?? []).map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip content={<PieTooltip />} />
+              <Legend
+                formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>}
+                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
         </Section>
 
-        {/* Weekly Activity */}
+        {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
         <Section title={labels.weeklyActivity} defaultOpen={false} delay={450}>
-          <div className="flex items-end gap-2 h-36">
-            {(chartData?.weeklyActivity ?? []).map((w, i) => {
-              const maxVal = Math.max(...(chartData?.weeklyActivity ?? []).map(v => Math.max(v.posts, v.comments)), 1)
-              const postsH = (w.posts / maxVal) * 100
-              const commentsH = (w.comments / maxVal) * 100
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-                  <div className="flex gap-0.5 items-end h-28">
-                    <div className="w-3 bg-gradient-to-t from-violet-600 to-violet-400 rounded-t-sm transition-all duration-500 group-hover:from-violet-500 group-hover:to-violet-300" style={{ height: `${postsH}%`, transitionDelay: `${i * 30}ms` }} />
-                    <div className="w-3 bg-gradient-to-t from-purple-600 to-purple-400 rounded-t-sm transition-all duration-500 group-hover:from-purple-500 group-hover:to-purple-300" style={{ height: `${commentsH}%`, transitionDelay: `${i * 30 + 15}ms` }} />
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{w.day}</span>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+              <defs>
+                <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={VIOLET_LIGHT} />
+                  <stop offset="100%" stopColor={VIOLET_DARK} />
+                </linearGradient>
+                <linearGradient id="commentsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={PURPLE_LIGHT} />
+                  <stop offset="100%" stopColor={PURPLE_MAIN} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+              <XAxis
+                dataKey="day"
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<PersianTooltip labelKey="comments" />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
+              <Bar dataKey="posts" fill="url(#postsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.posts} />
+              <Bar dataKey="comments" fill="url(#commentsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.comments} />
+              <Legend
+                formatter={(value: string) => (
+                  <span className="text-xs text-muted-foreground">{value}</span>
+                )}
+                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </Section>
+
+        {/* ───── Content Status PieChart (Recharts) ───── */}
+        <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
+          <div className="flex flex-col items-center">
+            <ResponsiveContainer width="100%" height={220}>
+              <PieChart>
+                <Pie
+                  data={contentStatusPieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={55}
+                  outerRadius={90}
+                  paddingAngle={4}
+                  dataKey="value"
+                  nameKey="name"
+                  label={renderPieLabel}
+                  labelLine={false}
+                  strokeWidth={0}
+                >
+                  {contentStatusPieData.map((entry, index) => (
+                    <Cell key={`cs-cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip content={<PieTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="flex items-center gap-6 mt-1">
+              {contentStatusPieData.map((entry, idx) => (
+                <div key={idx} className="flex items-center gap-1.5">
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
+                  <span className="text-xs text-muted-foreground">{entry.name}</span>
                 </div>
-              )
-            })}
-          </div>
-          <div className="flex items-center gap-4 mt-2 justify-center">
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-violet-500" />
-              <span className="text-xs text-muted-foreground">{labels.posts}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-sm bg-purple-500" />
-              <span className="text-xs text-muted-foreground">{labels.comments}</span>
+              ))}
             </div>
           </div>
         </Section>
 
-        {/* Content Status */}
-        <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
-          <div className="flex items-center justify-center gap-8">
-            <div className="flex items-center gap-6">
-              {(chartData?.contentStatus ?? []).map((cs, i) => {
-                const total = (chartData?.contentStatus ?? []).reduce((s, c) => s + c.count, 0) || 1
-                const pct = Math.round((cs.count / total) * 100)
-                const colorMap: Record<string, string> = {
-                  published: 'bg-green-500', draft: 'bg-yellow-500', archived: 'bg-gray-400'
-                }
-                return (
-                  <div key={i} className="flex flex-col items-center gap-2">
-                    <div className="relative w-16 h-16">
-                      <svg className="w-16 h-16 -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" className="text-muted/30" strokeWidth="4" />
-                        <circle cx="18" cy="18" r="14" fill="none" className={colorMap[cs.status] ?? 'bg-gray-400'} strokeWidth="4" strokeDasharray={`${pct} ${100 - pct}`} strokeLinecap="round" style={{ transition: 'stroke-dasharray 1s ease-out' }} />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold tabular-nums">{pct}%</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">{statusLabel[cs.status] ?? cs.status}</span>
-                    <span className="text-sm font-bold tabular-nums">{cs.count}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
+        {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
+        <Section title={labels.monthlyViewsTrend} defaultOpen={false} delay={525}>
+          <ResponsiveContainer width="100%" height={280}>
+            <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+              <defs>
+                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={VIOLET_MAIN} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={VIOLET_MAIN} stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+              <XAxis
+                dataKey="month"
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={{ stroke: 'var(--border)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip content={<PersianTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="views"
+                stroke={VIOLET_MAIN}
+                strokeWidth={2.5}
+                fill="url(#areaGradient)"
+                dot={{ r: 4, fill: VIOLET_MAIN, strokeWidth: 2, stroke: 'var(--background)' }}
+                activeDot={{ r: 6, fill: VIOLET_MAIN, stroke: 'var(--background)', strokeWidth: 2 }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </Section>
 
         {/* Popular Articles */}
@@ -534,6 +820,11 @@ export default function DashboardPage() {
               ))
             )}
           </div>
+        </Section>
+
+        {/* ───── Quick Draft Widget ───── */}
+        <Section title={labels.quickDraft} defaultOpen={true} delay={575}>
+          <QuickDraftWidget categories={categoriesData} />
         </Section>
       </div>
     </div>

@@ -30,9 +30,10 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X,
-  Download, ArrowUpDown, ChevronUp, ChevronDown,
+  Download, ArrowUpDown, ChevronUp, ChevronDown, CheckSquare, Trash,
 } from 'lucide-react'
 import { exportToCSV } from '@/lib/csv-export'
 import { toast } from 'sonner'
@@ -96,6 +97,7 @@ export default function ContentPage() {
   const [pageSize, setPageSize] = useState(10)
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
   const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
@@ -139,6 +141,59 @@ export default function ContentPage() {
 
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+  // ─── Bulk Selection Logic ─────────────────────────────────────────────
+  const allOnPageSelected = paginatedItems.length > 0 && paginatedItems.every(p => selectedIds.has(p.id))
+  const someOnPageSelected = paginatedItems.some(p => selectedIds.has(p.id)) && !allOnPageSelected
+
+  const toggleSelectRow = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleSelectAll = () => {
+    if (allOnPageSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        paginatedItems.forEach(p => next.delete(p.id))
+        return next
+      })
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        paginatedItems.forEach(p => next.add(p.id))
+        return next
+      })
+    }
+  }
+
+  const handleBulkPublish = () => {
+    selectedIds.forEach(id => {
+      updatePost.mutate({ id, status: 'published' })
+    })
+    toast.success(`${selectedIds.size} مطلب به وضعیت منتشر شده تغییر یافت`)
+    setSelectedIds(new Set())
+  }
+
+  const handleBulkDraft = () => {
+    selectedIds.forEach(id => {
+      updatePost.mutate({ id, status: 'draft' })
+    })
+    toast.success(`${selectedIds.size} مطلب به وضعیت پیش‌نویس تغییر یافت`)
+    setSelectedIds(new Set())
+  }
+
+  const handleBulkDelete = () => {
+    selectedIds.forEach(id => {
+      deletePost.mutate(id)
+    })
+    toast.success(`${selectedIds.size} مطلب با موفقیت حذف شد`)
+    setSelectedIds(new Set())
+  }
 
   const openCreate = () => {
     setEditingPost(null)
@@ -276,6 +331,13 @@ export default function ContentPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={allOnPageSelected ? true : someOnPageSelected ? 'indeterminate' : false}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="انتخاب همه"
+                      />
+                    </TableHead>
                     <TableHead>
                       <button onClick={() => handleSort('title')} className="flex items-center gap-1 hover:text-foreground transition-colors">
                         {labels.postTitle}
@@ -310,10 +372,17 @@ export default function ContentPage() {
                     return (
                       <TableRow
                         key={post.id}
-                        className="hover-lift transition-all duration-200 animate-in cursor-pointer"
+                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer ${selectedIds.has(post.id) ? 'bg-primary/5' : ''}`}
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         onClick={() => setPreviewPost(post)}
                       >
+                        <TableCell className="w-10" onClick={e => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.has(post.id)}
+                            onCheckedChange={() => toggleSelectRow(post.id)}
+                            aria-label={`انتخاب ${post.title}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
@@ -373,6 +442,42 @@ export default function ContentPage() {
           onPageChange={setCurrentPage}
           onPageSizeChange={handlePageSizeChange}
         />
+      )}
+
+      {/* ─── Bulk Action Bar ─── */}
+      {selectedIds.size > 0 && (
+        <div className="glass-card sticky bottom-0 z-10 border-t border-border/60 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-300 shadow-lg">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <CheckSquare className="h-4 w-4 text-primary" />
+            <span>{selectedIds.size} مطلب انتخاب شده</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            <Button
+              size="sm"
+              className="gap-1.5 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              onClick={handleBulkPublish}
+            >
+              تغییر وضعیت به منتشر شده
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              onClick={handleBulkDraft}
+            >
+              تغییر وضعیت به پیش‌نویس
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              onClick={handleBulkDelete}
+            >
+              <Trash className="h-3.5 w-3.5" />
+              حذف انتخاب‌شده‌ها
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Create/Edit Dialog */}
