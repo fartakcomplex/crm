@@ -133,6 +133,28 @@ export interface Setting {
   group: 'general' | 'seo' | 'ai' | 'content' | 'security' | 'appearance' | 'notifications'
 }
 
+export interface Task {
+  id: string
+  title: string
+  description: string
+  status: 'todo' | 'in-progress' | 'review' | 'done' | 'cancelled'
+  priority: 'low' | 'medium' | 'high' | 'critical'
+  assigneeId: string | null
+  dueDate: string | null
+  tags: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface QuickNote {
+  id: string
+  content: string
+  color: 'yellow' | 'green' | 'blue' | 'pink' | 'purple'
+  pinned: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface WPSyncConfig {
   id: string
   siteUrl: string
@@ -214,24 +236,41 @@ export interface CMSTab {
   icon: string
   gradient: string
   badge?: string
+  category?: string
 }
 
 export const CMS_TABS: CMSTab[] = [
-  { id: 'dashboard',    name: 'Dashboard',    icon: 'LayoutDashboard', gradient: 'from-slate-500 to-slate-700' },
-  { id: 'content',      name: 'Content',      icon: 'FileText',        gradient: 'from-cyan-500 to-cyan-700' },
-  { id: 'media',        name: 'Media',        icon: 'Image',          gradient: 'from-rose-500 to-rose-700' },
-  { id: 'users',        name: 'Users',        icon: 'Users',          gradient: 'from-emerald-500 to-emerald-700' },
-  { id: 'team',         name: 'Team',         icon: 'UserCog',        gradient: 'from-indigo-500 to-indigo-700' },
-  { id: 'customers',    name: 'Customers',    icon: 'UserCircle',     gradient: 'from-amber-500 to-amber-700' },
-  { id: 'projects',     name: 'Projects',     icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700' },
-  { id: 'ai-assistant', name: 'AI Assistant', icon: 'Bot',            gradient: 'from-violet-500 to-violet-700' },
-  { id: 'reports',      name: 'Reports',      icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700' },
-  { id: 'activities',   name: 'Activities',   icon: 'Activity',       gradient: 'from-lime-500 to-lime-700' },
-  { id: 'comments',     name: 'Comments',     icon: 'MessageCircle',  gradient: 'from-orange-500 to-orange-700' },
-  { id: 'notifications',name: 'Notifications',icon: 'Bell',           gradient: 'from-purple-500 to-purple-700' },
-  { id: 'wordpress',    name: 'WordPress',    icon: 'Globe',          gradient: 'from-blue-500 to-blue-700' },
-  { id: 'settings',     name: 'Settings',     icon: 'Settings',       gradient: 'from-teal-500 to-teal-700' },
+  // Main
+  { id: 'dashboard',    name: 'Dashboard',    icon: 'LayoutDashboard', gradient: 'from-slate-500 to-slate-700', category: 'main' },
+  // Content Management
+  { id: 'content',      name: 'Content',      icon: 'FileText',        gradient: 'from-cyan-500 to-cyan-700', category: 'content' },
+  { id: 'media',        name: 'Media',        icon: 'Image',          gradient: 'from-rose-500 to-rose-700', category: 'content' },
+  { id: 'comments',     name: 'Comments',     icon: 'MessageCircle',  gradient: 'from-orange-500 to-orange-700', category: 'content' },
+  // People
+  { id: 'users',        name: 'Users',        icon: 'Users',          gradient: 'from-emerald-500 to-emerald-700', category: 'people' },
+  { id: 'team',         name: 'Team',         icon: 'UserCog',        gradient: 'from-indigo-500 to-indigo-700', category: 'people' },
+  { id: 'customers',    name: 'Customers',    icon: 'UserCircle',     gradient: 'from-amber-500 to-amber-700', category: 'people' },
+  // Workspace
+  { id: 'projects',     name: 'Projects',     icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700', category: 'workspace' },
+  { id: 'tasks',        name: 'Tasks',        icon: 'CheckSquare',    gradient: 'from-green-500 to-green-700', category: 'workspace' },
+  // Intelligence
+  { id: 'ai-assistant', name: 'AI Assistant', icon: 'Bot',            gradient: 'from-violet-500 to-violet-700', category: 'tools' },
+  { id: 'reports',      name: 'Reports',      icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700', category: 'tools' },
+  // System
+  { id: 'activities',   name: 'Activities',   icon: 'Activity',       gradient: 'from-lime-500 to-lime-700', category: 'system' },
+  { id: 'notifications',name: 'Notifications',icon: 'Bell',           gradient: 'from-purple-500 to-purple-700', category: 'system' },
+  { id: 'wordpress',    name: 'WordPress',    icon: 'Globe',          gradient: 'from-blue-500 to-blue-700', category: 'system' },
+  { id: 'settings',     name: 'Settings',     icon: 'Settings',       gradient: 'from-teal-500 to-teal-700', category: 'system' },
 ]
+
+export const SIDEBAR_CATEGORIES: Record<string, string> = {
+  main: 'عام',
+  content: 'مدیریت محتوا',
+  people: 'افراد',
+  workspace: 'فضای کار',
+  tools: 'ابزارهای هوشمند',
+  system: 'سیستم',
+}
 
 // ---------------------------------------------------------------------------
 // SEO Assistant Tab Definitions
@@ -396,6 +435,7 @@ export function getTabAccentClass(tabId: string): string {
     notifications: 'text-purple-600 dark:text-purple-300',
     wordpress:     'text-blue-600 dark:text-blue-300',
     settings:      'text-teal-600 dark:text-teal-300',
+    tasks:         'text-green-600 dark:text-green-300',
   }
   return accentMap[tabId] ?? 'text-slate-600 dark:text-slate-300'
 }

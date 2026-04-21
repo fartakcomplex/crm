@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CMSProvider, useCMS } from '@/components/cms/context'
-import { CMS_TABS, getTabAccentClass, getTabGradient } from '@/components/cms/types'
+import { CMS_TABS, getTabAccentClass, getTabGradient, SIDEBAR_CATEGORIES } from '@/components/cms/types'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,7 +20,7 @@ import {
   LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
   Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
-  Zap, Plus, X, Database, Clock, Wifi, Keyboard,
+  Zap, Plus, X, Database, Clock, Wifi, Keyboard, CheckSquare, Pencil,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -28,6 +28,16 @@ import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { formatRelativeTime } from '@/components/cms/types'
+import { toast } from 'sonner'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
 
 // ─── Dynamic imports to reduce bundle size ──────────────────────────────
 
@@ -59,6 +69,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   notifications: dynamic(() => import('@/components/cms/NotificationsPage'), { loading: LoadingFallback, ssr: false }),
   wordpress: dynamic(() => import('@/components/cms/WordPressPage'), { loading: LoadingFallback, ssr: false }),
   settings: dynamic(() => import('@/components/cms/SettingsPage'), { loading: LoadingFallback, ssr: false }),
+  tasks: dynamic(() => import('@/components/cms/TasksPage'), { loading: LoadingFallback, ssr: false }),
 }
 
 const DynamicLoginPage = dynamic(
@@ -71,6 +82,7 @@ const DynamicLoginPage = dynamic(
 const iconComponents: Record<string, React.ComponentType<{className?: string}>> = {
   LayoutDashboard, FileText, Image: ImageIcon, Users, UserCog, UserCircle,
   FolderKanban, Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
+  CheckSquare,
 }
 
 function TabIcon({ name, className }: { name: string; className?: string }) {
@@ -120,41 +132,57 @@ function SidebarNav({
       <ScrollArea className="flex-1 py-2">
         <nav className="space-y-0.5 px-2" dir="rtl">
           {CMS_TABS.map((tab, i) => {
-            const isActive = activeTab === tab.id
-            const showBadge = tab.id === 'notifications' && unreadCount > 0
+            // Show category header before first item in each category (skip 'main')
+            const category = tab.category ?? 'main'
+            const prevCategory = i > 0 ? (CMS_TABS[i - 1].category ?? 'main') : null
+            const showCategoryHeader = !collapsed && category !== 'main' && category !== prevCategory
+
             return (
-              <Tooltip key={tab.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer ${
-                      isActive
-                        ? `bg-gradient-to-l ${tab.gradient} text-white shadow-md`
-                        : `hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
-                    } ${collapsed ? 'justify-center px-0' : 'justify-start px-3'}`}
-                    onClick={() => onTabChange(tab.id)}
-                    style={{ animationDelay: `${i * 30}ms` }}
-                  >
-                    <span className="shrink-0">
-                      <TabIcon name={tab.icon} className="h-[18px] w-[18px]" />
-                    </span>
-                    {!collapsed && (
-                      <>
-                        <span className="text-sm truncate flex-1">{tab.name}</span>
-                        {showBadge && (
-                          <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] bg-red-500 text-white border-0 animate-pulse">
-                            {unreadCount}
-                          </Badge>
-                        )}
-                      </>
-                    )}
-                  </button>
-                </TooltipTrigger>
-                {collapsed && (
-                  <TooltipContent side="left" className="text-xs">
-                    {tab.name}
-                  </TooltipContent>
+              <div key={tab.id}>
+                {showCategoryHeader && (
+                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 pt-3 pb-1">
+                    {SIDEBAR_CATEGORIES[category] ?? category}
+                  </div>
                 )}
-              </Tooltip>
+                {(() => {
+                  const isActive = activeTab === tab.id
+                  const showBadge = tab.id === 'notifications' && unreadCount > 0
+                  return (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer ${
+                            isActive
+                              ? `bg-gradient-to-l ${tab.gradient} text-white shadow-md`
+                              : `hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
+                          } ${collapsed ? 'justify-center px-0' : 'justify-start px-3'}`}
+                          onClick={() => onTabChange(tab.id)}
+                          style={{ animationDelay: `${i * 30}ms` }}
+                        >
+                          <span className="shrink-0">
+                            <TabIcon name={tab.icon} className="h-[18px] w-[18px]" />
+                          </span>
+                          {!collapsed && (
+                            <>
+                              <span className="text-sm truncate flex-1">{tab.name}</span>
+                              {showBadge && (
+                                <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] bg-red-500 text-white border-0 animate-pulse">
+                                  {unreadCount}
+                                </Badge>
+                              )}
+                            </>
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      {collapsed && (
+                        <TooltipContent side="left" className="text-xs">
+                          {tab.name}
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  )
+                })()}
+              </div>
             )
           })}
         </nav>
@@ -286,15 +314,165 @@ function BottomStatusBar() {
   )
 }
 
+// ─── Quick Draft Dialog ──────────────────────────────────────────────
+
+function QuickDraftDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { createPost, categories } = useCMS()
+  useEnsureData(['categories'])
+
+  const [title, setTitle] = useState('')
+  const [content, setContent] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [priority, setPriority] = useState('medium')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const categoriesData = categories.data ?? []
+
+  const handleSave = async () => {
+    if (!title.trim()) {
+      toast.error('عنوان نمی‌تواند خالی باشد')
+      return
+    }
+    setIsSaving(true)
+    try {
+      await createPost.mutateAsync({
+        title: title.trim(),
+        content: content.trim(),
+        status: 'draft',
+        categoryId: categoryId || null,
+        slug: title.trim().toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]+/g, '-').replace(/^-|-$/g, '') || `draft-${Date.now()}`,
+        excerpt: content.trim().slice(0, 200),
+      })
+      toast.success('پیش‌نویس با موفقیت ذخیره شد')
+      // Reset form
+      setTitle('')
+      setContent('')
+      setCategoryId('')
+      setPriority('medium')
+      onOpenChange(false)
+    } catch {
+      toast.error('خطا در ذخیره پیش‌نویس')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[480px] glass-card" dir="rtl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-fuchsia-700 dark:text-fuchsia-300">
+            <Pencil className="h-5 w-5" />
+            یادداشت سریع
+          </DialogTitle>
+          <DialogDescription>
+            یک پیش‌نویس سریع ایجاد کنید و بعداً آن را کامل کنید.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {/* Title */}
+          <div className="space-y-2">
+            <Label htmlFor="draft-title">عنوان</Label>
+            <Input
+              id="draft-title"
+              placeholder="عنوان مطلب را وارد کنید..."
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              className="bg-background/50"
+            />
+          </div>
+
+          {/* Content */}
+          <div className="space-y-2">
+            <Label htmlFor="draft-content">محتوا</Label>
+            <Textarea
+              id="draft-content"
+              placeholder="محتوای مطلب را بنویسید..."
+              value={content}
+              onChange={e => setContent(e.target.value)}
+              rows={4}
+              className="bg-background/50 resize-none"
+            />
+          </div>
+
+          {/* Category & Priority Row */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>دسته‌بندی</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger className="w-full bg-background/50">
+                  <SelectValue placeholder="انتخاب دسته‌بندی" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoriesData.map(cat => (
+                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>اولویت</Label>
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="w-full bg-background/50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">پایین</SelectItem>
+                  <SelectItem value="medium">متوسط</SelectItem>
+                  <SelectItem value="high">بالا</SelectItem>
+                  <SelectItem value="critical">بحرانی</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className="hover:bg-accent/60"
+          >
+            انصراف
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving || !title.trim()}
+            className="gap-2 bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-700 hover:to-fuchsia-600 text-white shadow-sm hover:shadow-md"
+          >
+            {isSaving ? (
+              <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Pencil className="h-4 w-4" />
+            )}
+            ذخیره پیش‌نویس
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Floating Action Button ────────────────────────────────────────────
 
-function FloatingActionButton({ onNavigate }: { onNavigate: (tabId: string) => void }) {
+function FloatingActionButton({ onNavigate, onOpenQuickDraft }: { onNavigate: (tabId: string) => void; onOpenQuickDraft: () => void }) {
   const [open, setOpen] = useState(false)
   const quickActions = [
     { id: 'content', icon: <Plus className="h-4 w-4" />, label: 'ایجاد مطلب', gradient: 'from-cyan-500 to-cyan-600' },
+    { id: 'quick-draft', icon: <Pencil className="h-4 w-4" />, label: 'یادداشت سریع', gradient: 'from-fuchsia-500 to-fuchsia-600', isSpecial: true },
     { id: 'ai-assistant', icon: <Zap className="h-4 w-4" />, label: 'دستیار AI', gradient: 'from-violet-500 to-violet-600' },
     { id: 'media', icon: <ImageIcon className="h-4 w-4" />, label: 'بارگذاری رسانه', gradient: 'from-rose-500 to-rose-600' },
   ]
+
+  const handleAction = (action: typeof quickActions[number]) => {
+    if (action.isSpecial) {
+      onOpenQuickDraft()
+    } else {
+      onNavigate(action.id)
+    }
+    setOpen(false)
+  }
 
   return (
     <div className="fixed bottom-6 left-6 z-40 flex flex-col-reverse items-center gap-3">
@@ -303,10 +481,7 @@ function FloatingActionButton({ onNavigate }: { onNavigate: (tabId: string) => v
           key={action.id}
           className="flex items-center gap-2 rounded-xl bg-card border border-border shadow-lg px-3 py-2 text-sm hover:bg-accent transition-all duration-200 hover:scale-105 animate-in slide-in-from-bottom-2"
           style={{ animationDelay: `${i * 60}ms` }}
-          onClick={() => {
-            onNavigate(action.id)
-            setOpen(false)
-          }}
+          onClick={() => handleAction(action)}
         >
           <span className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${action.gradient} text-white`}>
             {action.icon}
@@ -430,6 +605,7 @@ function AppContent() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [quickDraftOpen, setQuickDraftOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(true)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
@@ -464,12 +640,13 @@ function AppContent() {
         return
       }
 
-      // ⌘1 → Dashboard, ⌘2 → Content, ⌘3 → Media, ⌘4 → Users
+      // ⌘1 → Dashboard, ⌘2 → Content, ⌘3 → Media, ⌘4 → Users, ⌘5 → Tasks
       const tabMap: Record<string, string> = {
         '1': 'dashboard',
         '2': 'content',
         '3': 'media',
         '4': 'users',
+        '5': 'tasks',
       }
       if ((e.metaKey || e.ctrlKey) && tabMap[e.key]) {
         e.preventDefault()
@@ -657,7 +834,10 @@ function AppContent() {
       </div>
 
       {/* Floating Action Button */}
-      <FloatingActionButton onNavigate={handleTabChange} />
+      <FloatingActionButton onNavigate={handleTabChange} onOpenQuickDraft={() => setQuickDraftOpen(true)} />
+
+      {/* Quick Draft Dialog */}
+      <QuickDraftDialog open={quickDraftOpen} onOpenChange={setQuickDraftOpen} />
 
       {/* Search Dialog */}
       <SearchDialog

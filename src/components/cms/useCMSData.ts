@@ -5,6 +5,7 @@ import type {
   Post, User, Customer, Project, TeamMember, Comment,
   MediaItem, Category, Tag, ActivityLog, Setting,
   WPSyncConfig, Stats, ChartData, Notification,
+  Task, QuickNote,
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -27,6 +28,8 @@ const api = {
   charts:         '/api/charts',
   notifications:  '/api/notifications',
   wordpress:      '/api/wordpress',
+  tasks:          '/api/tasks',
+  notes:          '/api/notes',
 }
 
 // ---------------------------------------------------------------------------
@@ -34,7 +37,7 @@ const api = {
 // ---------------------------------------------------------------------------
 
 // Known API response wrappers: { entityName: [...], total, page, limit }
-const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications']
+const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes']
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init })
@@ -75,6 +78,8 @@ export const QUERY_CONFIGS: Record<string, { queryKey: string[]; queryFn: () => 
   charts:         { queryKey: ['charts'],         queryFn: () => fetchJSON<ChartData>(api.charts) },
   notifications:  { queryKey: ['notifications'],  queryFn: () => fetchJSON<Notification[]>(api.notifications) },
   'wp-config':    { queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config') },
+  tasks:          { queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks) },
+  notes:          { queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes) },
 }
 
 // ---------------------------------------------------------------------------
@@ -104,6 +109,8 @@ export function useCMSData() {
   const charts         = useQuery({ queryKey: ['charts'],         queryFn: () => fetchJSON<ChartData>(api.charts),     enabled: false })
   const notifications  = useQuery({ queryKey: ['notifications'],  queryFn: () => fetchJSON<Notification[]>(api.notifications), enabled: false })
   const wpConfig       = useQuery({ queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config'), enabled: false })
+  const tasks          = useQuery({ queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks),          enabled: false })
+  const notes          = useQuery({ queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes),          enabled: false })
 
   // ──────────────────────────── Post Mutations ─────────────────────────
 
@@ -290,6 +297,44 @@ export function useCMSData() {
 
   // ──────────────────────────── WordPress Mutations ────────────────────
 
+  // ──────────────────────────── Task Mutations ──────────────────────
+
+  const createTask = useMutation({
+    mutationFn: (data: Partial<Task>) => fetchJSON<Task>(api.tasks, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+
+  const updateTask = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Task> & { id: string }) =>
+      fetchJSON<Task>(`${api.tasks}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+
+  const deleteTask = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.tasks}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+
+  // ──────────────────────────── QuickNote Mutations ───────────────────
+
+  const createNote = useMutation({
+    mutationFn: (data: Partial<QuickNote>) => fetchJSON<QuickNote>(api.notes, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
+  })
+
+  const updateNote = useMutation({
+    mutationFn: ({ id, ...data }: Partial<QuickNote> & { id: string }) =>
+      fetchJSON<QuickNote>(`${api.notes}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
+  })
+
+  const deleteNote = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.notes}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
+  })
+
+  // ──────────────────────────── WordPress Mutations ────────────────────
+
   const saveWPConfig = useMutation({
     mutationFn: (data: Partial<WPSyncConfig>) =>
       fetchJSON<WPSyncConfig>(api.wordpress + '/config', { method: 'POST', body: JSON.stringify(data) }),
@@ -311,7 +356,7 @@ export function useCMSData() {
     // Queries
     posts, users, customers, projects, team, media, comments,
     categories, tags, activities, settings, stats, charts,
-    notifications, wpConfig,
+    notifications, wpConfig, tasks, notes,
 
     // Posts
     createPost, updatePost, deletePost,
@@ -335,6 +380,10 @@ export function useCMSData() {
     updateSetting, bulkUpdateSettings,
     // Notifications
     markNotificationRead, markAllNotificationsRead,
+    // Tasks
+    createTask, updateTask, deleteTask,
+    // Notes
+    createNote, updateNote, deleteNote,
     // WordPress
     saveWPConfig, syncWP,
     // Utility

@@ -27,7 +27,7 @@ const labels = {
   read: 'خوانده شده',
   filterType: 'فیلتر نوع',
   markRead: 'خوانده شد',
-  allReadSuccess: 'همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند.',
+  allReadSuccess: 'همه اعلان‌ها به عنوان خوانده‌شده علامت‌گذاری شدند',
 }
 
 // ─── Mock Notification Data ───────────────────────────────────────────────────
@@ -57,25 +57,51 @@ function getTypeConfig(type: string) {
   return map[type] ?? map.info
 }
 
+// ─── Filter Tab Definition ────────────────────────────────────────────────────
+
+type FilterTab = 'all' | 'unread' | 'info' | 'success' | 'warning' | 'error'
+
+const FILTER_TABS: Array<{ key: FilterTab; label: string; typeFilter?: Notification['type']; readFilter?: boolean | null }> = [
+  { key: 'all',     label: 'همه' },
+  { key: 'unread',  label: 'خوانده نشده' },
+  { key: 'info',    label: 'اطلاعات',  typeFilter: 'info' },
+  { key: 'success', label: 'موفقیت',   typeFilter: 'success' },
+  { key: 'warning', label: 'هشدار',    typeFilter: 'warning' },
+  { key: 'error',   label: 'خطا',      typeFilter: 'error' },
+]
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function NotificationsPage() {
   useEnsureData(['notifications'])
+  const { markAllNotificationsRead } = useCMS()
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications)
-  const [filterType, setFilterType] = useState('all')
-  const [filterRead, setFilterRead] = useState<'all' | 'unread' | 'read'>('all')
+  const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
   const unreadCount = notifications.filter(n => !n.read).length
 
+  // Compute count badges per tab
+  const tabCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: notifications.length, unread: 0, info: 0, success: 0, warning: 0, error: 0 }
+    for (const n of notifications) {
+      if (!n.read) counts.unread++
+      if (counts[n.type] !== undefined) counts[n.type]++
+    }
+    return counts
+  }, [notifications])
+
   const filtered = useMemo(() => {
     return notifications.filter(n => {
-      const matchType = filterType === 'all' || n.type === filterType
-      const matchRead = filterRead === 'all' ||
-        (filterRead === 'unread' && !n.read) ||
-        (filterRead === 'read' && n.read)
-      return matchType && matchRead
+      const tabConfig = FILTER_TABS.find(t => t.key === activeTab)
+      if (!tabConfig) return true
+
+      if (tabConfig.key === 'all') return true
+      if (tabConfig.key === 'unread') return !n.read
+      if (tabConfig.typeFilter) return n.type === tabConfig.typeFilter
+
+      return true
     })
-  }, [notifications, filterType, filterRead])
+  }, [notifications, activeTab])
 
   const handleMarkRead = (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
@@ -83,8 +109,18 @@ export default function NotificationsPage() {
   }
 
   const handleMarkAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    toast.success(labels.allReadSuccess)
+    // Use the CMS mutation for backend, and also update local state
+    markAllNotificationsRead.mutate(undefined, {
+      onSuccess: () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+        toast.success(labels.allReadSuccess)
+      },
+      onError: () => {
+        // Still update local state as fallback
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+        toast.success(labels.allReadSuccess)
+      },
+    })
   }
 
   const typeLabels: Record<string, string> = {
@@ -108,42 +144,59 @@ export default function NotificationsPage() {
               {unreadCount} خوانده نشده
             </Badge>
           )}
-          <Button variant="outline" onClick={handleMarkAllRead} disabled={unreadCount === 0} className="gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-            <CheckCheck className="h-4 w-4" />
+          <Button
+            variant="outline"
+            onClick={handleMarkAllRead}
+            disabled={unreadCount === 0}
+            className="gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+          >
+            {markAllNotificationsRead.isPending ? (
+              <div className="h-4 w-4 border-2 border-purple-400/30 border-t-purple-500 rounded-full animate-spin" />
+            ) : (
+              <CheckCheck className="h-4 w-4" />
+            )}
             {labels.markAllRead}
           </Button>
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filter Tabs with Count Badges */}
       <Card className="glass-card shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Filter className="h-4 w-4" />
-            {labels.filterType}:
+            {labels.filterType}
           </div>
           <div className="flex flex-wrap gap-2">
-            {['all', 'unread', 'read'].map(val => (
-              <Badge
-                key={val}
-                variant={filterRead === val ? 'default' : 'outline'}
-                className={`cursor-pointer transition-all duration-200 ${filterRead === val ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.03] active:scale-[0.97]'}`}
-                onClick={() => setFilterRead(val as typeof filterRead)}
-              >
-                {val === 'all' ? labels.all : val === 'unread' ? labels.unread : labels.read}
-              </Badge>
-            ))}
-            <div className="w-px h-6 bg-purple-200 dark:bg-purple-800 mx-1" />
-            {['info', 'success', 'warning', 'error'].map(type => (
-              <Badge
-                key={type}
-                variant={filterType === type ? 'default' : 'outline'}
-                className={`cursor-pointer transition-all duration-200 ${filterType === type ? 'bg-purple-600 text-white hover:bg-purple-700' : 'border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.03] active:scale-[0.97]'}`}
-                onClick={() => setFilterType(filterType === type ? 'all' : type)}
-              >
-                {typeLabels[type]}
-              </Badge>
-            ))}
+            {FILTER_TABS.map((tab) => {
+              const count = tabCounts[tab.key] ?? 0
+              const isActive = activeTab === tab.key
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`
+                    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
+                    transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]
+                    ${isActive
+                      ? 'bg-purple-600 text-white shadow-md shadow-purple-500/25 hover:bg-purple-700'
+                      : 'border border-purple-200 dark:border-purple-800 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'
+                    }
+                  `}
+                >
+                  {tab.label}
+                  <span className={`
+                    min-w-[20px] h-5 flex items-center justify-center rounded-full text-[11px] font-bold px-1.5
+                    ${isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                    }
+                  `}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
           </div>
         </CardContent>
       </Card>

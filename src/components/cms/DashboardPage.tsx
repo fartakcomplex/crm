@@ -25,14 +25,23 @@ import {
   Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
   Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
-  Wifi, MessageSquare,
+  Wifi, MessageSquare, StickyNote, Pin, PinOff,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, Legend,
 } from 'recharts'
 import { formatRelativeTime } from './types'
+import type { QuickNote } from './types'
 import { MiniSparkline } from './MiniSparkline'
 
 // Persian labels
@@ -101,6 +110,13 @@ const labels = {
   storageLabel: 'فضای ذخیره‌سازی',
   serverOnline: 'آنلاین',
   miniCalendar: 'تقویم',
+  quickNotes: 'یادداشت‌های سریع',
+  addNote: 'یادداشت جدید',
+  notePlaceholder: 'متن یادداشت خود را بنویسید...',
+  noteCreated: 'یادداشت با موفقیت ایجاد شد',
+  noteDeleted: 'یادداشت حذف شد',
+  noNotes: 'یادداشتی وجود ندارد',
+  noNotesDesc: 'با کلیک روی دکمه + یک یادداشت جدید ایجاد کنید',
 }
 
 const statusLabel: Record<string, string> = {
@@ -784,11 +800,219 @@ function MiniCalendarWidget() {
   )
 }
 
+// ────────────── Quick Notes Widget ──────────────
+
+const NOTE_COLORS: Array<{ value: QuickNote['color']; label: string; bgClass: string; borderClass: string; dotClass: string }> = [
+  { value: 'yellow', label: 'زرد', bgClass: 'bg-yellow-50 dark:bg-yellow-950/40', borderClass: 'border-yellow-200 dark:border-yellow-800/50', dotClass: 'bg-yellow-400' },
+  { value: 'green',  label: 'سبز', bgClass: 'bg-green-50 dark:bg-green-950/40',  borderClass: 'border-green-200 dark:border-green-800/50',  dotClass: 'bg-green-400' },
+  { value: 'blue',   label: 'آبی', bgClass: 'bg-blue-50 dark:bg-blue-950/40',   borderClass: 'border-blue-200 dark:border-blue-800/50',   dotClass: 'bg-blue-400' },
+  { value: 'pink',   label: 'صورتی', bgClass: 'bg-pink-50 dark:bg-pink-950/40',   borderClass: 'border-pink-200 dark:border-pink-800/50',   dotClass: 'bg-pink-400' },
+  { value: 'purple', label: 'بنفش', bgClass: 'bg-purple-50 dark:bg-purple-950/40', borderClass: 'border-purple-200 dark:border-purple-800/50', dotClass: 'bg-purple-400' },
+]
+
+const STICKY_HEADER_COLORS: Record<QuickNote['color'], string> = {
+  yellow: 'bg-yellow-300 dark:bg-yellow-600',
+  green:  'bg-green-300 dark:bg-green-600',
+  blue:   'bg-blue-300 dark:bg-blue-600',
+  pink:   'bg-pink-300 dark:bg-pink-600',
+  purple: 'bg-purple-300 dark:bg-purple-600',
+}
+
+const STICKY_BODY_COLORS: Record<QuickNote['color'], string> = {
+  yellow: 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800/40',
+  green:  'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800/40',
+  blue:   'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/40',
+  pink:   'bg-pink-50 dark:bg-pink-950/30 border-pink-200 dark:border-pink-800/40',
+  purple: 'bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800/40',
+}
+
+function QuickNotesWidget({ notes }: { notes: QuickNote[] }) {
+  const { createNote, updateNote, deleteNote } = useCMS()
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [noteText, setNoteText] = useState('')
+  const [selectedColor, setSelectedColor] = useState<QuickNote['color']>('yellow')
+
+  const handleCreate = () => {
+    if (!noteText.trim()) {
+      toast.error('لطفاً متن یادداشت را وارد کنید')
+      return
+    }
+    createNote.mutate(
+      { content: noteText.trim(), color: selectedColor, pinned: false },
+      {
+        onSuccess: () => {
+          toast.success(labels.noteCreated)
+          setNoteText('')
+          setSelectedColor('yellow')
+          setDialogOpen(false)
+        },
+        onError: () => toast.error('خطا در ایجاد یادداشت'),
+      },
+    )
+  }
+
+  const handleDelete = (id: string) => {
+    deleteNote.mutate(id, {
+      onSuccess: () => toast.success(labels.noteDeleted),
+      onError: () => toast.error('خطا در حذف یادداشت'),
+    })
+  }
+
+  const handleTogglePin = (note: QuickNote) => {
+    updateNote.mutate({ id: note.id, pinned: !note.pinned }, {
+      onError: () => toast.error('خطا در بروزرسانی یادداشت'),
+    })
+  }
+
+  // Sort: pinned first, then by updatedAt descending
+  const sortedNotes = useMemo(() => {
+    return [...notes].sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    })
+  }, [notes])
+
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0 col-span-1 md:col-span-2 lg:col-span-3">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickNotes}</CardTitle>
+          <Button
+            size="sm"
+            onClick={() => setDialogOpen(true)}
+            className="gap-1.5 bg-gradient-to-l from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white shadow-sm hover:shadow-md hover:scale-[1.03] active:scale-[0.97] transition-all duration-200"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="text-xs">{labels.addNote}</span>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {sortedNotes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/20 dark:to-purple-900/20 flex items-center justify-center mb-3">
+              <StickyNote className="h-7 w-7 text-violet-300" />
+            </div>
+            <p className="text-sm font-medium">{labels.noNotes}</p>
+            <p className="text-xs mt-1 opacity-60">{labels.noNotesDesc}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+            {sortedNotes.map((note, idx) => (
+              <div
+                key={note.id}
+                className={`group relative rounded-xl border transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 animate-in overflow-hidden ${STICKY_BODY_COLORS[note.color]}`}
+                style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
+              >
+                {/* Colored top strip */}
+                <div className={`h-2 w-full ${STICKY_HEADER_COLORS[note.color]}`} />
+                {/* Pin indicator */}
+                <div className="flex items-center justify-between px-3 pt-2">
+                  {note.pinned && (
+                    <span className="text-sm" title="سنجاق شده">📌</span>
+                  )}
+                  {!note.pinned && <span className="w-[18px]" />}
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => handleTogglePin(note)}
+                      className="p-1 rounded-md hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      title={note.pinned ? 'برداشتن سنجاق' : 'سنجاق کردن'}
+                    >
+                      {note.pinned ? <PinOff className="h-3 w-3 text-muted-foreground" /> : <Pin className="h-3 w-3 text-muted-foreground" />}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(note.id)}
+                      className="p-1 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      title="حذف"
+                    >
+                      <X className="h-3 w-3 text-muted-foreground hover:text-red-500" />
+                    </button>
+                  </div>
+                </div>
+                {/* Content */}
+                <p className="px-3 pb-3 pt-1 text-sm leading-relaxed whitespace-pre-wrap break-words min-h-[48px] max-h-[120px] overflow-y-auto">
+                  {note.content}
+                </p>
+                {/* Timestamp */}
+                <div className="px-3 pb-2">
+                  <span className="text-[10px] text-muted-foreground/60">
+                    {formatRelativeTime(note.updatedAt)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+
+      {/* Create Note Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-md glass-card">
+          <DialogHeader>
+            <DialogTitle className="text-violet-700 dark:text-violet-300">{labels.addNote}</DialogTitle>
+            <DialogDescription>{labels.notePlaceholder}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <Textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder={labels.notePlaceholder}
+              rows={4}
+              className="border-violet-200/60 dark:border-violet-800/40 focus:border-violet-400 dark:focus:border-violet-500 resize-none"
+              dir="rtl"
+              autoFocus
+            />
+            {/* Color Selection */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">رنگ یادداشت:</p>
+              <div className="flex items-center gap-2">
+                {NOTE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setSelectedColor(c.value)}
+                    className={`w-8 h-8 rounded-full ${c.dotClass} transition-all duration-200 hover:scale-110 ${selectedColor === c.value ? 'ring-2 ring-offset-2 ring-offset-background ring-violet-500 scale-110' : 'opacity-60 hover:opacity-100'}`}
+                    title={c.label}
+                    aria-label={`رنگ ${c.label}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => { setDialogOpen(false); setNoteText(''); setSelectedColor('yellow') }}
+              className="border-violet-200 dark:border-violet-800"
+            >
+              انصراف
+            </Button>
+            <Button
+              onClick={handleCreate}
+              disabled={createNote.isPending || !noteText.trim()}
+              className="bg-gradient-to-l from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white gap-2"
+            >
+              {createNote.isPending ? (
+                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              ایجاد
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
+
 // ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
-  useEnsureData(['stats', 'charts', 'activities', 'posts', 'categories'])
-  const { stats, charts, activities, comments, categories, createPost } = useCMS()
+  useEnsureData(['stats', 'charts', 'activities', 'posts', 'categories', 'notes'])
+  const { stats, charts, activities, comments, categories, createPost, notes } = useCMS()
+  const notesData: QuickNote[] = (notes.data as QuickNote[] | undefined) ?? []
   const statsData = stats.data
   const chartData = charts.data
   const activitiesData = activities.data ?? []
@@ -1242,6 +1466,9 @@ export default function DashboardPage() {
 
         {/* Mini Calendar Widget */}
         <MiniCalendarWidget />
+
+        {/* Quick Notes Widget */}
+        <QuickNotesWidget notes={notesData} />
       </div>
     </div>
   )

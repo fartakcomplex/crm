@@ -803,6 +803,68 @@ export async function POST() {
 
     await db.setting.createMany({ data: defaultSettings })
 
+    // --- Create Tasks ---
+    const taskData = [
+      { title: 'نوشتن مقاله جدید درباره هوش مصنوعی', description: 'مقاله جامع درباره کاربردهای جدید هوش مصنوعی در صنعت', status: 'todo', priority: 'high', dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), tags: 'محتوا, AI' },
+      { title: 'بررسی و تایید نظرات جدید', description: 'بررسی نظرات در انتظار تایید و پاسخ به آنها', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), tags: 'محتوا' },
+      { title: 'به‌روزرسانی صفحه درباره ما', description: 'اضافه کردن اطلاعات جدید تیم و پروژه‌ها', status: 'in-progress', priority: 'medium', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), tags: 'وبسایت' },
+      { title: 'طراحی لوگوی جدید', description: 'طراحی لوگوی جدید برند با همکاری تیم طراحی', status: 'in-progress', priority: 'high', dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), tags: 'طراحی, برند' },
+      { title: 'انتشار مقاله SEO', description: 'نهایی‌سازی و انتشار مقاله بهینه‌سازی موتور جستجو', status: 'review', priority: 'low', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), tags: 'SEO, محتوا' },
+      { title: 'تست فرم تماس با ما', description: 'بررسی عملکرد فرم تماس و ارسال ایمیل', status: 'review', priority: 'medium', dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), tags: 'تست' },
+      { title: 'پشتیبان‌گیری از دیتابیس', description: 'ایجاد نسخه پشتیبان کامل از دیتابیس', status: 'done', priority: 'high', dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), tags: 'امنیت' },
+      { title: 'افزودن نقشه سایت', description: 'ایجاد و ثبت sitemap.xml در موتورهای جستجو', status: 'done', priority: 'low', dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), tags: 'SEO' },
+      { title: 'بهینه‌سازی سرعت سایت', description: 'تحلیل و بهبود سرعت بارگذاری صفحات', status: 'todo', priority: 'critical', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), tags: 'عملکرد' },
+      { title: 'ایمیل خبرنامه ماهانه', description: 'تهیه و ارسال خبرنامه ماهانه برای مشترکان', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), tags: 'بازاریابی, ایمیل' },
+    ] as const
+
+    await Promise.all(
+      taskData.map(t =>
+        db.task.create({
+          data: {
+            title: t.title,
+            description: t.description,
+            status: t.status as 'todo' | 'in-progress' | 'review' | 'done' | 'cancelled',
+            priority: t.priority as 'low' | 'medium' | 'high' | 'critical',
+            dueDate: t.dueDate,
+            tags: t.tags,
+            assigneeId: users[0].id,
+          },
+        })
+      )
+    )
+
+    // --- Create Quick Notes ---
+    await Promise.all([
+      db.quickNote.create({
+        data: {
+          content: 'جلسه فردا ساعت ۱۰ صبح با تیم طراحی',
+          color: 'yellow',
+          pinned: true,
+        },
+      }),
+      db.quickNote.create({
+        data: {
+          content: 'لیست خرید: هاست جدید، دامنه ir',
+          color: 'green',
+          pinned: false,
+        },
+      }),
+      db.quickNote.create({
+        data: {
+          content: 'ایده: اضافه کردن بخش فروشگاه',
+          color: 'blue',
+          pinned: true,
+        },
+      }),
+      db.quickNote.create({
+        data: {
+          content: 'یادآوری: تمدید گواهی SSL تا پایان ماه',
+          color: 'pink',
+          pinned: false,
+        },
+      }),
+    ])
+
     return NextResponse.json({
       message: 'Database seeded successfully',
       seeded: true,
@@ -817,6 +879,8 @@ export async function POST() {
         media: 4,
         activityLogs: 12,
         settings: defaultSettings.length,
+        tasks: taskData.length,
+        quickNotes: 4,
       },
     }, { status: 201 })
   } catch (error) {

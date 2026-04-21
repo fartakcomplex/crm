@@ -144,6 +144,28 @@ model Setting {
   group String @default("general")
 }
 
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @default("")
+  status      String   @default("todo")
+  priority    String   @default("medium")
+  assigneeId  String?
+  dueDate     DateTime?
+  tags        String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QuickNote {
+  id        String   @id @default(cuid())
+  content   String
+  color     String   @default("yellow")
+  pinned    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model WPSyncConfig {
   id        String   @id @default(cuid())
   siteUrl   String

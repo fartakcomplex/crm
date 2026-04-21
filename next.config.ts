@@ -8,10 +8,11 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: false,
   allowedDevOrigins: [
-    // Preview panel domains
+    // Preview panel domains — use wildcard patterns
     'space.z.ai',
-    // Server IP (used by agent-browser in sandbox)
     '21.0.9.242',
+    // Allow all preview-chat subdomains
+    '*.space.z.ai',
   ],
 };
 
