@@ -5,7 +5,7 @@ import type {
   Post, User, Customer, Project, TeamMember, Comment,
   MediaItem, Category, Tag, ActivityLog, Setting,
   WPSyncConfig, Stats, ChartData, Notification,
-  Task, QuickNote,
+  Task, QuickNote, CalendarEvent,
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -30,6 +30,7 @@ const api = {
   wordpress:      '/api/wordpress',
   tasks:          '/api/tasks',
   notes:          '/api/notes',
+  events:         '/api/events',
 }
 
 // ---------------------------------------------------------------------------
@@ -37,7 +38,7 @@ const api = {
 // ---------------------------------------------------------------------------
 
 // Known API response wrappers: { entityName: [...], total, page, limit }
-const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes']
+const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes', 'events']
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init })
@@ -80,6 +81,7 @@ export const QUERY_CONFIGS: Record<string, { queryKey: string[]; queryFn: () => 
   'wp-config':    { queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config') },
   tasks:          { queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks) },
   notes:          { queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes) },
+  events:         { queryKey: ['events'],         queryFn: () => fetchJSON<CalendarEvent[]>(api.events) },
 }
 
 // ---------------------------------------------------------------------------
@@ -111,6 +113,7 @@ export function useCMSData() {
   const wpConfig       = useQuery({ queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config'), enabled: false })
   const tasks          = useQuery({ queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks),          enabled: false })
   const notes          = useQuery({ queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes),          enabled: false })
+  const events         = useQuery({ queryKey: ['events'],         queryFn: () => fetchJSON<CalendarEvent[]>(api.events),         enabled: false })
 
   // ──────────────────────────── Post Mutations ─────────────────────────
 
@@ -333,6 +336,24 @@ export function useCMSData() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['notes'] }),
   })
 
+  // ──────────────────────────── Event Mutations ────────────────────────
+
+  const createEvent = useMutation({
+    mutationFn: (data: Partial<CalendarEvent>) => fetchJSON<CalendarEvent>(api.events, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  })
+
+  const updateEvent = useMutation({
+    mutationFn: ({ id, ...data }: Partial<CalendarEvent> & { id: string }) =>
+      fetchJSON<CalendarEvent>(`${api.events}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  })
+
+  const deleteEvent = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.events}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
+  })
+
   // ──────────────────────────── WordPress Mutations ────────────────────
 
   const saveWPConfig = useMutation({
@@ -356,7 +377,7 @@ export function useCMSData() {
     // Queries
     posts, users, customers, projects, team, media, comments,
     categories, tags, activities, settings, stats, charts,
-    notifications, wpConfig, tasks, notes,
+    notifications, wpConfig, tasks, notes, events,
 
     // Posts
     createPost, updatePost, deletePost,
@@ -384,6 +405,8 @@ export function useCMSData() {
     createTask, updateTask, deleteTask,
     // Notes
     createNote, updateNote, deleteNote,
+    // Events
+    events, createEvent, updateEvent, deleteEvent,
     // WordPress
     saveWPConfig, syncWP,
     // Utility

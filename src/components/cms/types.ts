@@ -155,6 +155,20 @@ export interface QuickNote {
   updatedAt: string
 }
 
+export interface CalendarEvent {
+  id: string
+  title: string
+  description: string
+  startDate: string
+  endDate: string
+  allDay: boolean
+  color: string
+  location: string
+  type: 'event' | 'meeting' | 'deadline' | 'reminder'
+  createdAt: string
+  updatedAt: string
+}
+
 export interface WPSyncConfig {
   id: string
   siteUrl: string
@@ -253,6 +267,7 @@ export const CMS_TABS: CMSTab[] = [
   // Workspace
   { id: 'projects',     name: 'Projects',     icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700', category: 'workspace' },
   { id: 'tasks',        name: 'Tasks',        icon: 'CheckSquare',    gradient: 'from-green-500 to-green-700', category: 'workspace' },
+  { id: 'calendar',     name: 'Calendar',     icon: 'CalendarDays',   gradient: 'from-indigo-500 to-indigo-700', category: 'workspace' },
   // Intelligence
   { id: 'ai-assistant', name: 'AI Assistant', icon: 'Bot',            gradient: 'from-violet-500 to-violet-700', category: 'tools' },
   { id: 'reports',      name: 'Reports',      icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700', category: 'tools' },
@@ -436,6 +451,7 @@ export function getTabAccentClass(tabId: string): string {
     wordpress:     'text-blue-600 dark:text-blue-300',
     settings:      'text-teal-600 dark:text-teal-300',
     tasks:         'text-green-600 dark:text-green-300',
+    calendar:      'text-indigo-600 dark:text-indigo-300',
   }
   return accentMap[tabId] ?? 'text-slate-600 dark:text-slate-300'
 }

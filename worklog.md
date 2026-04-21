@@ -1060,3 +1060,44 @@ Stage Summary:
 6. **Production build test** — verify `bun run build` works
 7. **Mobile responsive testing** — verify all 16 pages on mobile viewports
 8. **Dark mode refinements** — improve chart colors and backgrounds in dark mode
+
+---
+Task ID: feat-calendar-events
+Agent: Main Agent
+Task: Create Calendar/Events page with full CRUD, mini calendar, filtering, and Persian UI
+
+Work Log:
+- Added CalendarEvent model to Prisma schema with fields: id, title, description, startDate, endDate, allDay, color, location, type
+- Pushed schema to SQLite database successfully
+- Added CalendarEvent TypeScript interface to types.ts
+- Added Calendar tab to CMS_TABS (workspace category, indigo gradient, CalendarDays icon)
+- Added calendar accent class to getTabAccentClass
+- Created /api/events API route (GET list + POST create with validation)
+- Created /api/events/[id] API route (PUT update + DELETE with 404 check)
+- Updated useCMSData.ts: added CalendarEvent import, events API endpoint, WRAPPED_KEYS entry, QUERY_CONFIGS entry, lazy query, createEvent/updateEvent/deleteEvent mutations
+- Updated page.tsx: added CalendarDays icon import, dynamic page component, iconComponents map entry, ⌘6 keyboard shortcut
+- Created CalendarEventsPage.tsx (~550 lines) with features:
+  - Mini calendar grid with Persian weekday headers and month navigation
+  - Event dot indicators on calendar days
+  - Today highlight and selected date highlight
+  - Event list panel with type filter pills (All, Event, Meeting, Deadline, Reminder)
+  - 4 stat cards: total events, today's events, this week, meetings count
+  - Create Event Dialog with full form: title, description, start/end datetime, all-day toggle, 8-color picker, location, type selector
+  - Edit Event Dialog with pre-filled form
+  - Delete confirmation AlertDialog
+  - Event cards with colored left accent border, type badges with gradient colors, time/date/location info
+  - Empty state with floating animation and create button
+  - Toast notifications for all CRUD operations
+  - RTL layout, Persian labels, glass-card styling
+  - Responsive grid (1-col mobile, 3-col desktop)
+- Seeded 7 sample Persian events (meetings, deadlines, workshops, reminders)
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings (fully clean)
+- 1 new Prisma model: CalendarEvent
+- 2 new API route files: /api/events/route.ts, /api/events/[id]/route.ts
+- 1 new page component: CalendarEventsPage.tsx (~550 lines)
+- 4 files modified: prisma/schema.prisma, types.ts, useCMSData.ts, page.tsx
+- Server compiles successfully (HTTP 200)
+- 7 sample events seeded into database
+- Calendar tab accessible via sidebar navigation and ⌘6 keyboard shortcut

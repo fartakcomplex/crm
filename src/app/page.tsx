@@ -21,6 +21,7 @@ import {
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
   Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
   Zap, Plus, X, Database, Clock, Wifi, Keyboard, CheckSquare, Pencil,
+  CalendarDays,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -70,6 +71,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   wordpress: dynamic(() => import('@/components/cms/WordPressPage'), { loading: LoadingFallback, ssr: false }),
   settings: dynamic(() => import('@/components/cms/SettingsPage'), { loading: LoadingFallback, ssr: false }),
   tasks: dynamic(() => import('@/components/cms/TasksPage'), { loading: LoadingFallback, ssr: false }),
+  calendar: dynamic(() => import('@/components/cms/CalendarEventsPage'), { loading: LoadingFallback, ssr: false }),
 }
 
 const DynamicLoginPage = dynamic(
@@ -82,7 +84,7 @@ const DynamicLoginPage = dynamic(
 const iconComponents: Record<string, React.ComponentType<{className?: string}>> = {
   LayoutDashboard, FileText, Image: ImageIcon, Users, UserCog, UserCircle,
   FolderKanban, Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
-  CheckSquare,
+  CheckSquare, CalendarDays,
 }
 
 function TabIcon({ name, className }: { name: string; className?: string }) {
@@ -647,6 +649,7 @@ function AppContent() {
         '3': 'media',
         '4': 'users',
         '5': 'tasks',
+        '6': 'calendar',
       }
       if ((e.metaKey || e.ctrlKey) && tabMap[e.key]) {
         e.preventDefault()
