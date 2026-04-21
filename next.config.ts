@@ -7,7 +7,12 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  allowedDevOrigins: ['*'],
+  allowedDevOrigins: [
+    // Preview panel domains
+    'space.z.ai',
+    // Server IP (used by agent-browser in sandbox)
+    '21.0.9.242',
+  ],
 };
 
 export default nextConfig;

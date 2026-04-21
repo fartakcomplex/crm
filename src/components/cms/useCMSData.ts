@@ -33,20 +33,55 @@ const api = {
 // Generic helpers
 // ---------------------------------------------------------------------------
 
+// Known API response wrappers: { entityName: [...], total, page, limit }
+const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications']
+
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init })
   if (!res.ok) {
     const body = await res.text().catch(() => '')
     throw new Error(`API ${res.status}: ${body || res.statusText}`)
   }
-  return res.json()
+  const data = await res.json()
+  // Auto-unwrap: if response is { entityName: [...] }, return the array
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    for (const key of WRAPPED_KEYS) {
+      if (Array.isArray(data[key])) {
+        return data[key] as T
+      }
+    }
+  }
+  return data as T
+}
+
+// ---------------------------------------------------------------------------
+// Query config registry — maps queryKey to its queryFn.
+// Used by useEnsureData for reliable imperative fetching.
+// ---------------------------------------------------------------------------
+
+export const QUERY_CONFIGS: Record<string, { queryKey: string[]; queryFn: () => Promise<unknown> }> = {
+  posts:          { queryKey: ['posts'],          queryFn: () => fetchJSON<Post[]>(api.posts) },
+  users:          { queryKey: ['users'],          queryFn: () => fetchJSON<User[]>(api.users) },
+  customers:      { queryKey: ['customers'],      queryFn: () => fetchJSON<Customer[]>(api.customers) },
+  projects:       { queryKey: ['projects'],       queryFn: () => fetchJSON<Project[]>(api.projects) },
+  team:           { queryKey: ['team'],           queryFn: () => fetchJSON<TeamMember[]>(api.team) },
+  media:          { queryKey: ['media'],          queryFn: () => fetchJSON<MediaItem[]>(api.media) },
+  comments:       { queryKey: ['comments'],       queryFn: () => fetchJSON<Comment[]>(api.comments) },
+  categories:     { queryKey: ['categories'],     queryFn: () => fetchJSON<Category[]>(api.categories) },
+  tags:           { queryKey: ['tags'],           queryFn: () => fetchJSON<Tag[]>(api.tags) },
+  activities:     { queryKey: ['activities'],     queryFn: () => fetchJSON<ActivityLog[]>(api.activities) },
+  settings:       { queryKey: ['settings'],       queryFn: () => fetchJSON<Setting[]>(api.settings) },
+  stats:          { queryKey: ['stats'],          queryFn: () => fetchJSON<Record<string, unknown>>(api.stats).then(d => d as unknown as Stats) },
+  charts:         { queryKey: ['charts'],         queryFn: () => fetchJSON<ChartData>(api.charts) },
+  notifications:  { queryKey: ['notifications'],  queryFn: () => fetchJSON<Notification[]>(api.notifications) },
+  'wp-config':    { queryKey: ['wp-config'],      queryFn: () => fetchJSON<WPSyncConfig[]>(api.wordpress + '/config') },
 }
 
 // ---------------------------------------------------------------------------
 // useCMSData — all queries are DISABLED by default (enabled: false).
-// Each page calls queryClient.prefetchQuery or enables per-query via
-// the refetch/ensureData pattern. This prevents 15 simultaneous API calls
-// on mount that caused OOM crashes.
+// Each page calls useEnsureData() which uses fetchQuery() with explicit
+// queryFn from QUERY_CONFIGS. This prevents 15 simultaneous API calls
+// on mount that caused OOM crashes, while ensuring reliable data fetching.
 // ---------------------------------------------------------------------------
 
 export function useCMSData() {

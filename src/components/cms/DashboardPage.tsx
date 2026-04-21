@@ -24,7 +24,8 @@ import {
   DollarSign, TrendingUp, Plus, UserPlus, Clock, Activity,
   Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
-  Save, PenLine, X,
+  Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
+  Wifi, MessageSquare,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -84,6 +85,22 @@ const labels = {
   updateMeta: 'بروزرسانی متا داده‌ها',
   optimizeImages: 'بهینه‌سازی تصاویر',
   noCategory: 'بدون دسته‌بندی',
+  // New widget labels
+  quickActionsNew: 'دسترسی سریع',
+  newPostAction: 'مطلب جدید',
+  uploadMediaAction: 'بارگذاری رسانه',
+  viewCommentsAction: 'مشاهده نظرات',
+  aiWriterAction: 'نویسنده هوشمند',
+  addUserAction: 'افزودن کاربر',
+  newProjectAction: 'پروژه جدید',
+  activityTimeline: 'خط زمان فعالیت‌ها',
+  popularPostsNew: 'محبوب‌ترین مطالب',
+  systemHealth: 'سلامت سیستم',
+  databaseConnected: 'متصل',
+  apiActive: 'فعال',
+  storageLabel: 'فضای ذخیره‌سازی',
+  serverOnline: 'آنلاین',
+  miniCalendar: 'تقویم',
 }
 
 const statusLabel: Record<string, string> = {
@@ -480,6 +497,290 @@ function OnboardingTipBanner() {
         </button>
       </div>
     </div>
+  )
+}
+
+// ────────────── Quick Actions Widget (Gradient Cards) ──────────────
+
+const quickActionItems = [
+  { icon: <Plus className="h-5 w-5" />, label: labels.newPostAction, gradient: 'from-violet-500 to-purple-600', hoverShadow: 'hover:shadow-violet-500/25' },
+  { icon: <Upload className="h-5 w-5" />, label: labels.uploadMediaAction, gradient: 'from-rose-500 to-pink-600', hoverShadow: 'hover:shadow-rose-500/25' },
+  { icon: <MessageSquare className="h-5 w-5" />, label: labels.viewCommentsAction, gradient: 'from-amber-500 to-orange-600', hoverShadow: 'hover:shadow-amber-500/25' },
+  { icon: <Wand2 className="h-5 w-5" />, label: labels.aiWriterAction, gradient: 'from-emerald-500 to-teal-600', hoverShadow: 'hover:shadow-emerald-500/25' },
+  { icon: <UserPlus className="h-5 w-5" />, label: labels.addUserAction, gradient: 'from-cyan-500 to-sky-600', hoverShadow: 'hover:shadow-cyan-500/25' },
+  { icon: <FolderKanban className="h-5 w-5" />, label: labels.newProjectAction, gradient: 'from-fuchsia-500 to-purple-600', hoverShadow: 'hover:shadow-fuchsia-500/25' },
+]
+
+function QuickActionsWidget() {
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickActionsNew}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        <div className="grid grid-cols-3 gap-2.5">
+          {quickActionItems.map((action, i) => (
+            <button
+              key={i}
+              className={`flex flex-col items-center gap-2 p-3 rounded-xl bg-gradient-to-br ${action.gradient} text-white shadow-md ${action.hoverShadow} hover:scale-105 active:scale-[0.97] transition-all duration-200 hover-lift`}
+            >
+              <div className="bg-white/20 rounded-lg p-2 backdrop-blur-sm">{action.icon}</div>
+              <span className="text-[11px] font-medium leading-tight text-center">{action.label}</span>
+            </button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────────────── Recent Activity Timeline Widget ──────────────
+
+const ACTIVITY_COLORS = ['#8b5cf6', '#a855f7', '#d946ef', '#f59e0b', '#22c55e', '#06b6d4']
+
+function ActivityTimelineWidget({ activities }: { activities: Array<{ id: string; action: string; details: string; createdAt: string; user?: Pick<import('./types').User, 'id' | 'name' | 'email' | 'avatar'> | null }> }) {
+  const recent = activities.slice(0, 5)
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.activityTimeline}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {recent.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <Activity className="h-8 w-8 mb-2 opacity-20" />
+            <p className="text-sm">{labels.noActivities}</p>
+          </div>
+        ) : (
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute top-2 bottom-2 start-[11px] w-0.5 bg-gradient-to-b from-violet-300 via-purple-300 to-fuchsia-300 dark:from-violet-700 dark:via-purple-700 dark:to-fuchsia-700" />
+            <div className="space-y-3">
+              {recent.map((a, i) => (
+                <div key={a.id} className="flex items-start gap-3 relative">
+                  {/* Colored dot */}
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-background"
+                    style={{ backgroundColor: ACTIVITY_COLORS[i % ACTIVITY_COLORS.length] }}
+                  >
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className="text-sm font-medium truncate">{a.details || a.action}</p>
+                    <div className="flex items-center justify-between mt-0.5">
+                      <span className="text-xs text-muted-foreground">{formatRelativeTime(a.createdAt)}</span>
+                      {a.user?.name && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-violet-600 dark:text-violet-400 text-[9px] font-bold">
+                            {a.user.name.charAt(0)}
+                          </div>
+                          <span className="text-xs text-muted-foreground truncate max-w-[80px]">{a.user.name}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────────────── Popular Posts Widget ──────────────
+
+const POPULARITY_GRADIENTS = [
+  'from-violet-500 to-fuchsia-500',
+  'from-purple-500 to-violet-500',
+  'from-fuchsia-500 to-rose-500',
+  'from-amber-500 to-orange-500',
+  'from-emerald-500 to-teal-500',
+]
+
+function PopularPostsWidget({ popularPosts }: { popularPosts: Array<{ title: string; views: number; id: string }> }) {
+  const posts = popularPosts.slice(0, 5)
+  const maxViews = posts.length > 0 ? Math.max(...posts.map(p => p.views), 1) : 1
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.popularPostsNew}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {posts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <Star className="h-8 w-8 mb-2 opacity-20" />
+            <p className="text-sm">{labels.noArticles}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {posts.map((p, i) => (
+              <div key={p.id} className="group">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={`w-5 h-5 rounded-md bg-gradient-to-br ${POPULARITY_GRADIENTS[i % POPULARITY_GRADIENTS.length]} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}>
+                      {i + 1}
+                    </span>
+                    <p className="text-sm font-medium truncate">{p.title}</p>
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 mr-2">
+                    <Eye className="h-3 w-3" />
+                    <span className="tabular-nums">{p.views.toLocaleString('fa-IR')}</span>
+                  </div>
+                </div>
+                {/* Gradient popularity bar */}
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-l ${POPULARITY_GRADIENTS[i % POPULARITY_GRADIENTS.length]} transition-all duration-700 ease-out`}
+                    style={{ width: `${Math.max((p.views / maxViews) * 100, 5)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────────────── System Health Widget ──────────────
+
+function SystemHealthWidget() {
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.systemHealth}</CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        <div className="space-y-4">
+          {/* Database */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Database className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">دیتابیس</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50" />
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">{labels.databaseConnected}</span>
+            </div>
+          </div>
+          {/* API */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Wifi className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">API</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50" />
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">{labels.apiActive}</span>
+            </div>
+          </div>
+          {/* Storage */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <HardDrive className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">{labels.storageLabel}</span>
+              </div>
+              <span className="text-sm font-bold tabular-nums text-violet-600 dark:text-violet-400">۷۵٪</span>
+            </div>
+            <Progress value={75} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-violet-500 [&>div]:to-fuchsia-500 [&>div]:transition-all" />
+          </div>
+          {/* Server */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Server className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm">سرور</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500" />
+              </span>
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">{labels.serverOnline}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────────────── Mini Calendar Widget ──────────────
+
+const PERSIAN_WEEK_DAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
+
+function MiniCalendarWidget() {
+  const calendarData = useMemo(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth()
+    const today = now.getDate()
+
+    // Get Persian month name
+    const persianMonth = now.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })
+
+    // First day of month (0=Sun ... 6=Sat)
+    const firstDay = new Date(year, month, 1).getDay()
+    // Convert to Persian week (Saturday=0 ... Friday=6)
+    const persianFirstDay = (firstDay + 1) % 7
+    // Days in month
+    const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+    return { persianMonth, persianFirstDay, daysInMonth, today }
+  }, [])
+
+  const { persianMonth, persianFirstDay, daysInMonth, today } = calendarData
+
+  // Build calendar cells
+  const cells: Array<{ day: number; isToday: boolean }> = []
+  // Empty slots before first day
+  for (let i = 0; i < persianFirstDay; i++) {
+    cells.push({ day: 0, isToday: false })
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    cells.push({ day: d, isToday: d === today })
+  }
+
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.miniCalendar}</CardTitle>
+          <Badge variant="secondary" className="text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+            {persianMonth}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {/* Week day headers */}
+        <div className="grid grid-cols-7 gap-0.5 mb-1.5">
+          {PERSIAN_WEEK_DAYS.map((d, i) => (
+            <div key={i} className="text-center text-[10px] font-medium text-muted-foreground py-1">{d}</div>
+          ))}
+        </div>
+        {/* Day cells */}
+        <div className="grid grid-cols-7 gap-0.5">
+          {cells.map((cell, i) => (
+            <div
+              key={i}
+              className={`text-center text-xs py-1.5 rounded-lg transition-colors ${
+                cell.day === 0
+                  ? ''
+                  : cell.isToday
+                    ? 'bg-gradient-to-br from-violet-500 to-purple-600 text-white font-bold shadow-sm shadow-violet-500/30'
+                    : 'hover:bg-violet-500/10 text-foreground'
+              }`}
+            >
+              {cell.day > 0 ? cell.day.toLocaleString('fa-IR') : ''}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -923,6 +1224,24 @@ export default function DashboardPage() {
         <Section title={labels.quickDraft} defaultOpen={true} delay={575}>
           <QuickDraftWidget categories={categoriesData} />
         </Section>
+      </div>
+
+      {/* ═══════ New Dashboard Widgets ═══════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Quick Actions Widget */}
+        <QuickActionsWidget />
+
+        {/* Activity Timeline Widget */}
+        <ActivityTimelineWidget activities={activitiesData} />
+
+        {/* Popular Posts Widget */}
+        <PopularPostsWidget popularPosts={chartData?.popularPosts ?? []} />
+
+        {/* System Health Widget */}
+        <SystemHealthWidget />
+
+        {/* Mini Calendar Widget */}
+        <MiniCalendarWidget />
       </div>
     </div>
   )

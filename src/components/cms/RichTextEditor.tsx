@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useRef, useCallback, type ReactNode, type KeyboardEvent } from 'react'
-import Markdown from 'react-markdown'
+import dynamic from 'next/dynamic'
 import { cn } from '@/lib/utils'
+
+// Dynamic import for react-markdown to avoid ESM compatibility issues with Turbopack
+const Markdown = dynamic(() => import('react-markdown'), { ssr: false }) as React.ComponentType<React.ComponentProps<'markdown'>>
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
