@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from 'z-ai-web-dev-sdk'
-
-const client = createClient({
-  apiKey: process.env.ZAI_API_KEY || '',
-})
+import { getAIClient } from '@/lib/ai-client'
 
 export async function POST(request: NextRequest) {
   try {
+    const client = await getAIClient()
     const body = await request.json()
-    const { messages, systemPrompt, maxTokens } = body
+    const { messages, systemPrompt, maxTokens, stream = false } = body
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json(
@@ -59,6 +56,46 @@ Always provide actionable, specific, and well-structured responses. Use markdown
       })),
     ]
 
+    // ─── Streaming path ─────────────────────────────────────────────────────
+    if (stream) {
+      const completion = await client.chat.completions.create({
+        model: 'GLM-5-turbo',
+        messages: apiMessages,
+        thinking: { type: 'disabled' },
+        stream: true,
+      })
+
+      const encoder = new TextEncoder()
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of completion) {
+              const delta = chunk.choices[0]?.delta?.content
+              if (delta) {
+                const data = JSON.stringify({ content: delta })
+                controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+              }
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            controller.close()
+          } catch (err) {
+            const errMsg = err instanceof Error ? err.message : 'Stream error'
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`))
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      })
+    }
+
+    // ─── Non-streaming path (original behavior) ────────────────────────────
     const result = await client.chat.completions.create({
       model: 'GLM-5-turbo',
       messages: apiMessages,

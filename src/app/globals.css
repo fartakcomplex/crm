@@ -826,6 +826,125 @@ button, a, [role="button"] {
 }
 
 /* ========================================================================== */
+/*  ANIMATED STAT CARD GRADIENT                                               */
+/* ========================================================================== */
+
+.stat-card-gradient {
+  background-size: 200% 200%;
+  animation: gradient-flow 4s ease infinite;
+}
+
+@keyframes gradient-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ========================================================================== */
+/*  CARD ELEVATED SHADOW                                                      */
+/* ========================================================================== */
+
+.card-elevated {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-elevated:hover {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.06);
+}
+
+/* ========================================================================== */
+/*  TEXT GRADIENT UTILITY                                                     */
+/* ========================================================================== */
+
+.text-gradient-violet {
+  background: linear-gradient(135deg, #8b5cf6, #d946ef, #8b5cf6);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-flow 3s ease infinite;
+}
+
+/* ========================================================================== */
+/*  PULSE RING EFFECT                                                         */
+/* ========================================================================== */
+
+.pulse-ring {
+  position: relative;
+}
+
+.pulse-ring::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: pulse-ring-anim 2s ease-out infinite;
+}
+
+@keyframes pulse-ring-anim {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+/* ========================================================================== */
+/*  CONTENT AREA TRANSITION                                                   */
+/* ========================================================================== */
+
+.content-area {
+  animation: content-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes content-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================================================== */
+/*  SHIMMER TEXT                                                              */
+/* ========================================================================== */
+
+.shimmer-text {
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer-slide 2s infinite;
+}
+
+@keyframes shimmer-slide {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ========================================================================== */
+/*  FOCUS GLOW                                                               */
+/* ========================================================================== */
+
+.focus-glow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.5);
+  border-radius: inherit;
+}
+
+/* ========================================================================== */
+/*  DRAG HANDLE                                                               */
+/* ========================================================================== */
+
+.drag-handle {
+  cursor: grab;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+
+.drag-handle:hover {
+  opacity: 1;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ========================================================================== */
 /*  PRINT STYLES                                                             */
 /* ========================================================================== */
 

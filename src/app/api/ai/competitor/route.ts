@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from 'z-ai-web-dev-sdk'
-
-const client = createClient({
-  apiKey: process.env.ZAI_API_KEY || '',
-})
+import { getAIClient } from '@/lib/ai-client'
 
 export async function POST(request: NextRequest) {
   try {
+    const client = await getAIClient()
     const body = await request.json()
     const { url, competitors, industry, focusAreas } = body
 

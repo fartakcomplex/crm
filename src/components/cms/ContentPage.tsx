@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { Post } from './types'
@@ -28,17 +28,22 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X,
-  Download, ArrowUpDown, ChevronUp, ChevronDown, CheckSquare, Trash,
+  Download, ArrowUpDown, ChevronUp, ChevronDown, CheckSquare, Trash, Columns3,
 } from 'lucide-react'
 import { exportToCSV } from '@/lib/csv-export'
 import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 import RichTextEditor from './RichTextEditor'
+import EmptyState from './EmptyState'
 
 const labels = {
   title: 'مدیریت محتوا',
@@ -71,12 +76,56 @@ const labels = {
   preview: 'پیش‌نویس مطلب',
   wordCount: 'تعداد کلمات',
   close: 'بستن',
+  columnsVisibility: 'ستون‌ها',
+  selectedItems: 'مورد انتخاب شده',
+  bulkDelete: 'حذف انتخابی',
+  bulkPublish: 'انتشار',
+  bulkChangeStatus: 'تغییر وضعیت',
+  bulkDeleteConfirm: 'آیا مطمئن هستید؟',
+  bulkDeleteDesc: 'تمام مطالب انتخاب‌شده حذف خواهند شد. این عمل قابل بازگشت نیست.',
+  changeStatusTo: 'تغییر وضعیت به',
+  review: 'بررسی',
 }
 
 const statusLabels: Record<string, string> = {
   published: labels.published,
   draft: labels.draft,
   archived: labels.archived,
+  review: labels.review,
+}
+
+type ColumnKey = 'title' | 'status' | 'author' | 'category' | 'date' | 'actions'
+
+const columnLabels: Record<ColumnKey, string> = {
+  title: labels.postTitle,
+  status: labels.status,
+  author: labels.author,
+  category: labels.category,
+  date: labels.date,
+  actions: labels.actions,
+}
+
+const defaultVisibleColumns: Record<ColumnKey, boolean> = {
+  title: true,
+  status: true,
+  author: true,
+  category: true,
+  date: true,
+  actions: true,
+}
+
+const STORAGE_KEY = 'cms-content-columns'
+
+function loadColumnVisibility(): Record<ColumnKey, boolean> {
+  if (typeof window === 'undefined') return { ...defaultVisibleColumns }
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      return { ...defaultVisibleColumns, ...parsed }
+    }
+  } catch { /* ignore */ }
+  return { ...defaultVisibleColumns }
 }
 
 const emptyPost: Partial<Post> = {
@@ -98,6 +147,10 @@ export default function ContentPage() {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false)
+  const [bulkStatusValue, setBulkStatusValue] = useState<string>('published')
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>(() => loadColumnVisibility())
 
   const handleSearchChange = (v: string) => { setSearch(v); setCurrentPage(1) }
   const handleStatusFilterChange = (v: string) => { setStatusFilter(v); setCurrentPage(1) }
@@ -142,6 +195,15 @@ export default function ContentPage() {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginatedItems = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
+  // ─── Column Visibility ──────────────────────────────────────────────
+  const toggleColumn = useCallback((col: ColumnKey) => {
+    setVisibleColumns(prev => {
+      const next = { ...prev, [col]: !prev[col] }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
+  }, [])
+
   // ─── Bulk Selection Logic ─────────────────────────────────────────────
   const allOnPageSelected = paginatedItems.length > 0 && paginatedItems.every(p => selectedIds.has(p.id))
   const someOnPageSelected = paginatedItems.some(p => selectedIds.has(p.id)) && !allOnPageSelected
@@ -179,12 +241,13 @@ export default function ContentPage() {
     setSelectedIds(new Set())
   }
 
-  const handleBulkDraft = () => {
+  const handleBulkStatusChange = () => {
     selectedIds.forEach(id => {
-      updatePost.mutate({ id, status: 'draft' })
+      updatePost.mutate({ id, status: bulkStatusValue as Post['status'] })
     })
-    toast.success(`${selectedIds.size} مطلب به وضعیت پیش‌نویس تغییر یافت`)
+    toast.success(`${selectedIds.size} مطلب به وضعیت "${statusLabels[bulkStatusValue] ?? bulkStatusValue}" تغییر یافت`)
     setSelectedIds(new Set())
+    setBulkStatusOpen(false)
   }
 
   const handleBulkDelete = () => {
@@ -193,6 +256,7 @@ export default function ContentPage() {
     })
     toast.success(`${selectedIds.size} مطلب با موفقیت حذف شد`)
     setSelectedIds(new Set())
+    setBulkDeleteOpen(false)
   }
 
   const openCreate = () => {
@@ -319,13 +383,42 @@ export default function ContentPage() {
 
       {/* Posts Table */}
       <Card className="glass-card shadow-sm overflow-hidden">
+        {/* Table header area with columns visibility toggle */}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-end px-4 pt-3 pb-1">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground text-xs h-8">
+                  <Columns3 className="h-3.5 w-3.5" />
+                  {labels.columnsVisibility}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-44 glass-card shadow-lg">
+                <DropdownMenuLabel className="text-xs font-semibold">{labels.columnsVisibility}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {(Object.keys(columnLabels) as ColumnKey[]).map(col => (
+                  <DropdownMenuCheckboxItem
+                    key={col}
+                    checked={visibleColumns[col]}
+                    onCheckedChange={() => toggleColumn(col)}
+                    className="text-sm"
+                  >
+                    {columnLabels[col]}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+
         <CardContent className="p-0">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-              <FileText className="h-16 w-16 mb-4 opacity-15" />
-              <p className="text-base font-medium">{search ? labels.noResults : labels.noPosts}</p>
-              <p className="text-sm mt-1 opacity-60">برای شروع یک مطلب جدید ایجاد کنید</p>
-            </div>
+            <EmptyState
+              icon={<FileText className="h-12 w-12" />}
+              title={search ? labels.noResults : labels.noPosts}
+              description={search ? 'عبارت دیگری را جستجو کنید' : 'برای شروع یک مطلب جدید ایجاد کنید'}
+              action={!search ? { label: labels.create, onClick: openCreate } : undefined}
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>
@@ -338,91 +431,116 @@ export default function ContentPage() {
                         aria-label="انتخاب همه"
                       />
                     </TableHead>
-                    <TableHead>
-                      <button onClick={() => handleSort('title')} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {labels.postTitle}
-                        {sortColumn === 'title' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
-                      </button>
-                    </TableHead>
-                    <TableHead>
-                      <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {labels.status}
-                        {sortColumn === 'status' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
-                      </button>
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      <button onClick={() => handleSort('author')} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {labels.author}
-                        {sortColumn === 'author' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
-                      </button>
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">{labels.category}</TableHead>
-                    <TableHead className="hidden sm:table-cell">
-                      <button onClick={() => handleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                        {labels.date}
-                        {sortColumn === 'date' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
-                      </button>
-                    </TableHead>
-                    <TableHead>{labels.actions}</TableHead>
+                    {visibleColumns.title && (
+                      <TableHead>
+                        <button onClick={() => handleSort('title')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                          {labels.postTitle}
+                          {sortColumn === 'title' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                        </button>
+                      </TableHead>
+                    )}
+                    {visibleColumns.status && (
+                      <TableHead>
+                        <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                          {labels.status}
+                          {sortColumn === 'status' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                        </button>
+                      </TableHead>
+                    )}
+                    {visibleColumns.author && (
+                      <TableHead className="hidden md:table-cell">
+                        <button onClick={() => handleSort('author')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                          {labels.author}
+                          {sortColumn === 'author' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                        </button>
+                      </TableHead>
+                    )}
+                    {visibleColumns.category && (
+                      <TableHead className="hidden lg:table-cell">{labels.category}</TableHead>
+                    )}
+                    {visibleColumns.date && (
+                      <TableHead className="hidden sm:table-cell">
+                        <button onClick={() => handleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                          {labels.date}
+                          {sortColumn === 'date' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
+                        </button>
+                      </TableHead>
+                    )}
+                    {visibleColumns.actions && (
+                      <TableHead>{labels.actions}</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedItems.map((post, idx) => {
                     const sc = getStatusColor(post.status)
+                    const isSelected = selectedIds.has(post.id)
                     return (
                       <TableRow
                         key={post.id}
-                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer ${selectedIds.has(post.id) ? 'bg-primary/5' : ''}`}
+                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         onClick={() => setPreviewPost(post)}
                       >
                         <TableCell className="w-10" onClick={e => e.stopPropagation()}>
                           <Checkbox
-                            checked={selectedIds.has(post.id)}
+                            checked={isSelected}
                             onCheckedChange={() => toggleSelectRow(post.id)}
                             aria-label={`انتخاب ${post.title}`}
                           />
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
-                              <FileText className="h-4 w-4" />
+                        {visibleColumns.title && (
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
+                                <FileText className="h-4 w-4" />
+                              </div>
+                              <div className="font-medium max-w-[200px] truncate">{post.title}</div>
                             </div>
-                            <div className="font-medium max-w-[200px] truncate">{post.title}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm`}>
-                            {statusLabels[post.status] ?? post.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-sm">
-                          <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-                              {getAuthorName(post).charAt(0)}
+                          </TableCell>
+                        )}
+                        {visibleColumns.status && (
+                          <TableCell>
+                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm`}>
+                              {statusLabels[post.status] ?? post.status}
+                            </Badge>
+                          </TableCell>
+                        )}
+                        {visibleColumns.author && (
+                          <TableCell className="hidden md:table-cell text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                                {getAuthorName(post).charAt(0)}
+                              </div>
+                              {getAuthorName(post)}
                             </div>
-                            {getAuthorName(post)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
-                          {post.category?.name ?? '—'}
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
-                          {formatDate(post.createdAt)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
-                              <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                          </TableCell>
+                        )}
+                        {visibleColumns.category && (
+                          <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                            {post.category?.name ?? '—'}
+                          </TableCell>
+                        )}
+                        {visibleColumns.date && (
+                          <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
+                            {formatDate(post.createdAt)}
+                          </TableCell>
+                        )}
+                        {visibleColumns.actions && (
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
                       </TableRow>
                     )
                   })}
@@ -449,36 +567,100 @@ export default function ContentPage() {
         <div className="glass-card sticky bottom-0 z-10 border-t border-border/60 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-300 shadow-lg">
           <div className="flex items-center gap-2 text-sm font-medium">
             <CheckSquare className="h-4 w-4 text-primary" />
-            <span>{selectedIds.size} مطلب انتخاب شده</span>
+            <span>{selectedIds.size} {labels.selectedItems}</span>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-center">
+            {/* Publish button - green gradient */}
             <Button
               size="sm"
-              className="gap-1.5 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
               onClick={handleBulkPublish}
             >
-              تغییر وضعیت به منتشر شده
+              {labels.bulkPublish}
             </Button>
+            {/* Change status button - violet gradient */}
             <Button
               size="sm"
-              variant="outline"
-              className="gap-1.5 border-amber-400 dark:border-amber-600 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-              onClick={handleBulkDraft}
+              className="gap-1.5 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              onClick={() => {
+                setBulkStatusValue('draft')
+                setBulkStatusOpen(true)
+              }}
             >
-              تغییر وضعیت به پیش‌نویس
+              {labels.bulkChangeStatus}
             </Button>
+            {/* Delete button - red gradient */}
             <Button
               size="sm"
-              variant="destructive"
-              className="gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-              onClick={handleBulkDelete}
+              className="gap-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              onClick={() => setBulkDeleteOpen(true)}
             >
               <Trash className="h-3.5 w-3.5" />
-              حذف انتخاب‌شده‌ها
+              {labels.bulkDelete}
             </Button>
           </div>
         </div>
       )}
+
+      {/* ─── Bulk Delete Confirmation Dialog ─── */}
+      <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <AlertDialogContent className="glass-card shadow-xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{labels.bulkDeleteConfirm}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {labels.bulkDeleteDesc} ({selectedIds.size} {labels.selectedItems})
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{labels.cancel}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBulkDelete}
+              className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            >
+              <Trash className="h-4 w-4 ml-1" />
+              {labels.bulkDelete}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── Bulk Status Change Dialog ─── */}
+      <Dialog open={bulkStatusOpen} onOpenChange={setBulkStatusOpen}>
+        <DialogContent className="max-w-sm glass-card shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-violet-700 dark:text-violet-300">
+              {labels.bulkChangeStatus}
+            </DialogTitle>
+            <DialogDescription>
+              وضعیت {selectedIds.size} مطلب انتخاب‌شده را تغییر دهید
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label>{labels.changeStatusTo}</Label>
+            <Select value={bulkStatusValue} onValueChange={setBulkStatusValue}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="published">{labels.published}</SelectItem>
+                <SelectItem value="draft">{labels.draft}</SelectItem>
+                <SelectItem value="archived">{labels.archived}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkStatusOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+              {labels.cancel}
+            </Button>
+            <Button
+              className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              onClick={handleBulkStatusChange}
+            >
+              {labels.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

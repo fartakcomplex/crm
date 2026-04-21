@@ -18,6 +18,7 @@ import { exportToCSV } from '@/lib/csv-export'
 import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 import { formatRelativeTime, getStatusColor } from './types'
+import EmptyState from './EmptyState'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
 
@@ -229,11 +230,16 @@ export default function CommentsPage() {
       {/* Comments List */}
       {filtered.length === 0 ? (
         <Card className="glass-card shadow-sm">
-          <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <div className="h-20 w-20 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/20 dark:to-orange-800/20 flex items-center justify-center mb-4">
-              <MessageCircle className="h-10 w-10 text-orange-300" />
-            </div>
-            <p className="text-base font-medium">{labels.noComments}</p>
+          <CardContent>
+            <EmptyState
+              icon={<MessageCircle className="h-12 w-12" />}
+              title={labels.noComments}
+              description={
+                search || statusFilter !== 'all'
+                  ? 'فیلتر دیگری را امتحان کنید'
+                  : 'هنوز نظری ثبت نشده است'
+              }
+            />
           </CardContent>
         </Card>
       ) : (

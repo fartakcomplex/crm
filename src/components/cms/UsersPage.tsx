@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import type { User } from './types'
@@ -29,6 +29,7 @@ import { Users, Plus, Pencil, Trash2, Search, Shield, UserCheck, UserX, Mail, Do
 import { exportToCSV } from '@/lib/csv-export'
 import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
+import EmptyState from './EmptyState'
 
 const labels = {
   title: 'مدیریت کاربران',
@@ -43,6 +44,7 @@ const labels = {
   search: 'جستجو در کاربران...',
   noResults: 'کاربری یافت نشد',
   noUsers: 'هنوز کاربری ثبت نشده است',
+  noUsersForRole: 'کاربری با این نقش یافت نشد',
   name: 'نام',
   email: 'ایمیل',
   role: 'نقش',
@@ -54,7 +56,7 @@ const labels = {
 
 const roleLabels: Record<string, string> = {
   admin: 'مدیر کل',
-  editor: 'ویرایشگر',
+  editor: 'ویراستار',
   author: 'نویسنده',
   viewer: 'بازدیدکننده',
 }
@@ -79,6 +81,16 @@ const roleGradients: Record<string, string> = {
   viewer: 'from-gray-400 to-gray-500',
 }
 
+const roleChipGradients: Record<string, string> = {
+  admin: 'from-purple-500 to-purple-600',
+  editor: 'from-cyan-500 to-cyan-600',
+  author: 'from-emerald-500 to-emerald-600',
+  viewer: 'from-gray-400 to-gray-500',
+  all: 'from-slate-500 to-slate-600',
+}
+
+const roleFilterKeys = ['all', 'admin', 'editor', 'author'] as const
+
 const emptyUser: Partial<User> = {
   name: '', email: '', role: 'viewer', status: 'active', avatar: '',
 }
@@ -99,6 +111,15 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<User>>(emptyUser)
+
+  // ─── Role counts ────────────────────────────────────────────────────
+  const roleCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: usersData.length }
+    for (const u of usersData) {
+      counts[u.role] = (counts[u.role] ?? 0) + 1
+    }
+    return counts
+  }, [usersData])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -219,25 +240,53 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Search + Role Filter Chips */}
       <Card className="glass-card shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
+        <CardContent className="p-4 space-y-3">
+          <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
           </div>
-          <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
-            <SelectTrigger className="w-full sm:w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{labels.all}</SelectItem>
-              <SelectItem value="admin">{roleLabels.admin}</SelectItem>
-              <SelectItem value="editor">{roleLabels.editor}</SelectItem>
-              <SelectItem value="author">{roleLabels.author}</SelectItem>
-              <SelectItem value="viewer">{roleLabels.viewer}</SelectItem>
-            </SelectContent>
-          </Select>
+
+          {/* Role Filter Chips */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {roleFilterKeys.map(key => {
+              const isActive = roleFilter === key
+              const count = roleCounts[key] ?? 0
+              const chipLabel = key === 'all' ? labels.all : (roleLabels[key] ?? key)
+              const gradient = roleChipGradients[key] ?? roleChipGradients.all
+
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleRoleFilterChange(key)}
+                  className={`
+                    inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium
+                    transition-all duration-200 hover:scale-[1.03] active:scale-[0.97]
+                    ${isActive
+                      ? `bg-gradient-to-r ${gradient} text-white shadow-md`
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent hover:border-border'
+                    }
+                  `}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+                  {chipLabel}
+                  <Badge
+                    variant={isActive ? 'secondary' : 'outline'}
+                    className={`
+                      h-5 min-w-5 px-1 text-[10px] font-bold rounded-full
+                      ${isActive
+                        ? 'bg-white/25 text-white border-0'
+                        : 'text-muted-foreground border-muted-foreground/20'
+                      }
+                    `}
+                  >
+                    {count}
+                  </Badge>
+                </button>
+              )
+            })}
+          </div>
         </CardContent>
       </Card>
 
@@ -245,13 +294,18 @@ export default function UsersPage() {
       <Card className="glass-card shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-900/20 dark:to-emerald-800/20 flex items-center justify-center mb-4">
-                <Users className="h-10 w-10 text-emerald-300" />
-              </div>
-              <p className="text-base font-medium">{search ? labels.noResults : labels.noUsers}</p>
-              <p className="text-sm mt-1 opacity-60">برای شروع کاربر جدیدی اضافه کنید</p>
-            </div>
+            <EmptyState
+              icon={<Users className="h-12 w-12" />}
+              title={search || roleFilter !== 'all' ? labels.noResults : labels.noUsers}
+              description={
+                roleFilter !== 'all'
+                  ? labels.noUsersForRole
+                  : search
+                    ? 'عبارت دیگری را جستجو کنید'
+                    : 'برای شروع کاربر جدیدی اضافه کنید'
+              }
+              action={(!search && roleFilter === 'all') ? { label: labels.create, onClick: openCreate } : undefined}
+            />
           ) : (
             <div className="overflow-x-auto">
               <Table>

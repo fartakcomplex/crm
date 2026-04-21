@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,11 +14,13 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
 import {
   Bot, Send, Sparkles, Loader2, BookOpen, HelpCircle, Lightbulb,
   Link, Code, TrendingUp, FileEdit, Search, Swords, Rocket, FileCheck,
-  MessageSquare, RotateCcw,
+  MessageSquare, RotateCcw, Copy, Check, Square, StopCircle, Trash2,
 } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
 
@@ -28,8 +30,9 @@ const labels = {
   chatPlaceholder: 'پیام خود را بنویسید...',
   send: 'ارسال',
   clear: 'پاک کردن',
+  clearChat: 'پاک کردن گفتگو',
   processing: 'در حال پردازش...',
-  modelBadge: 'GLM-5-turbo',
+  modelBadge: 'GLM-5',
   chatTab: 'چت',
   seoTab: 'دستیار سئو',
   noMessages: 'هنوز پیامی ندارید. گفتگو را شروع کنید!',
@@ -57,7 +60,22 @@ const labels = {
   contentInput: 'محتوای صفحه را وارد کنید...',
   results: 'نتایج',
   noResults: 'نتیجه‌ای یافت نشد',
+  stop: 'توقف',
+  copied: 'کپی شد!',
+  charCount: 'کاراکتر',
+  presetsTitle: 'قالب‌های آماده',
 }
+
+// ─── Preset Templates ────────────────────────────────────────────────────────
+
+const presetTemplates = [
+  { icon: '📝', label: 'تولید محتوا', prompt: 'یک مقاله جامع درباره [موضوع] بنویس', gradient: 'from-violet-500 to-purple-500' },
+  { icon: '🔍', label: 'تحلیل سئو', prompt: 'تحلیل سئوی این محتوا را انجام بده:\n\n', gradient: 'from-emerald-500 to-teal-500' },
+  { icon: '💡', label: 'ایده‌پردازی', prompt: '۵ ایده خلاقانه برای محتوای جدید پیشنهاد بده', gradient: 'from-amber-500 to-orange-500' },
+  { icon: '✏️', label: 'بازنویسی', prompt: 'این متن را حرفه‌ای‌تر بازنویسی کن:\n\n', gradient: 'from-rose-500 to-pink-500' },
+  { icon: '📋', label: 'خلاصه‌سازی', prompt: 'خلاصه‌ای از متن زیر بنویس:\n\n', gradient: 'from-sky-500 to-cyan-500' },
+  { icon: '🏷️', label: 'کلمات کلیدی', prompt: 'کلمات کلیدی مرتبط با [موضوع] پیشنهاد بده', gradient: 'from-fuchsia-500 to-violet-500' },
+]
 
 // ─── SEO Static Content ───────────────────────────────────────────────────────
 
@@ -81,6 +99,22 @@ function getTabIcon(id: string) {
   return map[id] ?? <Sparkles className="h-4 w-4" />
 }
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatRelativeTime(date: Date): string {
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffSec = Math.floor(diffMs / 1000)
+  if (diffSec < 5) return 'همین الان'
+  if (diffSec < 60) return `${diffSec} ثانیه پیش`
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin} دقیقه پیش`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24) return `${diffHr} ساعت پیش`
+  const diffDay = Math.floor(diffHr / 24)
+  return `${diffDay} روز پیش`
+}
+
 // ─── Typing Animation Dots ────────────────────────────────────────────────────
 
 function TypingDots() {
@@ -93,15 +127,35 @@ function TypingDots() {
   )
 }
 
+// ─── Markdown Message Bubble ──────────────────────────────────────────────────
+
+function MarkdownMessage({ content }: { content: string }) {
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-pre:my-2 prose-blockquote:my-2 prose-code:text-violet-600 dark:prose-code:text-violet-400 prose-a:text-violet-600 dark:prose-a:text-violet-400 prose-strong:text-foreground">
+      <ReactMarkdown>{content}</ReactMarkdown>
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AIAssistantPage() {
   useEnsureData([])
   const { stats } = useCMS()
+  const { toast } = useToast()
 
-  const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
+  interface ChatMessage {
+    role: 'user' | 'assistant'
+    content: string
+    timestamp: Date
+  }
+
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  const [streamingMessage, setStreamingMessage] = useState<string | null>(null)
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   const [activeSeoTab, setActiveSeoTab] = useState('guide')
@@ -119,33 +173,129 @@ export default function AIAssistantPage() {
   const [pageSeoContent, setPageSeoContent] = useState('')
   const [pageSeoResult, setPageSeoResult] = useState('')
 
+  // Update relative timestamps every 30s
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 30_000)
+    return () => clearInterval(interval)
+  }, [])
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [chatMessages])
+  }, [chatMessages, streamingMessage])
+
+  const stopStreaming = useCallback(() => {
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = null
+    if (streamingMessage) {
+      setChatMessages(prev => [...prev, { role: 'assistant', content: streamingMessage, timestamp: new Date() }])
+    }
+    setStreamingMessage(null)
+    setChatLoading(false)
+  }, [streamingMessage])
 
   const handleChatSend = async () => {
     if (!chatInput.trim() || chatLoading) return
     const userMsg = chatInput.trim()
-    setChatMessages(prev => [...prev, { role: 'user', content: userMsg }])
+    const newMessages: ChatMessage[] = [...chatMessages, { role: 'user', content: userMsg, timestamp: new Date() }]
+    setChatMessages(newMessages)
     setChatInput('')
     setChatLoading(true)
+    setStreamingMessage('')
+
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+
     try {
+      // Build the messages array for the API (exclude timestamps)
+      const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content }))
+
       const res = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }),
+        body: JSON.stringify({ messages: apiMessages, stream: true }),
+        signal: abortController.signal,
       })
-      const data = await res.json()
-      setChatMessages(prev => [...prev, { role: 'assistant', content: data.result ?? data.content ?? 'پاسخی دریافت نشد.' }])
-    } catch {
-      setChatMessages(prev => [...prev, { role: 'assistant', content: 'خطا در ارتباط با سرور.' }])
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        throw new Error(errData.error || `HTTP ${res.status}`)
+      }
+
+      const reader = res.body?.getReader()
+      if (!reader) throw new Error('No response body')
+
+      const decoder = new TextDecoder()
+      let accumulated = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        const lines = chunk.split('\n')
+
+        for (const line of lines) {
+          const trimmed = line.trim()
+          if (!trimmed || !trimmed.startsWith('data: ')) continue
+          const payload = trimmed.slice(6)
+
+          if (payload === '[DONE]') continue
+
+          try {
+            const parsed = JSON.parse(payload)
+            if (parsed.error) {
+              throw new Error(parsed.error)
+            }
+            if (parsed.content) {
+              accumulated += parsed.content
+              setStreamingMessage(accumulated)
+            }
+          } catch {
+            // ignore parse errors for partial data
+          }
+        }
+      }
+
+      setChatMessages(prev => [...prev, { role: 'assistant', content: accumulated, timestamp: new Date() }])
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        // User stopped streaming
+      } else {
+        const errMsg = err instanceof Error ? err.message : 'خطا در ارتباط با سرور.'
+        setChatMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${errMsg}`, timestamp: new Date() }])
+      }
     } finally {
+      setStreamingMessage(null)
       setChatLoading(false)
+      abortControllerRef.current = null
     }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend() }
+  }
+
+  const handleCopyMessage = async (content: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(content)
+      setCopiedIndex(index)
+      toast({ title: labels.copied, duration: 2000 })
+      setTimeout(() => setCopiedIndex(null), 2000)
+    } catch {
+      toast({ title: 'خطا در کپی کردن', variant: 'destructive', duration: 2000 })
+    }
+  }
+
+  const handlePresetClick = (prompt: string) => {
+    setChatInput(prev => prev + prompt)
+  }
+
+  const handleClearChat = () => {
+    if (chatLoading) stopStreaming()
+    setChatMessages([])
+    setStreamingMessage(null)
+    toast({ title: labels.clearChat, duration: 1500 })
   }
 
   const handleContentGen = async () => {
@@ -211,10 +361,23 @@ export default function AIAssistantPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Badge className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 w-fit gap-1.5 shadow-sm">
-          <Sparkles className="h-3.5 w-3.5" />
-          {labels.modelBadge}
-        </Badge>
+        <div className="flex items-center gap-2">
+          {chatMessages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+              onClick={handleClearChat}
+            >
+              <Trash2 className="h-3.5 w-3.5 ml-1" />
+              {labels.clearChat}
+            </Button>
+          )}
+          <Badge className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 w-fit gap-1.5 shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" />
+            {labels.modelBadge}
+          </Badge>
+        </div>
       </div>
 
       {/* Main Tabs */}
@@ -240,9 +403,9 @@ export default function AIAssistantPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-xl border border-violet-200/30 dark:border-violet-800/30 bg-background/50 h-[420px] flex flex-col">
+              <div className="rounded-xl border border-violet-200/30 dark:border-violet-800/30 bg-background/50 h-[480px] flex flex-col">
                 <ScrollArea className="flex-1 p-4">
-                  {chatMessages.length === 0 ? (
+                  {chatMessages.length === 0 && !streamingMessage ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                       <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-100 to-violet-200 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center mb-4">
                         <Bot className="h-8 w-8 text-violet-300" />
@@ -253,58 +416,121 @@ export default function AIAssistantPage() {
                     <div className="space-y-4">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in`} style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}>
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group ${
                             msg.role === 'user'
                               ? 'bg-gradient-to-br from-violet-600 to-violet-500 text-white rounded-br-md'
                               : 'bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground rounded-bl-md border border-violet-200/30 dark:border-violet-800/20'
                           }`}>
-                            {msg.content}
+                            {msg.role === 'assistant' ? (
+                              <MarkdownMessage content={msg.content} />
+                            ) : (
+                              <span>{msg.content}</span>
+                            )}
+
+                            {/* Timestamp */}
+                            <div className={`text-[10px] mt-1.5 ${
+                              msg.role === 'user' ? 'text-violet-200 text-left' : 'text-muted-foreground/60 text-left'
+                            }`}>
+                              {formatRelativeTime(msg.timestamp)}
+                            </div>
+
+                            {/* Copy button for assistant messages */}
+                            {msg.role === 'assistant' && (
+                              <button
+                                onClick={() => handleCopyMessage(msg.content, i)}
+                                className="absolute -left-2 top-1/2 -translate-y-1/2 translate-x-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 rounded-lg bg-white dark:bg-gray-800 border border-violet-200 dark:border-violet-700 shadow-sm hover:bg-violet-50 dark:hover:bg-violet-900/50"
+                                title="کپی"
+                              >
+                                {copiedIndex === i ? (
+                                  <Check className="h-3 w-3 text-emerald-500" />
+                                ) : (
+                                  <Copy className="h-3 w-3 text-muted-foreground" />
+                                )}
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
-                      {chatLoading && (
+
+                      {/* Streaming message (in-progress) */}
+                      {streamingMessage !== null && (
                         <div className="flex justify-start animate-in">
-                          <div className="bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 rounded-2xl rounded-bl-md px-4 py-3.5 border border-violet-200/30 dark:border-violet-800/20 shadow-sm">
-                            <div className="flex items-center gap-2 text-violet-500 text-sm">
-                              <TypingDots />
-                            </div>
+                          <div className="max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 text-sm shadow-sm bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground border border-violet-200/30 dark:border-violet-800/20">
+                            {streamingMessage ? (
+                              <>
+                                <MarkdownMessage content={streamingMessage} />
+                                <span className="inline-block w-1.5 h-4 bg-violet-400 animate-pulse ml-0.5 align-middle rounded-sm" />
+                              </>
+                            ) : (
+                              <div className="flex items-center gap-2 text-violet-500 text-sm">
+                                <TypingDots />
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
+
                       <div ref={chatEndRef} />
                     </div>
                   )}
                 </ScrollArea>
 
+                {/* Preset Templates */}
+                <div className="px-3 pt-2 border-t border-violet-200/20 dark:border-violet-800/20">
+                  <p className="text-[11px] text-muted-foreground mb-2 font-medium">{labels.presetsTitle}</p>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                    {presetTemplates.map((tpl, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handlePresetClick(tpl.prompt)}
+                        disabled={chatLoading}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-white bg-gradient-to-r ${tpl.gradient} shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none shrink-0`}
+                      >
+                        <span>{tpl.icon}</span>
+                        {tpl.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Input area */}
                 <div className="p-3 border-t border-violet-200/20 dark:border-violet-800/20 bg-gradient-to-t from-violet-50/50 to-transparent dark:from-violet-900/10">
                   <div className="flex gap-2">
-                    <Textarea
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={labels.chatPlaceholder}
-                      rows={1}
-                      className="resize-none min-h-[40px] transition-all duration-200 focus:shadow-sm"
-                    />
-                    <Button
-                      size="icon"
-                      onClick={handleChatSend}
-                      disabled={!chatInput.trim() || chatLoading}
-                      className="shrink-0 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
-                    >
-                      {chatLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                    <div className="flex-1 relative">
+                      <Textarea
+                        value={chatInput}
+                        onChange={e => setChatInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={labels.chatPlaceholder}
+                        rows={1}
+                        className="resize-none min-h-[40px] transition-all duration-200 focus:shadow-sm pr-3"
+                        disabled={chatLoading}
+                      />
+                      <span className="absolute left-3 bottom-1.5 text-[10px] text-muted-foreground/60 pointer-events-none">
+                        {chatInput.length} {labels.charCount}
+                      </span>
+                    </div>
+                    {chatLoading ? (
+                      <Button
+                        size="icon"
+                        onClick={stopStreaming}
+                        className="shrink-0 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
+                      >
+                        <StopCircle className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        onClick={handleChatSend}
+                        disabled={!chatInput.trim()}
+                        className="shrink-0 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
+                      >
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
-              {chatMessages.length > 0 && (
-                <div className="mt-2 flex justify-end">
-                  <Button variant="ghost" size="sm" className="text-violet-500 hover:text-violet-600 hover:bg-violet-500/10 transition-all duration-200" onClick={() => setChatMessages([])}>
-                    <RotateCcw className="h-3.5 w-3.5 ml-1" />
-                    {labels.clear}
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>

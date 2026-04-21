@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,7 +24,7 @@ import {
   DollarSign, TrendingUp, Plus, UserPlus, Clock, Activity,
   Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
-  Save, PenLine,
+  Save, PenLine, X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -119,21 +119,48 @@ const CONTENT_STATUS_COLORS: Record<string, string> = {
   archived: '#9ca3af',
 }
 
+// ──────────────────── useCountUp Hook ──────────────────────────
+
+function useCountUp(target: number, duration = 800, enabled = true) {
+  const [value, setValue] = useState(enabled ? 0 : target)
+  useEffect(() => {
+    if (!enabled) return
+    const startTime = performance.now()
+    const animate = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3) // ease-out cubic
+      setValue(Math.round(eased * target))
+      if (progress < 1) requestAnimationFrame(animate)
+    }
+    requestAnimationFrame(animate)
+    return () => {}
+  }, [target, duration, enabled])
+  return value
+}
+
 // ─────────────────────── Stat Card ───────────────────────────────
 
-function StatCard({ icon, label, value, color, delay }: {
-  icon: React.ReactNode; label: string; value: string | number; color: string; delay?: number
+function StatCard({ icon, label, value, color, delay, numericValue }: {
+  icon: React.ReactNode; label: string; value: string | number; color: string; delay?: number; numericValue?: number
 }) {
+  const animatedValue = useCountUp(numericValue ?? 0, 1000, numericValue !== undefined)
+  const displayValue = numericValue !== undefined ? animatedValue : value
+
   return (
     <Card
-      className={`bg-gradient-to-br ${color} border-0 text-white stat-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in`}
+      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in`}
       style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}
     >
-      <CardContent className="p-4 flex items-center gap-3">
+      {/* Shine overlay */}
+      <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out" />
+      </div>
+      <CardContent className="p-4 flex items-center gap-3 relative z-10">
         <div className="bg-white/20 rounded-lg p-2.5 backdrop-blur-sm">{icon}</div>
         <div>
           <p className="text-sm opacity-80">{label}</p>
-          <p className="text-2xl font-bold tabular-nums">{value}</p>
+          <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
         </div>
       </CardContent>
     </Card>
@@ -389,6 +416,61 @@ function QuickDraftWidget({ categories }: { categories: Array<{ id: string; name
   )
 }
 
+// ──────────────── Onboarding Tip Banner ──────────────────────────
+
+const TIPS = [
+  '💡 با Ctrl+K می‌توانید سریعاً هر چیزی را جستجو کنید',
+  '🚀 با دستیار هوش مصنوعی، محتوای خود را سریع‌تر تولید کنید',
+  '📊 نمودارهای داشبورد را با کلیک بر روی هر بخش باز و بسته کنید',
+  '📎 فایل‌های خود را با drag & drop در صفحه رسانه آپلود کنید',
+  '🌙 از حالت تاریک برای کار راحت‌تر در شب استفاده کنید',
+]
+
+function OnboardingTipBanner() {
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return localStorage.getItem('cms-tip-dismissed') !== null
+  })
+  const [visible, setVisible] = useState(true)
+  const [tip] = useState(() => TIPS[Math.floor(Math.random() * TIPS.length)])
+
+  const handleDismiss = () => {
+    setVisible(false)
+    setTimeout(() => {
+      setDismissed(true)
+      localStorage.setItem('cms-tip-dismissed', 'true')
+    }, 300)
+  }
+
+  if (dismissed) return null
+
+  return (
+    <div
+      className={`card-elevated rounded-xl border border-violet-200/60 dark:border-violet-700/40 overflow-hidden transition-all duration-300 ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-8px]'
+      }`}
+      style={{
+        animation: 'content-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        borderRight: '4px solid transparent',
+        borderImage: 'linear-gradient(to bottom, #8b5cf6, #d946ef) 1',
+        borderRightWidth: '4px',
+        borderImageSlice: '1',
+      }}
+    >
+      <div className="flex items-center justify-between p-3.5 pr-5 bg-gradient-to-l from-violet-500/5 via-purple-500/5 to-transparent dark:from-violet-500/10 dark:via-purple-500/8">
+        <p className="text-sm text-foreground/80">{tip}</p>
+        <button
+          onClick={handleDismiss}
+          className="shrink-0 ml-3 p-1 rounded-md hover:bg-violet-500/10 transition-colors text-muted-foreground hover:text-foreground focus-glow"
+          aria-label="بستن نکته"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
@@ -441,6 +523,9 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
+      {/* Onboarding Tip Banner */}
+      <OnboardingTipBanner />
+
       {/* Today's Quick Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <MiniTrendCard
@@ -487,12 +572,12 @@ export default function DashboardPage() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} color="from-violet-500 to-violet-700" delay={0} />
-        <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} color="from-purple-500 to-purple-700" delay={50} />
-        <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} color="from-fuchsia-500 to-fuchsia-700" delay={100} />
-        <StatCard icon={<FolderKanban className="h-5 w-5" />} label={labels.totalProjects} value={statsData?.totalProjects ?? '—'} color="from-sky-500 to-sky-700" delay={150} />
-        <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} color="from-emerald-500 to-emerald-700" delay={200} />
-        <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} color="from-amber-500 to-amber-700" delay={250} />
+        <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} />
+        <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} />
+        <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} />
+        <StatCard icon={<FolderKanban className="h-5 w-5" />} label={labels.totalProjects} value={statsData?.totalProjects ?? '—'} numericValue={statsData?.totalProjects} color="from-sky-500 to-sky-700" delay={150} />
+        <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} numericValue={statsData?.totalViews} color="from-emerald-500 to-emerald-700" delay={200} />
+        <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} numericValue={statsData?.revenue} color="from-amber-500 to-amber-700" delay={250} />
       </div>
 
       {/* Collapsible Sections */}

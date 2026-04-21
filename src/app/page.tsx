@@ -20,11 +20,12 @@ import {
   LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
   Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
-  Zap, Plus, X, Database, Clock, Wifi,
+  Zap, Plus, X, Database, Clock, Wifi, Keyboard,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
+import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { formatRelativeTime } from '@/components/cms/types'
 
 // ─── Dynamic imports to reduce bundle size ──────────────────────────────
@@ -86,6 +87,7 @@ function SidebarNav({
   onThemeToggle,
   onNavigateToNotifications,
   unreadCount,
+  onOpenShortcuts,
 }: {
   activeTab: string
   onTabChange: (id: string) => void
@@ -94,6 +96,7 @@ function SidebarNav({
   onThemeToggle: () => void
   onNavigateToNotifications: () => void
   unreadCount: number
+  onOpenShortcuts: () => void
 }) {
   return (
     <>
@@ -186,6 +189,25 @@ function SidebarNav({
             </span>
           )}
         </Button>
+        {!collapsed && (
+          <KeyboardShortcutsTrigger onClick={onOpenShortcuts} />
+        )}
+        {collapsed && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                className="w-full flex items-center justify-center rounded-lg h-9 transition-all duration-200 cursor-pointer hover:bg-accent/60"
+                onClick={onOpenShortcuts}
+                aria-label="راهنمای کلیدهای میانبر"
+              >
+                <Keyboard className="h-[18px] w-[18px] text-muted-foreground" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="text-xs">
+              کلیدهای میانبر
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </>
   )
@@ -404,6 +426,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(true)
   const { theme, setTheme } = useTheme()
@@ -418,11 +441,38 @@ function AppContent() {
   )
 
   // Ctrl+K / Cmd+K → open search dialog
+  // ? → open keyboard shortcuts help
+  // ⌘1-4 → navigate to tabs
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs/textareas
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
+
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
         setSearchOpen(prev => !prev)
+        return
+      }
+
+      // ? → open shortcuts help (only without modifiers)
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault()
+        setShortcutsOpen(prev => !prev)
+        return
+      }
+
+      // ⌘1 → Dashboard, ⌘2 → Content, ⌘3 → Media, ⌘4 → Users
+      const tabMap: Record<string, string> = {
+        '1': 'dashboard',
+        '2': 'content',
+        '3': 'media',
+        '4': 'users',
+      }
+      if ((e.metaKey || e.ctrlKey) && tabMap[e.key]) {
+        e.preventDefault()
+        setActiveTab(tabMap[e.key])
+        setMobileSheetOpen(false)
       }
     }
     document.addEventListener('keydown', handler)
@@ -481,6 +531,7 @@ function AppContent() {
               onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               onNavigateToNotifications={handleNavigateNotifications}
               unreadCount={unreadCount}
+              onOpenShortcuts={() => setShortcutsOpen(true)}
             />
             {/* Collapse toggle */}
             <button
@@ -507,6 +558,7 @@ function AppContent() {
                 onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                 onNavigateToNotifications={handleNavigateNotifications}
                 unreadCount={unreadCount}
+                onOpenShortcuts={() => setShortcutsOpen(true)}
               />
             </SheetContent>
           </Sheet>
@@ -533,6 +585,7 @@ function AppContent() {
                     onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     onNavigateToNotifications={handleNavigateNotifications}
                     unreadCount={unreadCount}
+                    onOpenShortcuts={() => setShortcutsOpen(true)}
                   />
                 </SheetContent>
               </Sheet>
@@ -609,6 +662,12 @@ function AppContent() {
         open={searchOpen}
         onOpenChange={setSearchOpen}
         onNavigate={handleSearchNavigate}
+      />
+
+      {/* Keyboard Shortcuts Dialog */}
+      <KeyboardShortcuts
+        open={shortcutsOpen}
+        onOpenChange={setShortcutsOpen}
       />
     </TooltipProvider>
   )
