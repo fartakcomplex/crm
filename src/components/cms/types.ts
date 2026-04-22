@@ -461,6 +461,11 @@ export function getTabAccentClass(tabId: string): string {
     settings:      'text-teal-600 dark:text-teal-300',
     tasks:         'text-green-600 dark:text-green-300',
     calendar:      'text-indigo-600 dark:text-indigo-300',
+    store:         'text-rose-600 dark:text-rose-300',
+    crm:           'text-cyan-600 dark:text-cyan-300',
+    accounting:    'text-emerald-600 dark:text-emerald-300',
+    inventory:     'text-sky-600 dark:text-sky-300',
+    finance:       'text-violet-600 dark:text-violet-300',
   }
   return accentMap[tabId] ?? 'text-slate-600 dark:text-slate-300'
 }
