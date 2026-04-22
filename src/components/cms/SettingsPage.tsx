@@ -21,8 +21,17 @@ import {
   Settings, Globe, Search, Bot, FileText, Shield,
   Save, CheckCircle, Loader2, Palette, Bell, Lock,
   Sun, Moon, Monitor, Volume2, VolumeX, Mail, KeyRound,
-  Smartphone, Clock, AlertTriangle, Eye, EyeOff, UserX,
+  Smartphone, Clock, AlertTriangle, Eye, EyeOff, UserX, Database,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
+const BackupPanel = dynamic(() => import('./BackupPanel'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center py-12">
+      <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+    </div>
+  ),
+})
 import { useTheme } from 'next-themes'
 import { toast } from 'sonner'
 
@@ -305,6 +314,9 @@ export default function SettingsPage() {
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-2 data-[state=active]:bg-red-600 data-[state=active]:text-white transition-all duration-200">
             <Shield className="h-4 w-4" />{labels.security}
+          </TabsTrigger>
+          <TabsTrigger value="backup" className="gap-2 data-[state=active]:bg-violet-600 data-[state=active]:text-white transition-all duration-200">
+            <Database className="h-4 w-4" />بکاپ
           </TabsTrigger>
         </TabsList>
 
@@ -812,6 +824,11 @@ export default function SettingsPage() {
               </AlertDialog>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ═══════════════ Backup ═══════════════ */}
+        <TabsContent value="backup" className="animate-in">
+          <BackupPanel />
         </TabsContent>
       </Tabs>
     </div>

@@ -2603,3 +2603,61 @@ Stage Summary:
 5. Test connection
 6. Set sync frequency (auto or manual)
 7. Click sync to fetch posts
+
+---
+Task ID: backup-system
+Agent: Main Agent
+Task: Add automatic database backup system with daily/weekly backups
+
+Work Log:
+- Added BackupRecord model to Prisma schema (id, filename, filePath, sizeBytes, type, status, note, createdAt)
+- Pushed schema to SQLite database with `bun run db:push`
+- Created backup utility library `/src/lib/backup.ts`:
+  - createBackup() — Creates SQLite backup by copying db file
+  - restoreFromBackup() — Restores from a backup file (with automatic safety backup before restore)
+  - listBackups() — Lists all backup records from database
+  - deleteBackup() — Deletes backup file and database record
+  - getBackupStats() — Returns aggregate backup statistics
+  - shouldRunAutoBackup() — Checks if daily (24h) or weekly (7d) backup is needed
+  - runAutoBackupCheck() — Runs automatic backup check for both daily and weekly
+  - cleanupOldBackups() — Removes old backups beyond limits (30 daily, 12 weekly, 50 manual)
+  - formatFileSize(), persianRelativeTime(), persianFormattedDate() helper functions
+- Created backup API routes:
+  - GET /api/backups — List all backups + stats (query params: type, stats)
+  - POST /api/backups — Create new backup or run auto-check (body: {type, note, autoCheck})
+  - GET /api/backups/[id] — Download backup file
+  - POST /api/backups/[id] — Restore from backup
+  - DELETE /api/backups/[id] — Delete a backup
+- Created BackupPanel component (`/src/components/cms/BackupPanel.tsx`):
+  - 4 stat cards: DB size, total backups, total storage, last daily backup time
+  - Auto backup schedule section (daily every 24h, weekly every 7d)
+  - Manual backup creation with note field and progress animation
+  - Backup history list with type badges, relative timestamps, file sizes
+  - Per-backup actions: download, restore (with confirmation), delete (with confirmation)
+  - Auto-check button to trigger scheduled backup evaluation
+  - Info box explaining backup policies
+  - All labels in Persian/Farsi
+- Added "بکاپ" (Backup) tab to SettingsPage:
+  - Dynamic import of BackupPanel component
+  - Database icon in tab trigger with violet gradient
+  - New TabsContent for backup tab
+- Set up automatic backup cron job (every 6 hours):
+  - Job ID: 112618 — Fixed rate every 21600 seconds (6 hours)
+  - Calls POST /api/backups with autoCheck=true
+  - Automatically creates daily backup every 24h and weekly full backup every 7d
+- Set up webDevReview cron job (every 6 hours):
+  - Job ID: 112619 — Cron schedule at 0 */6 * * * ?
+  - Comprehensive QA, bug fixing, and feature development
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings
+- 1 new Prisma model: BackupRecord
+- 1 new utility library: /src/lib/backup.ts (~260 lines)
+- 2 new API route files: /api/backups/route.ts, /api/backups/[id]/route.ts
+- 1 new component: BackupPanel.tsx (~480 lines)
+- 1 file modified: SettingsPage.tsx (added backup tab with dynamic import)
+- Backups stored in /backups/ directory
+- Auto-retention: 30 daily, 12 weekly, 50 manual backups
+- Safety backup created automatically before any restore operation
+- Server compiles successfully (HTTP 200)
+- Backup creation verified: creates .db copy file + database record

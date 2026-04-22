@@ -432,3 +432,15 @@ model BudgetItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// Backup: Tracks database backup records
+model BackupRecord {
+  id          String   @id @default(cuid())
+  filename    String
+  filePath    String
+  sizeBytes   Int      @default(0)
+  type        String   @default("daily")   // daily | weekly | manual
+  status      String   @default("completed") // completed | failed | restoring
+  note        String   @default("")
+  createdAt   DateTime @default(now())
+}
