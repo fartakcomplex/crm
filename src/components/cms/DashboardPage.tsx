@@ -52,6 +52,9 @@ import { ColorThemeCustomizer } from './ColorThemeCustomizer'
 import { QuickStatsRow } from './QuickStatsRow'
 import { DataExportWidget } from './DataExportWidget'
 import { SystemStatusWidget } from './SystemStatusWidget'
+import ActivityFeedWidget from './ActivityFeedWidget'
+import AnalyticsOverviewWidget from './AnalyticsOverviewWidget'
+import ThemeCustomizerWidget from './ThemeCustomizerWidget'
 
 // Persian labels
 const labels = {
@@ -1639,6 +1642,12 @@ export default function DashboardPage() {
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
 
+        {/* Activity Feed Widget */}
+        <ActivityFeedWidget />
+
+        {/* Analytics Overview Widget */}
+        <AnalyticsOverviewWidget />
+
         {/* Data Export Widget */}
         <DataExportWidget />
 
@@ -1664,6 +1673,9 @@ export default function DashboardPage() {
 
         {/* Color Theme Customizer */}
         <ColorThemeCustomizer />
+
+        {/* Theme Customizer Widget */}
+        <ThemeCustomizerWidget />
       </div>
     </div>
   )

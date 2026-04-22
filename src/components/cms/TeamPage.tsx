@@ -151,7 +151,7 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -160,13 +160,13 @@ export default function TeamPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+        <Button className="btn-gradient-primary gap-2 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
 
       {/* Filters */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card card-elevated shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -198,7 +198,7 @@ export default function TeamPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
           {paginatedItems.map((member, idx) => {
             const sc = getStatusColor(member.status)
             const gradient = deptColors[member.department] ?? 'from-gray-400 to-gray-500'
@@ -206,7 +206,7 @@ export default function TeamPage() {
             return (
               <Card
                 key={member.id}
-                className="overflow-hidden group hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in border-0"
+                className="overflow-hidden group hover-lift card-elevated shadow-sm hover:shadow-lg transition-all duration-300 animate-in border-0"
                 style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
               >
                 {/* Avatar header */}
@@ -324,8 +324,8 @@ export default function TeamPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.name || !form.email}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="btn-ghost-subtle hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="btn-gradient-primary bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.name || !form.email}>
               {labels.save}
             </Button>
           </DialogFooter>

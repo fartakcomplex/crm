@@ -133,7 +133,7 @@ export default function CommentsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -145,7 +145,7 @@ export default function CommentsPage() {
         <div className="flex gap-2 flex-wrap">
           <Button
             variant="outline"
-            className="gap-2 border-orange-300 dark:border-orange-700 hover:bg-orange-500/10 text-orange-700 dark:text-orange-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="btn-ghost-subtle gap-2 border-orange-300 dark:border-orange-700 hover:bg-orange-500/10 text-orange-700 dark:text-orange-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             onClick={() => {
               exportToCSV(
                 filtered.map(c => ({
@@ -173,21 +173,21 @@ export default function CommentsPage() {
             خروجی CSV
           </Button>
           {pendingCount > 0 && (
-            <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border-0 shadow-sm">
+            <Badge className="badge-gradient-violet border-0 shadow-sm">
               {pendingCount} در انتظار
             </Badge>
           )}
-          <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 border-0 shadow-sm">
+          <Badge className="badge-gradient-emerald border-0 shadow-sm">
             {approvedCount} تأیید شده
           </Badge>
-          <Badge className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border-0 shadow-sm">
+          <Badge className="badge-gradient-rose border-0 shadow-sm">
             {rejectedCount} رد شده
           </Badge>
         </div>
       </div>
 
       {/* Filters + Sort */}
-      <Card className="glass-card-rose shadow-sm">
+      <Card className="glass-card-rose card-elevated shadow-sm">
         <CardContent className="p-4 space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -244,7 +244,7 @@ export default function CommentsPage() {
         </Card>
       ) : (
         <ScrollArea className="max-h-[600px]">
-          <div className="space-y-3 pr-1">
+          <div className="space-y-3 pr-1 stagger-children">
             {paginatedItems.map((comment, idx) => {
               const sc = getStatusColor(comment.status)
               const isReplying = replyingTo === comment.id
@@ -252,7 +252,7 @@ export default function CommentsPage() {
               return (
                 <Card
                   key={comment.id}
-                  className="hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in overflow-hidden border-0"
+                  className="hover-lift card-elevated shadow-sm hover:shadow-md transition-all duration-300 animate-in overflow-hidden border-0"
                   style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
                 >
                   {/* Colored left accent */}

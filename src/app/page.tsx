@@ -149,7 +149,7 @@ function SidebarNav({
             return (
               <div key={tab.id}>
                 {showCategoryHeader && (
-                  <div className="text-[10px] font-semibold text-muted-foreground/60 px-3 pt-3 pb-1 text-right">
+                  <div className="sidebar-category-label text-[10px] font-semibold text-muted-foreground/60 px-3 pt-3 pb-1 text-right">
                     {SIDEBAR_CATEGORIES[category] ?? category}
                   </div>
                 )}
@@ -162,8 +162,8 @@ function SidebarNav({
                         <button
                           className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer text-right ${
                             isActive
-                              ? `bg-gradient-to-l ${tab.gradient} text-white shadow-md`
-                              : `hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
+                              ? `sidebar-nav-item-active bg-gradient-to-l ${tab.gradient} text-white shadow-md`
+                              : `sidebar-nav-item hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
                           } ${collapsed ? 'justify-center px-0' : 'justify-start px-3'}`}
                           onClick={() => onTabChange(tab.id)}
                           style={{ animationDelay: `${i * 30}ms` }}
@@ -211,7 +211,7 @@ function SidebarNav({
         <Button
           variant="ghost"
           size="sm"
-          className={`w-full gap-2.5 transition-all duration-200 hover:bg-accent/60 ${
+          className={`w-full gap-2.5 transition-all duration-200 hover:bg-accent/60 btn-icon-circle ${
             collapsed ? 'justify-center px-0' : 'justify-start px-3'
           }`}
           onClick={onThemeToggle}
@@ -258,7 +258,7 @@ function NotificationBell({ onClick, unreadCount }: { onClick: () => void; unrea
     <Button
       variant="ghost"
       size="icon"
-      className="relative h-9 w-9 hover:bg-accent/60 transition-colors"
+      className="relative h-9 w-9 hover:bg-accent/60 transition-colors btn-icon-circle"
       onClick={onClick}
     >
       <Bell className="h-[18px] w-[18px]" />
@@ -500,7 +500,7 @@ function FloatingActionButton({ onNavigate, onOpenQuickDraft }: { onNavigate: (t
       ))}
       <Button
         size="icon"
-        className={`h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-110 active:scale-95 transition-all duration-200 ${
+        className={`h-12 w-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30 hover:shadow-violet-500/50 hover:scale-110 active:scale-95 transition-all duration-200 btn-gradient-primary micro-bounce ${
           open ? 'rotate-45' : ''
         }`}
         onClick={() => setOpen(!open)}
@@ -573,7 +573,7 @@ function UserProfileDropdown({ onLogout, onOpenProfile }: { onLogout: () => void
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 hover:ring-violet-500/30 transition-all duration-200 cursor-pointer">
+        <button className="flex items-center gap-2 rounded-full p-0.5 hover:ring-2 hover:ring-violet-500/30 transition-all duration-200 cursor-pointer btn-icon-circle">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
             A
           </div>
@@ -763,7 +763,7 @@ function AppContent() {
               {/* Mobile menu button */}
               <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 hover:bg-accent/60">
+                  <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 hover:bg-accent/60 btn-icon-circle">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
@@ -802,7 +802,7 @@ function AppContent() {
               <Button
                 variant="outline"
                 size="sm"
-                className="hidden sm:flex items-center gap-2 h-8 text-xs text-muted-foreground cursor-pointer hover:bg-accent/60 transition-colors border-border/60"
+                className="hidden sm:flex items-center gap-2 h-8 text-xs text-muted-foreground cursor-pointer hover:bg-accent/60 transition-colors border-border/60 btn-ghost-subtle"
                 onClick={() => setSearchOpen(true)}
               >
                 <Search className="h-3.5 w-3.5" />
@@ -832,7 +832,7 @@ function AppContent() {
           </header>
 
           {/* Page Content */}
-          <div className="flex-1 p-4 md:p-6">
+          <div className="flex-1 p-4 md:p-6 content-area">
             <div className="max-w-[1400px] mx-auto">
               <PageComponent />
             </div>

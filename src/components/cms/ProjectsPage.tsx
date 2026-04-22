@@ -149,7 +149,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -158,7 +158,7 @@ export default function ProjectsPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <Button className="gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+        <Button className="btn-gradient-primary gap-2 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
@@ -168,7 +168,7 @@ export default function ProjectsPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* کل پروژه‌ها */}
-            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+            <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
                   <FolderKanban className="h-6 w-6 text-white" />
@@ -186,7 +186,7 @@ export default function ProjectsPage() {
             </Card>
 
             {/* فعال */}
-            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+            <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
                   <Activity className="h-6 w-6 text-white" />
@@ -204,7 +204,7 @@ export default function ProjectsPage() {
             </Card>
 
             {/* تکمیل شده */}
-            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+            <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-md shadow-cyan-500/25 shrink-0">
                   <CheckCircle className="h-6 w-6 text-white" />
@@ -222,7 +222,7 @@ export default function ProjectsPage() {
             </Card>
 
             {/* در انتظار */}
-            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+            <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
                 <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
                   <Clock className="h-6 w-6 text-white" />
@@ -246,7 +246,7 @@ export default function ProjectsPage() {
       )}
 
       {/* Filters */}
-      <Card className="glass-card-cyan shadow-sm">
+      <Card className="glass-card-cyan card-elevated shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -280,7 +280,7 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children">
           {filtered.map((project, idx) => {
             const sc = getStatusColor(project.status)
             const pc = getPriorityColor(project.priority)
@@ -423,8 +423,8 @@ export default function ProjectsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.title}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} className="btn-ghost-subtle hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="btn-gradient-primary bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-700 hover:to-sky-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.title}>
               {labels.save}
             </Button>
           </DialogFooter>

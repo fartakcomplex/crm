@@ -66,7 +66,7 @@ function StatSummaryCard({ icon, label, value, trend, trendValue, gradient, dela
   delay: number
 }) {
   return (
-    <Card className={`bg-gradient-to-br ${gradient} border-0 text-white stat-card hover-lift shadow-sm animate-in card-elevated`} style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
+    <Card className={`bg-gradient-to-br ${gradient} border-0 text-white stat-card card-metric hover-lift shadow-sm animate-in card-elevated`} style={{ animationDelay: `${delay}ms`, animationFillMode: 'both' }}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="bg-white/20 rounded-xl p-2.5 backdrop-blur-sm">{icon}</div>
@@ -319,7 +319,7 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -330,13 +330,13 @@ export default function ReportsPage() {
         </div>
         <div className="flex items-center gap-2">
           {/* Time Period Selector */}
-          <div className="flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40">
+          <div className="tab-group flex items-center bg-muted/50 rounded-lg p-0.5 border border-border/40">
             {timePeriods.map(tp => (
               <button
                 key={tp.id}
-                className={`px-3 py-1.5 text-xs rounded-md transition-all duration-200 cursor-pointer ${
+                className={`tab-item px-3 py-1.5 text-xs rounded-md transition-all duration-200 cursor-pointer ${
                   timePeriod === tp.id
-                    ? 'bg-fuchsia-600 text-white shadow-sm font-medium'
+                    ? 'tab-item-active bg-fuchsia-600 text-white shadow-sm font-medium'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                 }`}
                 onClick={() => setTimePeriod(tp.id)}
@@ -346,7 +346,7 @@ export default function ReportsPage() {
             ))}
           </div>
           {/* Export Button */}
-          <Button onClick={handleExport} className="gap-2 bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-700 hover:to-fuchsia-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md">
+          <Button onClick={handleExport} className="btn-gradient-primary gap-2 bg-gradient-to-r from-fuchsia-600 to-fuchsia-500 hover:from-fuchsia-700 hover:to-fuchsia-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline">{labels.export}</span>
           </Button>
@@ -394,7 +394,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Charts Grid — 2 columns on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 stagger-children">
 
         {/* Monthly Views — Horizontal Bar Chart */}
         <Card className="glass-card hover-lift shadow-sm transition-all duration-300 card-depth-1">

@@ -117,7 +117,7 @@ export default function WordPressPage() {
   const statusLabels: Record<string, string> = { published: 'منتشر شده', draft: 'پیش‌نویس', archived: 'بایگانی' }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter content-area">
+    <div className="space-y-6 p-4 md:p-6 page-enter content-area reveal-on-scroll">
       {/* ─── Animated Gradient Header ─── */}
       <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-teal-500/5 to-emerald-500/10 pointer-events-none" />
@@ -144,7 +144,7 @@ export default function WordPressPage() {
               size="sm"
               onClick={handleSync}
               disabled={syncing || !isConnected}
-              className="gap-2 border-cyan-300 dark:border-cyan-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="btn-ghost-subtle gap-2 border-cyan-300 dark:border-cyan-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
               {syncing ? labels.syncing : labels.sync}
@@ -153,7 +153,7 @@ export default function WordPressPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-cyan-300 dark:border-cyan-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                className="btn-ghost-subtle gap-2 border-cyan-300 dark:border-cyan-700 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                 asChild
               >
                 <a href={siteUrl} target="_blank" rel="noopener noreferrer">
@@ -187,7 +187,7 @@ export default function WordPressPage() {
                 </p>
               </div>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'} border-0 shadow-sm h-8 px-3`}>
+            <Badge className={`${isConnected ? 'badge-gradient-emerald' : 'badge-gradient-rose'} border-0 shadow-sm h-8 px-3`}>
               {isConnected ? labels.connected : labels.disconnected}
             </Badge>
           </div>
@@ -219,8 +219,8 @@ export default function WordPressPage() {
       </Card>
 
       {/* ─── Stats Row ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-in" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
-        <Card className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 stagger-children animate-in" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+        <Card className="glass-card card-metric stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-md">
               <FileText className="h-5 w-5 text-white" />
@@ -232,7 +232,7 @@ export default function WordPressPage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
+        <Card className="glass-card card-metric stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-md">
               <Zap className="h-5 w-5 text-white" />
@@ -246,7 +246,7 @@ export default function WordPressPage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
+        <Card className="glass-card card-metric stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md">
               <Clock className="h-5 w-5 text-white" />
@@ -260,7 +260,7 @@ export default function WordPressPage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
+        <Card className="glass-card card-metric stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300">
           <CardContent className="p-4 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-md">
               <History className="h-5 w-5 text-white" />
@@ -308,7 +308,7 @@ export default function WordPressPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleSave} className="w-full gap-2 bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/30" disabled={!siteUrl.trim() || !apiKey.trim()}>
+            <Button onClick={handleSave} className="btn-gradient-primary w-full gap-2 bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-md shadow-cyan-500/20 hover:shadow-cyan-500/30" disabled={!siteUrl.trim() || !apiKey.trim()}>
               <CheckCircle className="h-4 w-4" />
               {labels.save}
             </Button>
@@ -349,7 +349,7 @@ export default function WordPressPage() {
                         </div>
                         <span className="text-sm truncate">{post.title}</span>
                       </div>
-                      <Badge variant={post.status === 'published' ? 'default' : 'secondary'} className={`shrink-0 text-[10px] border-0 ${post.status === 'published' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'}`}>
+                      <Badge variant={post.status === 'published' ? 'default' : 'secondary'} className={`shrink-0 text-[10px] border-0 ${post.status === 'published' ? 'badge-gradient-emerald' : 'badge-gradient-amber'}`}>
                         {statusLabels[post.status] ?? post.status}
                       </Badge>
                     </div>

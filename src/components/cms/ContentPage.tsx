@@ -44,6 +44,7 @@ import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 import RichTextEditor from './RichTextEditor'
 import EmptyState from './EmptyState'
+import QuickViewPanel from './QuickViewPanel'
 
 const labels = {
   title: 'مدیریت محتوا',
@@ -159,6 +160,7 @@ export default function ContentPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [previewPost, setPreviewPost] = useState<Post | null>(null)
+  const [quickViewItem, setQuickViewItem] = useState<{ title: string; description: string; status: string; date: string; meta?: Record<string, string> } | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [form, setForm] = useState<Partial<Post>>(emptyPost)
 
@@ -276,6 +278,20 @@ export default function ContentPage() {
       categoryId: post.categoryId ?? '',
     })
     setDialogOpen(true)
+  }
+
+  const openQuickView = (post: Post) => {
+    setQuickViewItem({
+      title: post.title,
+      description: post.excerpt || post.content.slice(0, 200),
+      status: post.status,
+      date: post.createdAt,
+      meta: {
+        slug: post.slug,
+        نویسنده: getAuthorName(post),
+        دسته‌بندی: post.category?.name ?? '—',
+      },
+    })
   }
 
   const openDelete = (id: string) => {
@@ -530,6 +546,9 @@ export default function ContentPage() {
                           <TableCell>
                             <div className="flex gap-1">
                               <Button size="icon" variant="ghost" className="h-8 w-8 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openQuickView(post) }} title="مشاهده سریع">
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
                               <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>

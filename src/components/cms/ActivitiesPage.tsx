@@ -109,7 +109,7 @@ export default function ActivitiesPage() {
   }, [activities])
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter content-area">
+    <div className="space-y-6 p-4 md:p-6 page-enter content-area reveal-on-scroll">
       {/* ─── Gradient Header ─── */}
       <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
         <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 via-emerald-500/5 to-cyan-500/10 pointer-events-none" />
@@ -139,7 +139,7 @@ export default function ActivitiesPage() {
               variant="outline"
               size="sm"
               onClick={handleReload}
-              className="gap-2 border-lime-300 dark:border-lime-700 text-lime-600 dark:text-lime-400 hover:bg-lime-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="btn-ghost-subtle gap-2 border-lime-300 dark:border-lime-700 text-lime-600 dark:text-lime-400 hover:bg-lime-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               {labels.reload}
@@ -149,7 +149,7 @@ export default function ActivitiesPage() {
       </div>
 
       {/* ─── Filter Chips ─── */}
-      <div className="flex flex-wrap items-center gap-2 animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+      <div className="tab-group flex flex-wrap items-center gap-2 animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
         <div className="flex items-center gap-2 text-sm text-muted-foreground ml-2">
           <Filter className="h-4 w-4" />
           {labels.filter}:
@@ -161,10 +161,10 @@ export default function ActivitiesPage() {
               key={chip.key}
               onClick={() => setActiveChip(chip.key)}
               className={`
-                inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
+                tab-item inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
                 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
                 ${isActive
-                  ? 'bg-gradient-to-r from-lime-500 to-emerald-500 text-white shadow-lg shadow-lime-500/25 hover:shadow-lime-500/35'
+                  ? 'tab-item-active bg-gradient-to-r from-lime-500 to-emerald-500 text-white shadow-lg shadow-lime-500/25 hover:shadow-lime-500/35'
                   : 'glass-card border border-lime-200/50 dark:border-lime-800/30 text-lime-700 dark:text-lime-400 hover:bg-lime-500/10 hover:border-lime-300/50'
                 }
               `}
@@ -189,7 +189,7 @@ export default function ActivitiesPage() {
               variant="outline"
               size="sm"
               onClick={handleReload}
-              className="mt-4 gap-2 border-lime-300 dark:border-lime-700 text-lime-600 dark:text-lime-400 hover:bg-lime-500/10"
+              className="btn-ghost-subtle mt-4 gap-2 border-lime-300 dark:border-lime-700 text-lime-600 dark:text-lime-400 hover:bg-lime-500/10"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               {labels.reload}
@@ -217,7 +217,7 @@ export default function ActivitiesPage() {
                 {/* Timeline line */}
                 <div className="absolute right-[19px] top-0 bottom-0 w-px bg-gradient-to-b from-lime-300/40 via-emerald-300/30 to-transparent dark:from-lime-700/30 dark:via-emerald-700/20" />
 
-                <div className="space-y-3">
+                <div className="space-y-3 stagger-children">
                   {group.items.map((a, ai) => {
                     const config = getActionConfig(a.action)
                     const timeBadgeClass = getTimeBadgeClass(a.createdAt)
@@ -238,7 +238,7 @@ export default function ActivitiesPage() {
                         </div>
 
                         {/* Content card */}
-                        <Card className="flex-1 hover-lift shadow-sm glass-card card-inner-glow shine-effect transition-all duration-300">
+                        <Card className="flex-1 hover-lift card-elevated shadow-sm glass-card card-inner-glow shine-effect transition-all duration-300">
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1 min-w-0">

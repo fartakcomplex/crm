@@ -189,7 +189,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter content-area">
+    <div className="space-y-6 p-4 md:p-6 page-enter content-area reveal-on-scroll">
       {/* ─── Animated Gradient Header ─── */}
       <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-violet-500/5 to-fuchsia-500/10 pointer-events-none" />
@@ -221,7 +221,7 @@ export default function NotificationsPage() {
             variant="outline"
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0}
-            className="gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="btn-ghost-subtle gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
           >
             {markAllNotificationsRead.isPending ? (
               <div className="h-4 w-4 border-2 border-purple-400/30 border-t-purple-500 rounded-full animate-spin" />
@@ -240,7 +240,7 @@ export default function NotificationsPage() {
             <Filter className="h-4 w-4" />
             {labels.filterType}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="tab-group flex flex-wrap gap-2">
             {FILTER_TABS.map((tab) => {
               const count = tabCounts[tab.key] ?? 0
               const isActive = activeTab === tab.key
@@ -249,10 +249,10 @@ export default function NotificationsPage() {
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
                   className={`
-                    inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
+                    tab-item inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
                     transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
                     ${isActive
-                      ? 'bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/35'
+                      ? 'tab-item-active bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/35'
                       : 'glass-card border border-purple-200/50 dark:border-purple-800/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'
                     }
                   `}
@@ -286,7 +286,7 @@ export default function NotificationsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6 animate-in" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+        <div className="space-y-6 stagger-children animate-in" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
           {timeGroups.map((group, gi) => {
             const isCollapsed = collapsedGroups.has(group.label)
             return (
@@ -450,7 +450,7 @@ export default function NotificationsPage() {
                   {!selectedNotification.read && (
                     <Button
                       onClick={() => { handleMarkRead(selectedNotification.id); setSelectedNotification({ ...selectedNotification, read: true }) }}
-                      className="flex-1 gap-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:from-purple-600 hover:to-fuchsia-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                      className="btn-gradient-primary flex-1 gap-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:from-purple-600 hover:to-fuchsia-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
                     >
                       <Check className="h-4 w-4" />
                       {labels.markRead}
@@ -459,7 +459,7 @@ export default function NotificationsPage() {
                   <Button
                     variant="outline"
                     onClick={() => setSelectedNotification(null)}
-                    className="flex-1 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                    className="btn-ghost-subtle flex-1 gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                   >
                     {labels.close}
                   </Button>

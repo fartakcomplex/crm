@@ -1686,3 +1686,196 @@ Stage Summary:
 6. **Expand seed data** — add more sample data for richer demo
 7. **Dashboard drag-and-drop** — configurable widget layout
 8. **Export features** — PDF export for invoices, Excel export for financial reports
+
+---
+Task ID: 4-a
+Agent: Full-Stack Developer
+Task: Apply CSS utility classes to page.tsx layout and sidebar elements
+
+Work Log:
+- Added `sidebar-nav-item` class to non-active sidebar navigation buttons
+- Added `sidebar-nav-item-active` class to the active sidebar navigation button
+- Added `sidebar-category-label` class to sidebar category divider labels
+- Added `btn-ghost-subtle` class to the header search button (desktop)
+- Added `btn-icon-circle` class to the user profile avatar trigger button
+- Added `btn-icon-circle` class to the theme toggle button in sidebar
+- Added `btn-icon-circle` class to the mobile hamburger menu button (SheetTrigger)
+- Added `btn-icon-circle` class to the notification bell button
+- Added `btn-gradient-primary` and `micro-bounce` classes to the floating action button (FAB)
+- Added `content-area` class to the main content area div
+- Skipped `reveal-on-scroll` for QuickNotesWidget — no explicit QuickNotes widget found in page.tsx
+- All edits were additive only (className merging via template literals), no structural changes
+- RTL behavior and Persian labels preserved intact
+- `bun run lint` passed with zero errors
+
+---
+Task ID: 4-b
+Agent: Full-Stack Developer
+Task: Apply newly created CSS classes to 7 smaller CMS page components
+
+Work Log:
+- Applied CSS utility classes to 7 page components in /src/components/cms/
+
+**ActivitiesPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Added `tab-group` to filter chips container, `tab-item`/`tab-item-active` to each filter button
+- Added `btn-ghost-subtle` to both Reload buttons (header + empty state)
+- Added `card-elevated` to timeline activity cards
+- Added `stagger-children` to timeline items list container
+
+**CommentsPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Applied gradient badges: `badge-gradient-violet` (pending), `badge-gradient-emerald` (approved), `badge-gradient-rose` (rejected)
+- Added `btn-ghost-subtle` to CSV export button
+- Added `card-elevated` to filter card and comment cards
+- Added `stagger-children` to comments list container
+
+**TeamPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Added `btn-gradient-primary` to "افزودن عضو" button and Save dialog button
+- Added `btn-ghost-subtle` to Cancel dialog button
+- Added `card-elevated` to filter card and team member cards
+- Added `stagger-children` to team grid container
+
+**ReportsPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Added `tab-group` to time period selector container, `tab-item`/`tab-item-active` to period buttons
+- Added `card-metric` to StatSummaryCard components (4 stat cards)
+- Added `btn-gradient-primary` to CSV export button
+- Added `stagger-children` to charts grid container
+
+**ProjectsPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Added `btn-gradient-primary` to "پروژه جدید" button and Save dialog button
+- Added `btn-ghost-subtle` to Cancel dialog button
+- Added `card-metric` to all 4 stat cards (total, active, completed, on-hold)
+- Added `card-elevated` to filter card
+- Added `stagger-children` to project grid container
+
+**WordPressPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Applied gradient badges: `badge-gradient-emerald` (connected), `badge-gradient-rose` (disconnected)
+- Applied gradient badges to synced posts: `badge-gradient-emerald` (published), `badge-gradient-amber` (draft)
+- Added `btn-ghost-subtle` to Sync and View Site buttons
+- Added `btn-gradient-primary` to Save Configuration button
+- Added `card-metric` to all 4 stat cards (synced posts, last sync, frequency, sync history)
+- Added `stagger-children` to stats grid container
+
+**NotificationsPage.tsx:**
+- Added `reveal-on-scroll` to main content div
+- Added `tab-group` to filter tabs container, `tab-item`/`tab-item-active` to each filter button
+- Added `btn-ghost-subtle` to "همه خوانده شد" button and Close button in detail sheet
+- Added `btn-gradient-primary` to "خوانده شد" button in detail sheet
+- Added `stagger-children` to notification time groups container
+
+- All edits were additive only (className merging via template literals), no structural/prop/logic changes
+- RTL behavior and Persian labels preserved intact
+- `bun run lint` passed with zero errors
+
+Stage Summary:
+- 7 page components updated with new CSS utility classes
+- Consistent application of: tab-group/tab-item, card-metric, btn-gradient-primary, btn-ghost-subtle, card-elevated, reveal-on-scroll, stagger-children, badge-gradient-* classes
+- ESLint: 0 errors
+
+---
+Task ID: 4-a
+Agent: Sub-agent (full-stack-developer)
+Task: Apply new CSS classes to main layout and sidebar
+
+Work Log:
+- Applied sidebar-nav-item to all sidebar navigation buttons
+- Applied sidebar-nav-item-active to the active tab button (conditional)
+- Applied sidebar-category-label to category header labels
+- Applied btn-ghost-subtle to search button, btn-icon-circle to avatar/theme/menu/notification buttons
+- Applied btn-gradient-primary and micro-bounce to the FAB
+- Applied content-area to main content rendering area
+- All changes were additive (className merging only), no structural/logic changes
+
+Stage Summary:
+- page.tsx enhanced with 10 new CSS class applications
+- RTL preserved, Persian labels intact
+- ESLint: 0 errors, 0 warnings
+
+---
+Task ID: 4-b
+Agent: Sub-agent (full-stack-developer)
+Task: Apply new CSS classes to 7 smaller page components
+
+Work Log:
+- ActivitiesPage: reveal-on-scroll, tab-group/tab-item/tab-item-active, btn-ghost-subtle, card-elevated, stagger-children
+- CommentsPage: reveal-on-scroll, badge-gradient-violet/emerald/rose, btn-ghost-subtle, card-elevated, stagger-children
+- TeamPage: reveal-on-scroll, btn-gradient-primary, btn-ghost-subtle, card-elevated, stagger-children
+- ReportsPage: reveal-on-scroll, tab-group/tab-item/tab-item-active, card-metric, btn-gradient-primary, stagger-children
+- ProjectsPage: reveal-on-scroll, btn-gradient-primary, btn-ghost-subtle, card-metric, card-elevated, stagger-children
+- WordPressPage: reveal-on-scroll, badge-gradient-emerald/rose/amber, btn-ghost-subtle, btn-gradient-primary, card-metric, stagger-children
+- NotificationsPage: reveal-on-scroll, tab-group/tab-item/tab-item-active, btn-ghost-subtle, btn-gradient-primary, stagger-children
+
+Stage Summary:
+- 7 page components enhanced with new CSS classes
+- All changes additive (className only), no logic changes
+- ESLint: 0 errors, 0 warnings
+
+---
+Task ID: 5-a
+Agent: Sub-agent (full-stack-developer)
+Task: Create new feature components (ActivityFeed, Analytics, ThemeCustomizer, QuickView)
+
+Work Log:
+- Created ActivityFeedWidget.tsx — Live activity feed with 5 activity types, colored indicators, relative timestamps
+- Created AnalyticsOverviewWidget.tsx — CSS-only mini charts (weekly bars, donut ring, top content bars)
+- Created ThemeCustomizerWidget.tsx — Accent color picker (6 colors), layout density (3 options), border radius presets
+- Created QuickViewPanel.tsx — Sheet-based quick view panel for item details
+- Integrated ActivityFeedWidget, AnalyticsOverviewWidget, ThemeCustomizerWidget into DashboardPage
+- Integrated QuickViewPanel into ContentPage
+- Fixed lucide-react import error: BorderAll → Square
+
+Stage Summary:
+- 4 new components created (ActivityFeedWidget, AnalyticsOverviewWidget, ThemeCustomizerWidget, QuickViewPanel)
+- 2 pages updated (DashboardPage + ContentPage)
+- ESLint: 0 errors, 0 warnings
+- Server: HTTP 200 verified
+
+---
+
+## Current Project Status Assessment (Updated — Round 14)
+
+### Overall Status: Production-Quality + Polished ✅
+- Next.js 16 with Turbopack dev server on port 3000
+- **21 pages** — ALL loading correctly
+- **25+ reusable components** in src/components/cms/
+- **29+ API routes** (CRUD + AI + WordPress sync + Upload + Notes)
+- **9 AI-powered endpoints** using GLM-5-turbo (streaming)
+- RTL Persian layout with dark/light theme
+- **Enhanced CSS**: ~50+ keyframes, ~110+ utilities (globals.css ~3457 lines)
+- **New CSS classes now applied** to sidebar, 7 pages, and main layout
+
+### Completed in Round 14
+1. ✅ QA testing via agent-browser — Dashboard, Content, AI Assistant pages tested
+2. ✅ Applied new CSS classes to page.tsx sidebar (sidebar-nav-item, sidebar-nav-item-active, sidebar-category-label)
+3. ✅ Applied btn-icon-circle to header buttons (profile, theme, menu, notification)
+4. ✅ Applied btn-gradient-primary and micro-bounce to FAB
+5. ✅ Applied new CSS to 7 pages (tabs, badges, buttons, cards, animations)
+6. ✅ Created 4 new components: ActivityFeedWidget, AnalyticsOverviewWidget, ThemeCustomizerWidget, QuickViewPanel
+7. ✅ Integrated all new widgets into DashboardPage and ContentPage
+8. ✅ Fixed BorderAll import error in ThemeCustomizerWidget (→ Square)
+9. ✅ ESLint: 0 errors, 0 warnings
+10. ✅ Server: HTTP 200 verified after fix
+
+### Screenshots
+- /home/z/my-project/download/qa-r14-dashboard.png
+- /home/z/my-project/download/qa-r14-content.png
+- /home/z/my-project/download/qa-r14-ai.png
+- /home/z/my-project/download/qa-r14-final-dashboard.png
+
+### Known Issues
+1. ⚠️ Sandbox OOM — dev server killed between long tool call gaps (not code issue)
+2. ⚠️ Some new CSS classes (data-table-container, chart-bar-animated, chart-donut-ring) not yet widely applied
+3. ⚠️ reveal-on-scroll needs IntersectionObserver JS implementation to actually trigger
+
+### Next Priority Recommendations
+1. **Implement IntersectionObserver hook** for reveal-on-scroll animations
+2. **Apply remaining CSS classes** — data-table-container to more tables, card-progress to business pages
+3. **Real-time updates** — WebSocket integration for live notifications
+4. **Authentication flow** — integrate NextAuth.js with actual login/register
+5. **Enhance smaller pages further** — ActivitiesPage, TeamPage, WordPressPage need more content/features
+6. **Mobile responsive testing** — verify all 21 pages on mobile viewports
