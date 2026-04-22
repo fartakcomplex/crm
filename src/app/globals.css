@@ -2439,4 +2439,1018 @@ tbody tr:hover {
   }
 }
 
-/* === END OF STYLES - Round 9 Styling Enhancements === */
+/* ========================================================================== */
+/*  (4-a) ENHANCED SIDEBAR ITEM STYLING                                        */
+/*  RTL-aware: border indicator on right side, indent via padding-right       */
+/* ========================================================================== */
+
+.sidebar-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  transition:
+    background-color 0.2s ease,
+    padding-right 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-nav-item:hover {
+  background-color: oklch(0.55 0.2 270 / 0.06);
+  padding-right: 1rem;
+  color: var(--accent-violet);
+}
+
+.dark .sidebar-nav-item:hover {
+  background-color: oklch(0.7 0.2 270 / 0.08);
+}
+
+/* Active state with gradient right-border indicator (RTL) */
+.sidebar-nav-item-active {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    oklch(0.55 0.2 270 / 0.04),
+    oklch(0.65 0.2 180 / 0.08)
+  );
+  color: var(--accent-violet);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* RTL: right-side gradient border */
+.sidebar-nav-item-active::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 0;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(
+    180deg,
+    oklch(0.55 0.2 270),
+    oklch(0.65 0.2 180)
+  );
+  box-shadow: 0 0 8px oklch(0.55 0.2 270 / 0.3);
+}
+
+.dark .sidebar-nav-item-active {
+  background: linear-gradient(
+    90deg,
+    oklch(0.7 0.2 270 / 0.06),
+    oklch(0.75 0.2 180 / 0.1)
+  );
+}
+
+.dark .sidebar-nav-item-active::before {
+  background: linear-gradient(
+    180deg,
+    oklch(0.7 0.2 270),
+    oklch(0.75 0.2 180)
+  );
+  box-shadow: 0 0 12px oklch(0.7 0.2 270 / 0.4);
+}
+
+/* Category label in sidebar */
+.sidebar-category-label {
+  display: block;
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+  user-select: none;
+}
+
+.dark .sidebar-category-label {
+  color: oklch(0.6 0 0);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED DATA TABLE STYLING                                          */
+/* ========================================================================== */
+
+.data-table-container {
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 oklch(0 0 0 / 0.03);
+}
+
+.dark .data-table-container {
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.04);
+}
+
+/* Sticky header with glass effect */
+.data-table-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.dark .data-table-header {
+  background: oklch(0.16 0 0 / 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Cells with padding and transition */
+.data-table-cell {
+  padding: 0.75rem 1rem;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+  vertical-align: middle;
+}
+
+/* Highlighted row for selected / important items */
+.data-table-row-highlight {
+  background: linear-gradient(
+    90deg,
+    oklch(0.55 0.2 270 / 0.04),
+    oklch(0.65 0.2 180 / 0.06),
+    oklch(0.55 0.2 270 / 0.04)
+  );
+}
+
+.data-table-row-highlight td {
+  box-shadow: inset 3px 0 0 oklch(0.55 0.2 270 / 0.4);
+}
+
+.dark .data-table-row-highlight {
+  background: linear-gradient(
+    90deg,
+    oklch(0.7 0.2 270 / 0.06),
+    oklch(0.75 0.2 180 / 0.08),
+    oklch(0.7 0.2 270 / 0.06)
+  );
+}
+
+.dark .data-table-row-highlight td {
+  box-shadow: inset 3px 0 0 oklch(0.7 0.2 270 / 0.5);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED TAB COMPONENT STYLING                                       */
+/* ========================================================================== */
+
+.tab-group {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+
+.tab-item {
+  position: relative;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease;
+  border-radius: var(--radius) var(--radius) 0 0;
+  user-select: none;
+}
+
+.tab-item:hover {
+  color: var(--foreground);
+  background-color: oklch(0.55 0.2 270 / 0.04);
+  transform: translateY(-1px);
+}
+
+.dark .tab-item:hover {
+  background-color: oklch(0.7 0.2 270 / 0.06);
+}
+
+/* Active tab with animated gradient bottom border */
+.tab-item-active {
+  position: relative;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent-violet);
+  cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0;
+  user-select: none;
+}
+
+.tab-item-active::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    oklch(0.55 0.2 270),
+    oklch(0.65 0.2 180),
+    oklch(0.7 0.18 160)
+  );
+  background-size: 200% 100%;
+  animation: gradient-shift 3s ease infinite;
+  border-radius: 2px 2px 0 0;
+}
+
+.dark .tab-item-active {
+  color: oklch(0.75 0.2 270);
+}
+
+.dark .tab-item-active::after {
+  background: linear-gradient(
+    90deg,
+    oklch(0.7 0.2 270),
+    oklch(0.75 0.2 180),
+    oklch(0.75 0.17 160)
+  );
+  background-size: 200% 100%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED BADGE & TAG SYSTEM                                          */
+/* ========================================================================== */
+
+.badge-gradient-violet {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.badge-gradient-cyan {
+  background: linear-gradient(135deg, #06b6d4, #22d3ee);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.badge-gradient-emerald {
+  background: linear-gradient(135deg, #10b981, #34d399);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.badge-gradient-rose {
+  background: linear-gradient(135deg, #f43f5e, #fb7185);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+.badge-gradient-amber {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+}
+
+/* Tag chip — small rounded pill */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: oklch(0.55 0.2 270 / 0.08);
+  color: oklch(0.55 0.2 270);
+  border: 1px solid oklch(0.55 0.2 270 / 0.15);
+  cursor: default;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.tag-chip:hover {
+  background: oklch(0.55 0.2 270 / 0.14);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px oklch(0.55 0.2 270 / 0.15);
+}
+
+.dark .tag-chip {
+  background: oklch(0.7 0.2 270 / 0.12);
+  color: oklch(0.75 0.2 270);
+  border-color: oklch(0.7 0.2 270 / 0.2);
+}
+
+.dark .tag-chip:hover {
+  background: oklch(0.7 0.2 270 / 0.18);
+  box-shadow: 0 2px 6px oklch(0.7 0.2 270 / 0.2);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED CARD VARIANTS                                                */
+/* ========================================================================== */
+
+/* Metric card: large number + small label */
+.card-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.card-metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.card-metric-label {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Progress card with animated progress bar */
+.card-progress {
+  padding: 1.25rem;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.card-progress-bar-track {
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--muted);
+  overflow: hidden;
+  margin-top: 0.75rem;
+}
+
+.card-progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan));
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-progress-bar-fill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: shimmer 2s ease-in-out infinite;
+  background-size: 200% 100%;
+}
+
+/* Avatar group card */
+.card-avatar-group {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.card-avatar-group > * + * {
+  margin-right: -0.5rem;
+  margin-left: 0;
+}
+
+.card-avatar-group > * {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--background);
+  box-shadow: 0 1px 3px oklch(0 0 0 / 0.1);
+  transition: transform 0.2s ease, z-index 0s;
+  position: relative;
+}
+
+.card-avatar-group > *:hover {
+  transform: translateY(-2px) scale(1.1);
+  z-index: 10;
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.15);
+}
+
+.dark .card-avatar-group > * {
+  border-color: oklch(0.16 0 0);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED BUTTON VARIANTS                                              */
+/* ========================================================================== */
+
+/* Primary gradient button with hover glow */
+.btn-gradient-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius);
+  border: none;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+.btn-gradient-primary:hover {
+  box-shadow:
+    0 0 20px rgba(139, 92, 246, 0.35),
+    0 0 40px rgba(99, 102, 241, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.btn-gradient-primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Secondary gradient button */
+.btn-gradient-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, oklch(0.97 0 0), oklch(0.94 0 0));
+  color: var(--foreground);
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.15s ease,
+    border-color 0.2s ease;
+}
+
+.btn-gradient-secondary:hover {
+  border-color: oklch(0.55 0.2 270 / 0.3);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.06);
+  transform: translateY(-1px);
+}
+
+.btn-gradient-secondary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.dark .btn-gradient-secondary {
+  background: linear-gradient(135deg, oklch(0.269 0 0), oklch(0.24 0 0));
+  border-color: oklch(1 0 0 / 0.1);
+}
+
+.dark .btn-gradient-secondary:hover {
+  border-color: oklch(0.7 0.2 270 / 0.35);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 0.25);
+}
+
+/* Ghost button — only shows background on hover */
+.btn-ghost-subtle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  border: none;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.btn-ghost-subtle:hover {
+  background-color: oklch(0 0 0 / 0.05);
+  color: var(--foreground);
+}
+
+.btn-ghost-subtle:active {
+  transform: scale(0.96);
+}
+
+.dark .btn-ghost-subtle:hover {
+  background-color: oklch(1 0 0 / 0.06);
+}
+
+/* Circular icon button with hover ring */
+.btn-icon-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.btn-icon-circle:hover {
+  box-shadow: 0 0 0 3px oklch(0.55 0.2 270 / 0.15);
+  border-color: oklch(0.55 0.2 270 / 0.3);
+  color: var(--accent-violet);
+  transform: scale(1.05);
+}
+
+.btn-icon-circle:active {
+  transform: scale(0.95);
+}
+
+.dark .btn-icon-circle:hover {
+  box-shadow: 0 0 0 3px oklch(0.7 0.2 270 / 0.2);
+  border-color: oklch(0.7 0.2 270 / 0.35);
+  color: oklch(0.75 0.2 270);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED INPUT / FORM STYLING                                        */
+/* ========================================================================== */
+
+/* Input with floating label effect and focus border gradient */
+.input-enhanced {
+  position: relative;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  outline: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background-color 0.2s ease;
+}
+
+.input-enhanced::placeholder {
+  color: var(--muted-foreground);
+  opacity: 0.7;
+}
+
+.input-enhanced:focus {
+  border-color: oklch(0.55 0.2 270 / 0.5);
+  box-shadow:
+    0 0 0 3px oklch(0.55 0.2 270 / 0.1),
+    0 0 0 1px oklch(0.55 0.2 270 / 0.2);
+}
+
+.input-enhanced:hover:not(:focus) {
+  border-color: oklch(0 0 0 / 0.2);
+}
+
+.dark .input-enhanced {
+  background: oklch(0.2 0 0);
+  border-color: oklch(1 0 0 / 0.12);
+}
+
+.dark .input-enhanced:focus {
+  border-color: oklch(0.7 0.2 270 / 0.6);
+  box-shadow:
+    0 0 0 3px oklch(0.7 0.2 270 / 0.12),
+    0 0 0 1px oklch(0.7 0.2 270 / 0.25);
+}
+
+.dark .input-enhanced:hover:not(:focus) {
+  border-color: oklch(1 0 0 / 0.2);
+}
+
+/* Form group with label + description */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.form-group-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.form-group-description {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  line-height: 1.4;
+}
+
+.dark .form-group-description {
+  color: oklch(0.6 0 0);
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED CHART / DATA VISUALIZATION HELPERS                          */
+/* ========================================================================== */
+
+/* CSS-only animated bar (height transition) */
+.chart-bar-animated {
+  border-radius: 0.25rem 0.25rem 0 0;
+  transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  min-width: 1.25rem;
+}
+
+.chart-bar-animated::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to top, transparent 0%, rgba(255, 255, 255, 0.12) 100%);
+  pointer-events: none;
+}
+
+/* CSS conic-gradient donut chart ring */
+.chart-donut-ring {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-donut-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--accent-violet) 0deg,
+    var(--accent-cyan) 120deg,
+    var(--accent-emerald) 200deg,
+    var(--muted) 200deg,
+    var(--muted) 360deg
+  );
+}
+
+.chart-donut-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0.875rem;
+  border-radius: 50%;
+  background: var(--card);
+}
+
+/* Container for inline sparkline */
+.chart-sparkline-container {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 2rem;
+  padding: 0.25rem 0;
+}
+
+.chart-sparkline-container .sparkline-bar {
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent-violet);
+  transition: height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0.7;
+}
+
+.chart-sparkline-container .sparkline-bar:last-child {
+  opacity: 1;
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED LOADING STATES                                              */
+/* ========================================================================== */
+
+/* Sophisticated pulsing skeleton */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.loading-skeleton-pulse {
+  background: var(--muted);
+  border-radius: var(--radius);
+  animation: skeleton-pulse 1.8s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-skeleton-pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer 2.5s ease-in-out infinite;
+  background-size: 400px 100%;
+}
+
+.dark .loading-skeleton-pulse {
+  background: oklch(0.269 0 0);
+}
+
+.dark .loading-skeleton-pulse::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  background-size: 400px 100%;
+}
+
+/* Full overlay with centered spinner */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: oklch(0 0 0 / 0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border-radius: inherit;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.dark .loading-overlay {
+  background: oklch(0 0 0 / 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.loading-overlay-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 3px solid oklch(0 0 0 / 0.15);
+  border-top-color: var(--accent-violet);
+  border-radius: 50%;
+  animation: rotate-slow 0.7s linear infinite;
+}
+
+.dark .loading-overlay-spinner {
+  border-color: oklch(1 0 0 / 0.15);
+  border-top-color: oklch(0.7 0.2 270);
+}
+
+/* Dims content while loading */
+.loading-content-dim {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: blur(1px);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED SCROLL REVEAL ANIMATION                                     */
+/*  Use with IntersectionObserver — add .reveal-on-scroll + .is-visible        */
+/* ========================================================================== */
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease;
+  filter: blur(3px);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
+}
+
+/* Staggered delay variants for sibling reveals */
+.reveal-on-scroll:nth-child(1) { transition-delay: 0ms; }
+.reveal-on-scroll:nth-child(2) { transition-delay: 60ms; }
+.reveal-on-scroll:nth-child(3) { transition-delay: 120ms; }
+.reveal-on-scroll:nth-child(4) { transition-delay: 180ms; }
+.reveal-on-scroll:nth-child(5) { transition-delay: 240ms; }
+.reveal-on-scroll:nth-child(6) { transition-delay: 300ms; }
+.reveal-on-scroll:nth-child(7) { transition-delay: 360ms; }
+.reveal-on-scroll:nth-child(8) { transition-delay: 420ms; }
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED MICRO-INTERACTIONS                                          */
+/* ========================================================================== */
+
+@keyframes micro-bounce-anim {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.94); }
+  60% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.micro-bounce:active {
+  animation: micro-bounce-anim 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes micro-shake-anim {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  30% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+  90% { transform: translateX(1px); }
+}
+
+.micro-shake {
+  animation: micro-shake-anim 0.5s ease-in-out;
+}
+
+@keyframes micro-nod-anim {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-3px); }
+  50% { transform: translateY(0); }
+  75% { transform: translateY(-1.5px); }
+  100% { transform: translateY(0); }
+}
+
+.micro-nod {
+  animation: micro-nod-anim 0.5s ease-in-out;
+}
+
+/* ========================================================================== */
+/*  (4-a) ENHANCED TOOLTIP & POPOVER                                           */
+/* ========================================================================== */
+
+/* Styled arrow for tooltips */
+.tooltip-arrow {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--popover);
+  border: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.tooltip-arrow-top {
+  top: -5px;
+  right: calc(50% - 4px);
+  border-bottom: none;
+  border-left: none;
+}
+
+.tooltip-arrow-bottom {
+  bottom: -5px;
+  right: calc(50% - 4px);
+  border-top: none;
+  border-right: none;
+}
+
+.dark .tooltip-arrow {
+  background: oklch(0.205 0 0);
+  border-color: oklch(1 0 0 / 0.1);
+}
+
+/* Enhanced popover with shadow and border */
+.popover-card {
+  background: var(--popover);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 2px);
+  box-shadow:
+    0 8px 24px oklch(0 0 0 / 0.08),
+    0 2px 8px oklch(0 0 0 / 0.04),
+    0 0 0 1px oklch(0 0 0 / 0.02);
+  animation: fadeIn 0.15s ease-out, scaleIn 0.15s ease-out;
+  overflow: hidden;
+}
+
+.dark .popover-card {
+  background: oklch(0.205 0 0);
+  border-color: oklch(1 0 0 / 0.1);
+  box-shadow:
+    0 8px 24px oklch(0 0 0 / 0.3),
+    0 2px 8px oklch(0 0 0 / 0.2),
+    0 0 0 1px oklch(1 0 0 / 0.03);
+}
+
+/* ========================================================================== */
+/*  (4-a) DARK MODE SPECIFIC ENHANCEMENTS                                      */
+/* ========================================================================== */
+
+/* Deeper card shadows in dark mode */
+.dark .card-metric {
+  border-color: oklch(1 0 0 / 0.08);
+  box-shadow: 0 2px 8px oklch(0 0 0 / 0.2);
+}
+
+.dark .card-progress {
+  border-color: oklch(1 0 0 / 0.08);
+  box-shadow: 0 2px 8px oklch(0 0 0 / 0.2);
+}
+
+/* Stronger glow effects in dark mode */
+.dark .badge-gradient-violet {
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+}
+
+.dark .badge-gradient-cyan {
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+}
+
+.dark .badge-gradient-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.dark .badge-gradient-rose {
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.3);
+}
+
+.dark .badge-gradient-amber {
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
+}
+
+/* Better contrast for muted text in dark mode */
+.dark .form-group-description {
+  color: oklch(0.65 0 0);
+}
+
+.dark .sidebar-category-label {
+  color: oklch(0.55 0 0);
+  opacity: 0.8;
+}
+
+.dark .data-table-cell {
+  color: oklch(0.9 0 0);
+}
+
+/* Enhanced dark mode donut chart */
+.dark .chart-donut-ring::after {
+  background: oklch(0.16 0 0);
+}
+
+/* Stronger button glow in dark mode */
+.dark .btn-gradient-primary:hover {
+  box-shadow:
+    0 0 24px rgba(139, 92, 246, 0.4),
+    0 0 48px rgba(99, 102, 241, 0.2),
+    0 4px 16px oklch(0 0 0 / 0.3);
+}
+
+/* Enhanced dark mode loading overlay */
+.dark .loading-content-dim {
+  filter: blur(2px) brightness(0.7);
+}
+
+/* === END OF STYLES - Round 4-a Styling Enhancements === */

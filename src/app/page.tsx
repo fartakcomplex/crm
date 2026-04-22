@@ -29,6 +29,7 @@ import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
+import { NotificationCenter } from '@/components/cms/NotificationCenter'
 import { formatRelativeTime } from '@/components/cms/types'
 import { toast } from 'sonner'
 import {
@@ -614,6 +615,7 @@ function AppContent() {
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [quickDraftOpen, setQuickDraftOpen] = useState(false)
+  const [notificationSheetOpen, setNotificationSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(true)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
@@ -819,12 +821,10 @@ function AppContent() {
               </Button>
 
               {/* Notification Bell */}
-              <NotificationDropdown>
-                <NotificationBell
-                  onClick={handleNavigateNotifications}
-                  unreadCount={unreadCount}
-                />
-              </NotificationDropdown>
+              <NotificationBell
+                onClick={() => setNotificationSheetOpen(true)}
+                unreadCount={unreadCount}
+              />
 
               {/* User Profile */}
               <UserProfileDropdown onLogout={handleLogout} onOpenProfile={() => setProfileOpen(true)} />
@@ -860,6 +860,13 @@ function AppContent() {
       <KeyboardShortcuts
         open={shortcutsOpen}
         onOpenChange={setShortcutsOpen}
+      />
+
+      {/* Notification Center */}
+      <NotificationCenter
+        open={notificationSheetOpen}
+        onOpenChange={setNotificationSheetOpen}
+        unreadCount={unreadCount}
       />
 
       {/* Profile Panel */}

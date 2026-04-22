@@ -49,6 +49,9 @@ import { PerformanceMonitor } from './PerformanceMonitor'
 import { BookmarkManager } from './BookmarkManager'
 import { NotificationSoundToggle } from './NotificationSoundToggle'
 import { ColorThemeCustomizer } from './ColorThemeCustomizer'
+import { QuickStatsRow } from './QuickStatsRow'
+import { DataExportWidget } from './DataExportWidget'
+import { SystemStatusWidget } from './SystemStatusWidget'
 
 // Persian labels
 const labels = {
@@ -1221,6 +1224,9 @@ export default function DashboardPage() {
       {/* Onboarding Tip Banner */}
       <OnboardingTipBanner />
 
+      {/* Quick Stats Row */}
+      <QuickStatsRow />
+
       {/* Today's Quick Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <MiniTrendCard
@@ -1632,6 +1638,12 @@ export default function DashboardPage() {
 
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
+
+        {/* Data Export Widget */}
+        <DataExportWidget />
+
+        {/* System Status Widget */}
+        <SystemStatusWidget />
       </div>
 
       {/* ═══════ New Feature Widgets ═══════ */}
