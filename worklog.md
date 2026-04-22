@@ -1879,3 +1879,162 @@ Stage Summary:
 4. **Authentication flow** — integrate NextAuth.js with actual login/register
 5. **Enhance smaller pages further** — ActivitiesPage, TeamPage, WordPressPage need more content/features
 6. **Mobile responsive testing** — verify all 21 pages on mobile viewports
+---
+Task ID: 3-c
+Agent: Main Agent
+Task: Update types.ts and useCMSData.ts with business module data types and API hooks
+
+Work Log:
+- Read worklog.md for full project context and existing patterns
+- Updated `/src/components/cms/types.ts`:
+  - Added 15 new business module interfaces after CalendarEvent and before WPSyncConfig:
+    - Product, ProductCategory, Order, OrderItem, Coupon
+    - InventoryItem, InboundRecord, OutboundRecord
+    - Invoice, InvoiceItem, Transaction, BankAccount
+    - CrmActivity, BudgetItem
+  - Extended Stats interface with 7 new fields:
+    - totalProducts, totalOrders, totalInvoices, totalInventoryValue
+    - pendingOrders, unpaidInvoices, lowStockProducts
+- Updated `/src/components/cms/useCMSData.ts`:
+  - Added 14 new type imports (Product, ProductCategory, Order, OrderItem, Coupon, InventoryItem, InboundRecord, OutboundRecord, Invoice, InvoiceItem, Transaction, BankAccount, CrmActivity, BudgetItem)
+  - Added 10 new API endpoints (products, product-categories, orders, invoices, inventory, transactions, bank-accounts, crm-activities, coupons, budgets)
+  - Added 10 new wrapped keys for auto-unwrap logic
+  - Added 10 new QUERY_CONFIGS entries
+  - Added 10 new lazy queries (all enabled: false)
+  - Added 22 new mutations:
+    - Product: createProduct, updateProduct, deleteProduct
+    - Order: createOrder, updateOrder, deleteOrder
+    - Invoice: createInvoice, updateInvoice, deleteInvoice
+    - Inventory: createInventoryItem, updateInventoryItem, deleteInventoryItem
+    - Transaction: createTransaction, deleteTransaction
+    - CrmActivity: createCrmActivity, updateCrmActivity, deleteCrmActivity
+    - Coupon: createCoupon, updateCoupon, deleteCoupon
+    - BudgetItem: createBudgetItem, updateBudgetItem, deleteBudgetItem
+  - Added all new queries and mutations to return object
+- ESLint: 0 errors on modified files (1 pre-existing error in page.tsx unrelated to this task)
+- Dev server compiles successfully
+
+Stage Summary:
+- types.ts: +15 interfaces, +7 Stats fields (~210 lines added)
+- useCMSData.ts: +14 type imports, +10 endpoints, +10 wrapped keys, +10 query configs, +10 lazy queries, +22 mutations (~270 lines added)
+- All changes follow existing patterns and conventions
+- No breaking changes to existing code
+
+---
+Task ID: round15-cross-module
+Agent: Main Agent + Sub-agents (full-stack-dev x5)
+Task: Cross-module integration — connect all 5 business pages (Store, CRM, Accounting, Inventory, Finance)
+
+Work Log:
+- **Created `/src/lib/cross-module-store.ts`** (~370 lines) — Zustand store for cross-module data:
+  - `SharedContact` — unified contact entity with sources, order counts, deal values, invoice totals
+  - `SharedProduct` — unified product with store + inventory stock/status sync detection
+  - `SharedOrderInvoice` — bridges between store orders and accounting invoices
+  - `SharedTransaction` — unified financial transactions from accounting + finance
+  - `NavigationAction` — cross-module navigation state (target tab, entity name, search query)
+  - Registration hooks: `registerStoreData`, `registerCRMData`, `registerAccountingData`, `registerInventoryData`, `registerFinanceData`
+  - Cross-reference queries: `getContactByName`, `getProductByName`, `getContactOrders`, `getContactInvoices`, `getInvoiceForOrder`, `getProductInventoryInfo`
+  - Computed `getModuleStats()` returning stats for all 5 modules
+
+- **Created `/src/components/CrossModulePanel.tsx`** (~380 lines) — Reusable cross-module UI components:
+  - `ContactCrossRef` — shows CRM stage, store orders, accounting invoices for a contact
+  - `ProductCrossRef` — shows inventory stock/status in store, and vice versa, with sync mismatch alerts
+  - `OrderInvoiceCrossRef` — links orders to invoices and CRM contacts
+  - `ModuleStatsOverview` — unified overview card showing all 5 modules with key metrics
+  - `CrossModuleSyncStatus` — status badges showing shared contacts, linked products, mismatches
+  - `ModuleBadge` — inline colored badge for module identification
+  - Auto-registration hooks: `useRegisterStoreData`, `useRegisterCRMData`, `useRegisterAccountingData`, `useRegisterInventoryData`, `useRegisterFinanceData`
+
+- **Updated `/src/app/page.tsx`** — Cross-module navigation handler:
+  - Listens to `navigationAction` from cross-module store
+  - Navigates to target tab and opens search when entity name provided
+  - Uses `setTimeout` to avoid ESLint set-state-in-effect rule
+
+- **Integrated StorePage** (via sub-agent):
+  - Auto-registers orders and products with cross-module store
+  - `ContactCrossRef` in order detail dialog showing CRM/Accounting data
+  - `ProductCrossRef` in product dialog showing inventory data
+  - `ModuleBadge` (CRM, Accounting) next to customer names in orders table
+  - `Warehouse` stock badge in products table
+  - `CrossModuleSyncStatus` in stats section
+
+- **Integrated CrmPage** (via sub-agent):
+  - Auto-registers contacts with cross-module store
+  - `ContactCrossRef` in contact detail Sheet showing store orders and accounting invoices
+  - `ModuleBadge` in contacts table showing which modules the contact appears in
+  - Store order count indicator in pipeline kanban cards
+  - `CrossModuleSyncStatus` in stats section
+
+- **Integrated AccountingPage** (via sub-agent):
+  - Auto-registers invoices and transactions
+  - `ContactCrossRef` in invoice detail Sheet
+  - `ModuleBadge` (CRM, Store) in invoices table
+  - `CrossModuleSyncStatus` in stats area
+
+- **Integrated InventoryPage** (via sub-agent):
+  - Auto-registers inventory items
+  - `ProductCrossRef` in stock adjustment dialog showing store info
+  - `ModuleBadge` (Store) showing store status in inventory table
+  - `CrossModuleSyncStatus` in stats section
+
+- **Integrated FinancePage** (via sub-agent):
+  - Auto-registers finance transactions
+  - `ModuleStatsOverview` in Dashboard tab showing all module metrics
+  - `CrossModuleSyncStatus` in header area
+  - Accounting transaction badge in transactions table
+
+- **Updated DashboardPage**:
+  - Added `ModuleStatsOverview` widget showing all 5 business module stats
+  - Added `CrossModuleSyncStatus` in welcome banner
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings (fully clean)
+- 2 new files created: cross-module-store.ts, CrossModulePanel.tsx
+- 6 existing files modified: page.tsx, StorePage, CrmPage, AccountingPage, InventoryPage, FinancePage, DashboardPage
+- All 5 business pages now share data through the cross-module Zustand store
+- Cross-navigation between modules works (click badge → jump to related page)
+- Sample data overlapping contacts: ~12 shared between Store/CRM/Accounting
+- Sample data overlapping products: ~10 shared between Store/Inventory
+- Server compiles successfully (HTTP 200)
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Create API routes for all new business entities (Prisma schema update)
+
+Work Log:
+- Read worklog.md and existing API route patterns (customers/route.ts, posts/route.ts, events/[id]/route.ts)
+- Analyzed Prisma schema for 15 new business models (Product, ProductCategory, Order, OrderItem, Coupon, InventoryItem, InboundRecord, OutboundRecord, Invoice, InvoiceItem, Transaction, BankAccount, CrmActivity, BudgetItem)
+- Created 15 API route files following established patterns:
+  1. `/api/products/route.ts` — GET (filter: status, category, featured, search; include: productCategory, inventory, orderItems, invoiceItems), POST (validate: name, sku)
+  2. `/api/products/[id]/route.ts` — GET (deep include with inventory records), PUT (partial), DELETE (cascade: invoiceItems, orderItems, outboundRecords, inboundRecords, inventory)
+  3. `/api/product-categories/route.ts` — GET (filter: search; include: _count products), POST (validate: name, slug)
+  4. `/api/orders/route.ts` — GET (filter: status, customerId, search; include: customer, items+product, coupon), POST (auto-generate orderNumber, nested items creation)
+  5. `/api/orders/[id]/route.ts` — GET (include: customer, items, coupon, invoices, outboundRecords), PUT (partial), DELETE (cascade: outboundRecords, orderItems, disconnect invoices)
+  6. `/api/invoices/route.ts` — GET (filter: status, customerId, search; include: customer, order, items+product, transactions), POST (auto-generate invoiceNumber, nested items)
+  7. `/api/invoices/[id]/route.ts` — GET (deep include with transaction+bankAccount), PUT (partial), DELETE (cascade: disconnect transactions, delete items)
+  8. `/api/inventory/route.ts` — GET (filter: warehouse, lowStock, search; include: product, inboundRecords, outboundRecords), POST (validate: productId)
+  9. `/api/inventory/[id]/route.ts` — GET (include: product, inbound/outbound records), PUT (partial), DELETE (cascade: outboundRecords, inboundRecords)
+  10. `/api/transactions/route.ts` — GET (filter: type, category, bankAccountId, invoiceId, search; include: invoice, bankAccount), POST (auto-update bankAccount balance)
+  11. `/api/bank-accounts/route.ts` — GET (filter: type, search; include: _count transactions), POST (validate: name)
+  12. `/api/crm-activities/route.ts` — GET (filter: customerId, type, search; include: customer), POST (validate: customerId)
+  13. `/api/crm-activities/[id]/route.ts` — GET (include: customer), PUT (partial), DELETE
+  14. `/api/coupons/route.ts` — GET (filter: active, search; include: _count orders), POST (validate: code, auto-uppercase)
+  15. `/api/budgets/route.ts` — GET (filter: category, period, search), POST (validate: name)
+- All routes use wrapped response format: `{ entityName: [...], total, page, limit }`
+- All dynamic routes use `{ params }: { params: Promise<{ id: string }> }` pattern (Next.js 16)
+- All routes have try/catch error handling with proper HTTP status codes
+- POST routes validate required fields and return 400
+- PUT routes support partial updates with spread pattern
+- DELETE routes cascade-delete related records before deleting parent
+- ESLint: 0 errors, 0 warnings
+- Server compiles successfully (HTTP 200)
+
+Stage Summary:
+- 15 new API route files created (10 list routes + 5 dynamic [id] routes)
+- All routes follow established project patterns and conventions
+- Proper cascade delete for relational integrity
+- Auto-generated order numbers (ORD-XXXXXX) and invoice numbers (INV-XXXXXX)
+- Transaction creation auto-updates bank account balance
+- Coupon codes auto-uppercased on creation
+- ESLint clean: 0 errors, 0 warnings

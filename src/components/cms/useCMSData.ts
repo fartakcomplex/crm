@@ -6,6 +6,10 @@ import type {
   MediaItem, Category, Tag, ActivityLog, Setting,
   WPSyncConfig, Stats, ChartData, Notification,
   Task, QuickNote, CalendarEvent,
+  Product, ProductCategory, Order, OrderItem, Coupon,
+  InventoryItem, InboundRecord, OutboundRecord,
+  Invoice, InvoiceItem, Transaction, BankAccount,
+  CrmActivity, BudgetItem,
 } from './types'
 
 // ---------------------------------------------------------------------------
@@ -31,6 +35,16 @@ const api = {
   tasks:          '/api/tasks',
   notes:          '/api/notes',
   events:         '/api/events',
+  products:          '/api/products',
+  'product-categories': '/api/product-categories',
+  orders:            '/api/orders',
+  invoices:          '/api/invoices',
+  inventory:         '/api/inventory',
+  transactions:      '/api/transactions',
+  'bank-accounts':   '/api/bank-accounts',
+  'crm-activities':  '/api/crm-activities',
+  coupons:           '/api/coupons',
+  budgets:           '/api/budgets',
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +52,7 @@ const api = {
 // ---------------------------------------------------------------------------
 
 // Known API response wrappers: { entityName: [...], total, page, limit }
-const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes', 'events']
+const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes', 'events', 'products', 'orders', 'invoices', 'inventory', 'transactions', 'bank-accounts', 'crm-activities', 'coupons', 'budgets', 'product-categories']
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init })
@@ -82,6 +96,16 @@ export const QUERY_CONFIGS: Record<string, { queryKey: string[]; queryFn: () => 
   tasks:          { queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks) },
   notes:          { queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes) },
   events:         { queryKey: ['events'],         queryFn: () => fetchJSON<CalendarEvent[]>(api.events) },
+  products:          { queryKey: ['products'],          queryFn: () => fetchJSON<Product[]>(api.products) },
+  'product-categories': { queryKey: ['product-categories'], queryFn: () => fetchJSON<ProductCategory[]>(api['product-categories']) },
+  orders:            { queryKey: ['orders'],            queryFn: () => fetchJSON<Order[]>(api.orders) },
+  invoices:          { queryKey: ['invoices'],          queryFn: () => fetchJSON<Invoice[]>(api.invoices) },
+  inventory:         { queryKey: ['inventory'],         queryFn: () => fetchJSON<InventoryItem[]>(api.inventory) },
+  transactions:      { queryKey: ['transactions'],      queryFn: () => fetchJSON<Transaction[]>(api.transactions) },
+  'bank-accounts':   { queryKey: ['bank-accounts'],    queryFn: () => fetchJSON<BankAccount[]>(api['bank-accounts']) },
+  'crm-activities':  { queryKey: ['crm-activities'],    queryFn: () => fetchJSON<CrmActivity[]>(api['crm-activities']) },
+  coupons:           { queryKey: ['coupons'],           queryFn: () => fetchJSON<Coupon[]>(api.coupons) },
+  budgets:           { queryKey: ['budgets'],           queryFn: () => fetchJSON<BudgetItem[]>(api.budgets) },
 }
 
 // ---------------------------------------------------------------------------
@@ -114,6 +138,16 @@ export function useCMSData() {
   const tasks          = useQuery({ queryKey: ['tasks'],          queryFn: () => fetchJSON<Task[]>(api.tasks),          enabled: false })
   const notes          = useQuery({ queryKey: ['notes'],          queryFn: () => fetchJSON<QuickNote[]>(api.notes),          enabled: false })
   const events         = useQuery({ queryKey: ['events'],         queryFn: () => fetchJSON<CalendarEvent[]>(api.events),         enabled: false })
+  const products          = useQuery({ queryKey: ['products'],          queryFn: () => fetchJSON<Product[]>(api.products),          enabled: false })
+  const productCategories = useQuery({ queryKey: ['product-categories'], queryFn: () => fetchJSON<ProductCategory[]>(api['product-categories']), enabled: false })
+  const orders            = useQuery({ queryKey: ['orders'],            queryFn: () => fetchJSON<Order[]>(api.orders),            enabled: false })
+  const invoices          = useQuery({ queryKey: ['invoices'],          queryFn: () => fetchJSON<Invoice[]>(api.invoices),          enabled: false })
+  const inventory         = useQuery({ queryKey: ['inventory'],         queryFn: () => fetchJSON<InventoryItem[]>(api.inventory),         enabled: false })
+  const transactions      = useQuery({ queryKey: ['transactions'],      queryFn: () => fetchJSON<Transaction[]>(api.transactions),      enabled: false })
+  const bankAccounts      = useQuery({ queryKey: ['bank-accounts'],    queryFn: () => fetchJSON<BankAccount[]>(api['bank-accounts']),    enabled: false })
+  const crmActivities     = useQuery({ queryKey: ['crm-activities'],    queryFn: () => fetchJSON<CrmActivity[]>(api['crm-activities']),    enabled: false })
+  const coupons           = useQuery({ queryKey: ['coupons'],           queryFn: () => fetchJSON<Coupon[]>(api.coupons),           enabled: false })
+  const budgets           = useQuery({ queryKey: ['budgets'],           queryFn: () => fetchJSON<BudgetItem[]>(api.budgets),           enabled: false })
 
   // ──────────────────────────── Post Mutations ─────────────────────────
 
@@ -354,6 +388,144 @@ export function useCMSData() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['events'] }),
   })
 
+  // ──────────────────────────── Product Mutations ──────────────────────
+
+  const createProduct = useMutation({
+    mutationFn: (data: Partial<Product>) => fetchJSON<Product>(api.products, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  })
+
+  const updateProduct = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Product> & { id: string }) =>
+      fetchJSON<Product>(`${api.products}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  })
+
+  const deleteProduct = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.products}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+  })
+
+  // ──────────────────────────── Order Mutations ────────────────────────
+
+  const createOrder = useMutation({
+    mutationFn: (data: Partial<Order>) => fetchJSON<Order>(api.orders, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  })
+
+  const updateOrder = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Order> & { id: string }) =>
+      fetchJSON<Order>(`${api.orders}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  })
+
+  const deleteOrder = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.orders}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['orders'] }),
+  })
+
+  // ──────────────────────────── Invoice Mutations ──────────────────────
+
+  const createInvoice = useMutation({
+    mutationFn: (data: Partial<Invoice>) => fetchJSON<Invoice>(api.invoices, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices'] }),
+  })
+
+  const updateInvoice = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Invoice> & { id: string }) =>
+      fetchJSON<Invoice>(`${api.invoices}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices'] }),
+  })
+
+  const deleteInvoice = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.invoices}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['invoices'] }),
+  })
+
+  // ──────────────────────────── Inventory Mutations ────────────────────
+
+  const createInventoryItem = useMutation({
+    mutationFn: (data: Partial<InventoryItem>) => fetchJSON<InventoryItem>(api.inventory, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['inventory'] }),
+  })
+
+  const updateInventoryItem = useMutation({
+    mutationFn: ({ id, ...data }: Partial<InventoryItem> & { id: string }) =>
+      fetchJSON<InventoryItem>(`${api.inventory}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['inventory'] }),
+  })
+
+  const deleteInventoryItem = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.inventory}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['inventory'] }),
+  })
+
+  // ──────────────────────────── Transaction Mutations ──────────────────
+
+  const createTransaction = useMutation({
+    mutationFn: (data: Partial<Transaction>) => fetchJSON<Transaction>(api.transactions, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
+  })
+
+  const deleteTransaction = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.transactions}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
+  })
+
+  // ──────────────────────────── CrmActivity Mutations ──────────────────
+
+  const createCrmActivity = useMutation({
+    mutationFn: (data: Partial<CrmActivity>) => fetchJSON<CrmActivity>(api['crm-activities'], { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-activities'] }),
+  })
+
+  const updateCrmActivity = useMutation({
+    mutationFn: ({ id, ...data }: Partial<CrmActivity> & { id: string }) =>
+      fetchJSON<CrmActivity>(`${api['crm-activities']}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-activities'] }),
+  })
+
+  const deleteCrmActivity = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api['crm-activities']}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['crm-activities'] }),
+  })
+
+  // ──────────────────────────── Coupon Mutations ───────────────────────
+
+  const createCoupon = useMutation({
+    mutationFn: (data: Partial<Coupon>) => fetchJSON<Coupon>(api.coupons, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coupons'] }),
+  })
+
+  const updateCoupon = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Coupon> & { id: string }) =>
+      fetchJSON<Coupon>(`${api.coupons}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coupons'] }),
+  })
+
+  const deleteCoupon = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.coupons}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coupons'] }),
+  })
+
+  // ──────────────────────────── Budget Mutations ────────────────────────
+
+  const createBudgetItem = useMutation({
+    mutationFn: (data: Partial<BudgetItem>) => fetchJSON<BudgetItem>(api.budgets, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+  })
+
+  const updateBudgetItem = useMutation({
+    mutationFn: ({ id, ...data }: Partial<BudgetItem> & { id: string }) =>
+      fetchJSON<BudgetItem>(`${api.budgets}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+  })
+
+  const deleteBudgetItem = useMutation({
+    mutationFn: (id: string) => fetchJSON<void>(`${api.budgets}/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+  })
+
   // ──────────────────────────── WordPress Mutations ────────────────────
 
   const saveWPConfig = useMutation({
@@ -378,6 +550,9 @@ export function useCMSData() {
     posts, users, customers, projects, team, media, comments,
     categories, tags, activities, settings, stats, charts,
     notifications, wpConfig, tasks, notes, events,
+    products, productCategories, orders, invoices,
+    inventory, transactions, bankAccounts, crmActivities,
+    coupons, budgets,
 
     // Posts
     createPost, updatePost, deletePost,
@@ -407,6 +582,22 @@ export function useCMSData() {
     createNote, updateNote, deleteNote,
     // Events
     events, createEvent, updateEvent, deleteEvent,
+    // Products
+    createProduct, updateProduct, deleteProduct,
+    // Orders
+    createOrder, updateOrder, deleteOrder,
+    // Invoices
+    createInvoice, updateInvoice, deleteInvoice,
+    // Inventory
+    createInventoryItem, updateInventoryItem, deleteInventoryItem,
+    // Transactions
+    createTransaction, deleteTransaction,
+    // CRM Activities
+    createCrmActivity, updateCrmActivity, deleteCrmActivity,
+    // Coupons
+    createCoupon, updateCoupon, deleteCoupon,
+    // Budgets
+    createBudgetItem, updateBudgetItem, deleteBudgetItem,
     // WordPress
     saveWPConfig, syncWP,
     // Utility

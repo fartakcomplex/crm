@@ -25,6 +25,8 @@ import {
   BarChart3, TrendingUp, DollarSign, Clock, Filter,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRegisterInventoryData, ProductCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -268,6 +270,10 @@ export default function InventoryPage() {
   const [outboundSearch, setOutboundSearch] = useState('')
   const [outboundStatusFilter, setOutboundStatusFilter] = useState('all')
 
+  // ── Cross-Module Data Registration ──
+  const { getProductByName } = useCrossModuleStore()
+  useRegisterInventoryData(items)
+
   // ─── Computed Values ───────────────────────────────────────────────────
 
   const inStockCount = items.filter(i => i.status === 'in-stock').length
@@ -499,6 +505,9 @@ export default function InventoryPage() {
             </Card>
           </div>
 
+          {/* Cross-Module Sync Status */}
+          <CrossModuleSyncStatus />
+
           {/* Low stock alerts */}
           {lowStockCount > 0 && (
             <Card className="border-amber-300 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/10 shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
@@ -682,10 +691,18 @@ export default function InventoryPage() {
                             <TableCell className="hidden lg:table-cell text-sm text-muted-foreground tabular-nums">{toPersianDigits(item.minStock)}</TableCell>
                             <TableCell className="hidden sm:table-cell text-sm font-medium tabular-nums">{formatPrice(item.unitPrice)}</TableCell>
                             <TableCell>
-                              <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm`}>
-                                <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
-                                {statusLabels[item.status]}
-                              </Badge>
+                              <div className="flex flex-col gap-1">
+                                <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm`}>
+                                  <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
+                                  {statusLabels[item.status]}
+                                </Badge>
+                                {(() => {
+                                  const storeProduct = getProductByName(item.name)
+                                  return storeProduct && storeProduct.storeStatus ? (
+                                    <ModuleBadge module="store" label={`فروشگاه: ${storeProduct.storeStatus === 'active' ? 'فعال' : storeProduct.storeStatus === 'draft' ? 'پیش‌نویس' : 'غیرفعال'}`} />
+                                  ) : null
+                                })()}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
@@ -1282,6 +1299,9 @@ export default function InventoryPage() {
               </div>
             )}
           </div>
+          {adjustingItem && (
+            <ProductCrossRef productName={adjustingItem.name} sku={adjustingItem.sku} currentModule="inventory" />
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
             <Button

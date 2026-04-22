@@ -865,6 +865,823 @@ export async function POST() {
       }),
     ])
 
+    // =========================================================================
+    // Business Seed Data — Cross-Module Integration
+    // =========================================================================
+
+    // Get existing customers for cross-module references
+    const allCustomers = await db.customer.findMany()
+
+    // --- 1. Product Categories ---
+    const productCategories = await Promise.all([
+      db.productCategory.create({
+        data: { name: 'الکترونیک', slug: 'electronics', description: 'محصولات الکترونیکی و دیجیتال', color: '#3b82f6' },
+      }),
+      db.productCategory.create({
+        data: { name: 'لباس', slug: 'clothing', description: 'پوشاک و لباس‌های متنوع', color: '#ec4899' },
+      }),
+      db.productCategory.create({
+        data: { name: 'لوازم خانگی', slug: 'home-appliances', description: 'لوازم خانگی و آشپزخانه', color: '#f59e0b' },
+      }),
+      db.productCategory.create({
+        data: { name: 'کتاب', slug: 'books', description: 'کتاب‌های چاپی و الکترونیکی', color: '#10b981' },
+      }),
+    ])
+
+    // --- 2. Products ---
+    const products = await Promise.all([
+      db.product.create({
+        data: {
+          name: 'گوشی هوشمند گلکسی S24',
+          sku: 'ELC-001',
+          description: 'گوشی هوشمند سامسونگ با صفحه نمایش ۶.۲ اینچی و دوربین ۱۰۸ مگاپیکسلی',
+          price: 45000000,
+          salePrice: 42000000,
+          cost: 38000000,
+          status: 'active',
+          featured: true,
+          productCategoryId: productCategories[0].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'لپ‌تاپ ایسوس ZenBook 14',
+          sku: 'ELC-002',
+          description: 'لپ‌تاپ سبک و قدرتمند مناسب کاربران حرفه‌ای',
+          price: 65000000,
+          cost: 58000000,
+          status: 'active',
+          featured: true,
+          productCategoryId: productCategories[0].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'هدفون بی‌سیم ایرپاد پرو',
+          sku: 'ELC-003',
+          description: 'هدفون بی‌سیم اپل با قابلیت حذف نویز فعال',
+          price: 12000000,
+          salePrice: 10500000,
+          cost: 8500000,
+          status: 'active',
+          featured: false,
+          productCategoryId: productCategories[0].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'پیراهن مردانه اسلیم فیت',
+          sku: 'CLO-001',
+          description: 'پیراهن مردانه با پارچه نخی درجه یک',
+          price: 2500000,
+          salePrice: 1950000,
+          cost: 1200000,
+          status: 'active',
+          featured: false,
+          productCategoryId: productCategories[1].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'کاپشن زنانه زمستانی',
+          sku: 'CLO-002',
+          description: 'کاپشن گرم و سبک مناسب فصل زمستان',
+          price: 4800000,
+          cost: 2800000,
+          status: 'active',
+          featured: true,
+          productCategoryId: productCategories[1].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'جاروبرقی رباتیک شیائومی',
+          sku: 'HOM-001',
+          description: 'جاروبرقی هوشمند با قابلیت نقشه‌برداری لیزری',
+          price: 15000000,
+          salePrice: 13500000,
+          cost: 10500000,
+          status: 'active',
+          featured: true,
+          productCategoryId: productCategories[2].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'آب‌میوه‌گیری چندکاره فیلیپس',
+          sku: 'HOM-002',
+          description: 'آب‌میوه‌گیری با سه سری مختلف و موتور قدرتمند ۸۰۰ وات',
+          price: 5800000,
+          cost: 3500000,
+          status: 'active',
+          featured: false,
+          productCategoryId: productCategories[2].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'آموزش پیشرفته React',
+          sku: 'BOK-001',
+          description: 'کتاب جامع آموزش فریمورک React از مبتدی تا پیشرفته',
+          price: 850000,
+          salePrice: 650000,
+          cost: 200000,
+          status: 'active',
+          featured: false,
+          productCategoryId: productCategories[3].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'تبلت سامسونگ تب S9',
+          sku: 'ELC-004',
+          description: 'تبلت قدرتمند با قلم S Pen و صفحه نمایش AMOLED',
+          price: 32000000,
+          cost: 27000000,
+          status: 'draft',
+          featured: false,
+          productCategoryId: productCategories[0].id,
+        },
+      }),
+      db.product.create({
+        data: {
+          name: 'ست آشپزخانه ۲۴ پارچه',
+          sku: 'HOM-003',
+          description: 'ست قابلمه و تابه با روکش سرامیکی ضد خش',
+          price: 9500000,
+          cost: 5500000,
+          status: 'draft',
+          featured: false,
+          productCategoryId: productCategories[2].id,
+        },
+      }),
+    ])
+
+    // --- 3. Coupons ---
+    const coupons = await Promise.all([
+      db.coupon.create({
+        data: {
+          code: 'WELCOME10',
+          type: 'percent',
+          value: 10,
+          minPurchase: 500000,
+          maxUses: 100,
+          usedCount: 23,
+          active: true,
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.coupon.create({
+        data: {
+          code: 'SUMMER20',
+          type: 'percent',
+          value: 20,
+          minPurchase: 1000000,
+          maxUses: 50,
+          usedCount: 31,
+          active: true,
+          expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.coupon.create({
+        data: {
+          code: 'VIP30',
+          type: 'percent',
+          value: 30,
+          minPurchase: 5000000,
+          maxUses: 10,
+          usedCount: 5,
+          active: true,
+          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
+    // --- 4. Orders (linked to REAL customers & products) ---
+    const orders = await Promise.all([
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1001',
+          customerId: allCustomers[0].id,
+          status: 'delivered',
+          subtotal: 52500000,
+          discount: 5250000,
+          tax: 0,
+          shippingCost: 150000,
+          total: 47400000,
+          shippingAddress: 'تهران، خیابان ولیعصر، پلاک ۱۲۳',
+          notes: 'تحویل در ساعات اداری',
+          couponId: coupons[0].id,
+          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[0].id, quantity: 1, unitPrice: 45000000, totalPrice: 45000000 },
+              { productId: products[2].id, quantity: 1, unitPrice: 12000000, totalPrice: 12000000 },
+            ],
+          },
+        },
+      }),
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1002',
+          customerId: allCustomers[1].id,
+          status: 'shipped',
+          subtotal: 4800000,
+          discount: 0,
+          tax: 0,
+          shippingCost: 85000,
+          total: 4885000,
+          shippingAddress: 'اصفهان، خیابان چهارباغ، کوچه ۵',
+          notes: '',
+          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[4].id, quantity: 1, unitPrice: 4800000, totalPrice: 4800000 },
+            ],
+          },
+        },
+      }),
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1003',
+          customerId: allCustomers[3].id,
+          status: 'processing',
+          subtotal: 15000000,
+          discount: 1500000,
+          tax: 0,
+          shippingCost: 0,
+          total: 13500000,
+          shippingAddress: 'شیراز، بلوار ارم، ساختمان آریا',
+          notes: 'تماس قبل از ارسال',
+          couponId: coupons[1].id,
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[5].id, quantity: 1, unitPrice: 15000000, totalPrice: 15000000 },
+            ],
+          },
+        },
+      }),
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1004',
+          customerId: allCustomers[2].id,
+          status: 'pending',
+          subtotal: 65000000,
+          discount: 0,
+          tax: 0,
+          shippingCost: 200000,
+          total: 65200000,
+          shippingAddress: 'مشهد، خیابان امام رضا، نبش خیابان ۱۲',
+          notes: 'پیشتاز شبانه',
+          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[1].id, quantity: 1, unitPrice: 65000000, totalPrice: 65000000 },
+            ],
+          },
+        },
+      }),
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1005',
+          customerId: allCustomers[5].id,
+          status: 'cancelled',
+          subtotal: 3350000,
+          discount: 0,
+          tax: 0,
+          shippingCost: 75000,
+          total: 3425000,
+          shippingAddress: 'تبریز، خیابان استقلال، پلاک ۴۵',
+          notes: 'کنسلی توسط مشتری',
+          createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[3].id, quantity: 1, unitPrice: 2500000, totalPrice: 2500000 },
+              { productId: products[7].id, quantity: 1, unitPrice: 850000, totalPrice: 850000 },
+            ],
+          },
+        },
+      }),
+      db.order.create({
+        data: {
+          orderNumber: 'ORD-1006',
+          customerId: allCustomers[6].id,
+          status: 'delivered',
+          subtotal: 5800000,
+          discount: 0,
+          tax: 0,
+          shippingCost: 120000,
+          total: 5920000,
+          shippingAddress: 'کرج، میدان مادر، خیابان فردوسی',
+          notes: '',
+          createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+          items: {
+            create: [
+              { productId: products[6].id, quantity: 1, unitPrice: 5800000, totalPrice: 5800000 },
+            ],
+          },
+        },
+      }),
+    ])
+
+    // --- 5. Inventory Items (1:1 with products) ---
+    const inventoryItems = await Promise.all(
+      products.map((product, index) =>
+        db.inventoryItem.create({
+          data: {
+            productId: product.id,
+            stock: [45, 12, 30, 85, 22, 8, 15, 200, 5, 18][index],
+            minStock: [10, 5, 10, 20, 10, 5, 5, 50, 5, 5][index],
+            warehouse: ['انبار مرکزی تهران', 'انبار مرکزی تهران', 'انبار شمال', 'انبار مرکزی تهران', 'انبار جنوب', 'انبار مرکزی تهران', 'انبار مرکزی تهران', 'انبار دیجیتال', 'انبار مرکزی تهران', 'انبار مرکزی تهران'][index],
+            location: ['قفسه A-1', 'قفسه A-3', 'قفسه B-2', 'قفسه C-1', 'قفسه C-4', 'قفسه D-1', 'قفسه D-3', 'انبار مجازی', 'قفسه A-5', 'قفسه E-1'][index],
+            lastRestocked: new Date(Date.now() - [3, 7, 1, 5, 2, 10, 4, 1, 14, 6][index] * 24 * 60 * 60 * 1000),
+          },
+        })
+      )
+    )
+
+    // --- 6. Inbound Records (linked to inventory items) ---
+    await Promise.all([
+      db.inboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[0].id,
+          quantity: 50,
+          reference: 'PO-2024-001',
+          supplier: 'شرکت سامسونگ ایران',
+          unitCost: 38000000,
+          notes: 'تامین محموله فصلی گوشی گلکسی',
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.inboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[3].id,
+          quantity: 100,
+          reference: 'PO-2024-005',
+          supplier: 'کارخانه نساجی پارس',
+          unitCost: 1100000,
+          notes: 'تامین پیراهن مردانه برای فصل بهار',
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.inboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[5].id,
+          quantity: 10,
+          reference: 'PO-2024-008',
+          supplier: 'شیائومی گلوبال',
+          unitCost: 10000000,
+          notes: 'واردات جاروبرقی رباتیک',
+          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.inboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[1].id,
+          quantity: 15,
+          reference: 'PO-2024-010',
+          supplier: 'ایسوس خاورمیانه',
+          unitCost: 56000000,
+          notes: 'محموله لپ‌تاپ ایسوس',
+          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
+    // --- 7. Outbound Records (some linked to orders) ---
+    await Promise.all([
+      db.outboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[0].id,
+          quantity: 1,
+          orderId: orders[0].id,
+          reference: 'SHIP-1001',
+          notes: 'ارسال سفارش ORD-1001',
+          createdAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.outboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[5].id,
+          quantity: 1,
+          orderId: orders[2].id,
+          reference: 'SHIP-1003',
+          notes: 'ارسال سفارش ORD-1003',
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.outboundRecord.create({
+        data: {
+          inventoryItemId: inventoryItems[4].id,
+          quantity: 1,
+          orderId: orders[1].id,
+          reference: 'SHIP-1002',
+          notes: 'ارسال سفارش ORD-1002 به اصفهان',
+          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
+    // --- 8. Invoices (linked to REAL customers, some to orders) ---
+    const invoices = await Promise.all([
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2001',
+          customerId: allCustomers[0].id,
+          orderId: orders[0].id,
+          status: 'paid',
+          subtotal: 57000000,
+          tax: 2850000,
+          discount: 5250000,
+          total: 54600000,
+          dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          paidAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+          notes: 'فاکتور فروش گوشی و هدفون',
+          items: {
+            create: [
+              { productId: products[0].id, description: 'گوشی هوشمند گلکسی S24', quantity: 1, unitPrice: 45000000, total: 45000000 },
+              { productId: products[2].id, description: 'هدفون بی‌سیم ایرپاد پرو', quantity: 1, unitPrice: 12000000, total: 12000000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2002',
+          customerId: allCustomers[1].id,
+          orderId: orders[1].id,
+          status: 'sent',
+          subtotal: 4800000,
+          tax: 240000,
+          discount: 0,
+          total: 5040000,
+          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+          notes: 'فاکتور فروش کاپشن زنانه',
+          items: {
+            create: [
+              { productId: products[4].id, description: 'کاپشن زنانه زمستانی', quantity: 1, unitPrice: 4800000, total: 4800000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2003',
+          customerId: allCustomers[3].id,
+          orderId: orders[2].id,
+          status: 'draft',
+          subtotal: 15000000,
+          tax: 750000,
+          discount: 1500000,
+          total: 14250000,
+          dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+          notes: 'فاکتور فروش جاروبرقی رباتیک',
+          items: {
+            create: [
+              { productId: products[5].id, description: 'جاروبرقی رباتیک شیائومی', quantity: 1, unitPrice: 15000000, total: 15000000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2004',
+          customerId: allCustomers[2].id,
+          orderId: orders[3].id,
+          status: 'overdue',
+          subtotal: 65000000,
+          tax: 3250000,
+          discount: 0,
+          total: 68250000,
+          dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          notes: 'فاکتور فروش لپ‌تاپ — سررسید گذشته',
+          items: {
+            create: [
+              { productId: products[1].id, description: 'لپ‌تاپ ایسوس ZenBook 14', quantity: 1, unitPrice: 65000000, total: 65000000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2005',
+          customerId: allCustomers[5].id,
+          status: 'cancelled',
+          subtotal: 3350000,
+          tax: 167500,
+          discount: 0,
+          total: 3517500,
+          dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          notes: 'فاکتور کنسل شده — درخواست مشتری',
+          items: {
+            create: [
+              { productId: products[3].id, description: 'پیراهن مردانه اسلیم فیت', quantity: 1, unitPrice: 2500000, total: 2500000 },
+              { productId: products[7].id, description: 'آموزش پیشرفته React', quantity: 1, unitPrice: 850000, total: 850000 },
+            ],
+          },
+        },
+      }),
+    ])
+
+    // --- 9. Bank Accounts ---
+    const bankAccounts = await Promise.all([
+      db.bankAccount.create({
+        data: {
+          name: 'بانک ملی',
+          accountNumber: '0105-0800-1234-5678',
+          balance: 850000000,
+          currency: 'IRR',
+          type: 'checking',
+        },
+      }),
+      db.bankAccount.create({
+        data: {
+          name: 'بانک ملت',
+          accountNumber: '6104-3378-9012-3456',
+          balance: 420000000,
+          currency: 'IRR',
+          type: 'checking',
+        },
+      }),
+      db.bankAccount.create({
+        data: {
+          name: 'بانک صادرات',
+          accountNumber: '6037-9975-1234-5678',
+          balance: 215000000,
+          currency: 'IRR',
+          type: 'savings',
+        },
+      }),
+    ])
+
+    // --- 10. Transactions (some linked to invoices and bank accounts) ---
+    await Promise.all([
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 54600000,
+          description: 'پرداخت فاکتور INV-2001 — Acme Corporation',
+          category: 'فروش',
+          invoiceId: invoices[0].id,
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3001',
+          createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 1900000000,
+          description: 'خرید محموله گوشی از سامسونگ',
+          category: 'خرید',
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3002',
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 85000000,
+          description: 'پرداخت حقوق خرداد ماه — تیم فنی',
+          category: 'حقوق',
+          bankAccountId: bankAccounts[1].id,
+          reference: 'TXN-3003',
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 45000000,
+          description: 'اجاره دفتر مرکزی تیرماه',
+          category: 'اجاره',
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3004',
+          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 5040000,
+          description: 'پیش‌پرداخت فاکتور INV-2002 — Globex Industries',
+          category: 'فروش',
+          invoiceId: invoices[1].id,
+          bankAccountId: bankAccounts[1].id,
+          reference: 'TXN-3005',
+          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 25000000,
+          description: 'هزینه تبلیغات گوگل ادز — تیرماه',
+          category: 'تبلیغات',
+          bankAccountId: bankAccounts[2].id,
+          reference: 'TXN-3006',
+          createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 15000000,
+          description: 'خرید تجهیزات اداری — مانیتور و صندلی',
+          category: 'خرید',
+          bankAccountId: bankAccounts[2].id,
+          reference: 'TXN-3007',
+          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 5920000,
+          description: 'پرداخت فاکتور INV-2006 — Soylent Corp',
+          category: 'فروش',
+          invoiceId: invoices[4].id,
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3008',
+          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 35000000,
+          description: 'پرداخت حقوق تیرماه — تیم بازاریابی',
+          category: 'حقوق',
+          bankAccountId: bankAccounts[1].id,
+          reference: 'TXN-3009',
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 15000000,
+          description: 'پرداخت فاکتور INV-2003 — Stark Enterprises',
+          category: 'فروش',
+          invoiceId: invoices[2].id,
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3010',
+          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
+    // --- 11. CRM Activities (linked to REAL customers) ---
+    await Promise.all([
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[0].id,
+          type: 'call',
+          title: 'تماس پیگیری سفارش',
+          description: 'تماس با مشتری جهت پیگیری تحویل سفارش ORD-1001',
+          outcome: 'موفق — مشتری رضایت داشت',
+          scheduledAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[1].id,
+          type: 'email',
+          title: 'ارسال پیشنهاد ویژه',
+          description: 'ارسال ایمیل با تخفیف ۲۰٪ برای خریدهای بعدی',
+          outcome: 'باز شده — لینک کلیک شده',
+          scheduledAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[2].id,
+          type: 'meeting',
+          title: 'جلسه مذاکره قرارداد',
+          description: 'جلسه حضوری برای بررسی قرارداد سالانه همکاری',
+          outcome: 'توافق اولیه — منتظر تایید نهایی',
+          scheduledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[3].id,
+          type: 'deal',
+          title: 'مذاکره خرید عمده',
+          description: 'درخواست خرید ۵۰ دستگاه لپ‌تاپ با تخفیف ویژه',
+          outcome: 'در حال بررسی قیمت',
+          scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[5].id,
+          type: 'note',
+          title: 'یادداشت تماس مشتری',
+          description: 'مشتری درخواست استرداد وجه سفارش کنسل شده را دارد',
+          outcome: '',
+          scheduledAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[6].id,
+          type: 'email',
+          title: 'ارسال فاکتور',
+          description: 'ارسال فاکتور خرید آب‌میوه‌گیری فیلیپس',
+          outcome: 'تحویل داده شد',
+          scheduledAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[3].id,
+          type: 'call',
+          title: 'پیگیری پرداخت',
+          description: 'تماس جهت پیگیری فاکتور سررسید گذشته INV-2004',
+          outcome: 'مشتری قول پرداخت تا پایان هفته را داد',
+          scheduledAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.crmActivity.create({
+        data: {
+          customerId: allCustomers[0].id,
+          type: 'meeting',
+          title: 'جلسه بررسی نیازهای جدید',
+          description: 'بررسی نیازهای فناوری اطلاعات شرکت Acme برای فصل بعد',
+          outcome: '',
+          scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
+    // --- 12. Budget Items ---
+    await Promise.all([
+      db.budgetItem.create({
+        data: {
+          name: 'بودجه بازاریابی',
+          category: 'بازاریابی',
+          allocated: 200000000,
+          spent: 145000000,
+          period: 'monthly',
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.budgetItem.create({
+        data: {
+          name: 'بودجه عملیات',
+          category: 'عملیات',
+          allocated: 350000000,
+          spent: 310000000,
+          period: 'monthly',
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.budgetItem.create({
+        data: {
+          name: 'حقوق و دستمزد',
+          category: 'حقوق و دستمزد',
+          allocated: 500000000,
+          spent: 470000000,
+          period: 'monthly',
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.budgetItem.create({
+        data: {
+          name: 'بودجه توسعه نرم‌افزار',
+          category: 'توسعه',
+          allocated: 300000000,
+          spent: 180000000,
+          period: 'quarterly',
+          startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+        },
+      }),
+      db.budgetItem.create({
+        data: {
+          name: 'نگهداری سرور و زیرساخت',
+          category: 'نگهداری',
+          allocated: 80000000,
+          spent: 62000000,
+          period: 'monthly',
+          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+        },
+      }),
+    ])
+
     return NextResponse.json({
       message: 'Database seeded successfully',
       seeded: true,
@@ -873,7 +1690,7 @@ export async function POST() {
         tags: tags.length,
         users: users.length,
         posts: posts.length,
-        customers: 8,
+        customers: allCustomers.length,
         projects: 7,
         teamMembers: 7,
         media: 4,
@@ -881,6 +1698,19 @@ export async function POST() {
         settings: defaultSettings.length,
         tasks: taskData.length,
         quickNotes: 4,
+        // Business entities
+        productCategories: productCategories.length,
+        products: products.length,
+        coupons: coupons.length,
+        orders: orders.length,
+        inventoryItems: inventoryItems.length,
+        inboundRecords: 4,
+        outboundRecords: 3,
+        invoices: invoices.length,
+        transactions: 10,
+        bankAccounts: bankAccounts.length,
+        crmActivities: 8,
+        budgetItems: 5,
       },
     }, { status: 201 })
   } catch (error) {

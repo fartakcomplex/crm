@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CMSProvider, useCMS } from '@/components/cms/context'
 import { CMS_TABS, getTabAccentClass, getTabGradient, SIDEBAR_CATEGORIES } from '@/components/cms/types'
 import { useEnsureData } from '@/components/cms/useEnsureData'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -627,6 +628,26 @@ function AppContent() {
     () => (notifications.data ?? []).filter(n => !n.read).length,
     [notifications.data]
   )
+
+  // ── Cross-module navigation handler ──
+  const crossModuleAction = useCrossModuleStore(s => s.navigationAction)
+  const lastHandledNav = useRef<number>(0)
+
+  useEffect(() => {
+    if (crossModuleAction && crossModuleAction.timestamp > lastHandledNav.current) {
+      lastHandledNav.current = crossModuleAction.timestamp
+      const { targetTab, searchQuery } = crossModuleAction
+      // Schedule navigation outside the synchronous effect body
+      const timer = setTimeout(() => {
+        setActiveTab(targetTab)
+        setMobileSheetOpen(false)
+        if (searchQuery) {
+          setSearchOpen(true)
+        }
+      }, 0)
+      return () => clearTimeout(timer)
+    }
+  }, [crossModuleAction])
 
   // Ctrl+K / Cmd+K → open search dialog
   // ? → open keyboard shortcuts help

@@ -39,9 +39,11 @@ import {
   CreditCard, Receipt, Building2, Palette, MonitorCheck,
   Clock, CheckCircle2, XCircle, AlertCircle, Archive, RotateCcw,
   Filter, Boxes, Store, BarChart3, CalendarDays, Hash, Weight,
-  Ruler, Image, Layers, FileText, ArrowUpDown, PackageCheck,
+  Ruler, Image, Layers, FileText, ArrowUpDown, PackageCheck, Warehouse,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRegisterStoreData, ContactCrossRef, ProductCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -348,6 +350,10 @@ export default function StorePage() {
   // ── Settings State ──
   const [settings, setSettings] = useState<StoreSettings>(initialSettings)
 
+  // ── Cross-Module Data Registration ──
+  useRegisterStoreData(orders, products)
+  const { getContactByName, getProductByName } = useCrossModuleStore()
+
   // ── Quick Stats ──
   const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length
   const monthRevenue = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0)
@@ -627,9 +633,25 @@ export default function StorePage() {
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className={`text-lg font-bold tabular-nums ${stat.textColor}`}>{stat.value}</p>
               </div>
+              {/* Cross-Module Inventory Stock Badge */}
+              {stat.label === 'کل محصولات' && (() => {
+                const syncedProducts = useCrossModuleStore.getState().sharedProducts.filter(p => p.storeStatus && p.inventoryStatus)
+                const stockMismatch = syncedProducts.filter(p => !p.stockSynced).length
+                return stockMismatch > 0 ? (
+                  <Badge variant="outline" className="text-[10px] gap-1 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300">
+                    <AlertCircle className="h-3 w-3" />
+                    {toPersianDigits(stockMismatch)} عدم هماهنگی
+                  </Badge>
+                ) : null
+              })()}
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* ─── Cross-Module Sync Status ─── */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <CrossModuleSyncStatus />
       </div>
 
       {/* ─── Main Tabs ─── */}
@@ -819,9 +841,24 @@ export default function StorePage() {
                             <span className="text-[10px] text-muted-foreground mr-1">تومان</span>
                           </TableCell>
                           <TableCell className="p-3">
-                            <span className={`text-sm font-medium tabular-nums ${product.stock === 0 ? 'text-red-500' : product.stock <= product.minStock ? 'text-amber-500' : 'text-emerald-600'}`}>
-                              {toPersianDigits(product.stock)}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`text-sm font-medium tabular-nums ${product.stock === 0 ? 'text-red-500' : product.stock <= product.minStock ? 'text-amber-500' : 'text-emerald-600'}`}>
+                                {toPersianDigits(product.stock)}
+                              </span>
+                              {(() => {
+                                const inventoryInfo = getProductByName(product.name)
+                                return inventoryInfo && inventoryInfo.inventoryStatus ? (
+                                  <Badge variant="outline" className={`text-[10px] gap-1 ${
+                                    inventoryInfo.inventoryStatus === 'out-of-stock' ? 'border-red-300 text-red-600' :
+                                    inventoryInfo.inventoryStatus === 'low-stock' ? 'border-amber-300 text-amber-600' :
+                                    'border-emerald-300 text-emerald-600'
+                                  }`}>
+                                    <Warehouse className="h-3 w-3" />
+                                    انبار: {toPersianDigits(inventoryInfo.inventoryStock)}
+                                  </Badge>
+                                ) : null
+                              })()}
+                            </div>
                           </TableCell>
                           <TableCell className="p-3">
                             <Badge variant="outline" className={`text-[10px] ${sc.color} ${sc.bg}`}>
@@ -942,9 +979,19 @@ export default function StorePage() {
                         <TableRow key={order.id} className="group cursor-pointer" onClick={() => openOrderDetail(order)}>
                           <TableCell className="p-3 font-mono text-sm font-medium text-pink-600 dark:text-pink-400" dir="ltr">{order.orderNumber}</TableCell>
                           <TableCell className="p-3">
-                            <div>
-                              <p className="font-medium text-sm">{order.customer}</p>
-                              <p className="text-xs text-muted-foreground" dir="ltr">{order.customerPhone}</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <div>
+                                <p className="font-medium text-sm">{order.customer}</p>
+                                <p className="text-xs text-muted-foreground" dir="ltr">{order.customerPhone}</p>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {getContactByName(order.customer)?.sources.includes('crm') && (
+                                  <ModuleBadge module="crm" />
+                                )}
+                                {getContactByName(order.customer)?.sources.includes('accounting') && (
+                                  <ModuleBadge module="accounting" />
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="p-3 text-sm tabular-nums">
@@ -1638,6 +1685,9 @@ export default function StorePage() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Cross-Module Product Reference */}
+            {editingProduct && <ProductCrossRef productName={editingProduct.name} sku={editingProduct.sku} currentModule="store" />}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setProductDialogOpen(false)}>انصراف</Button>
@@ -1708,6 +1758,9 @@ export default function StorePage() {
                   </CardContent>
                 </Card>
               </div>
+
+              {/* Cross-Module Contact Reference */}
+              <ContactCrossRef contactName={selectedOrder.customer} currentModule="store" />
 
               {/* Order Items */}
               <Card className="glass-card shadow-sm">

@@ -7,6 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =============================================================================
+// CMS Core Models
+// =============================================================================
+
 model Post {
   id          String   @id @default(cuid())
   title       String
@@ -40,15 +44,22 @@ model User {
 }
 
 model Customer {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  phone     String   @default("")
-  company   String   @default("")
-  status    String   @default("active")
-  value     Float    @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String         @id @default(cuid())
+  name        String
+  email       String         @unique
+  phone       String         @default("")
+  company     String         @default("")
+  status      String         @default("active")
+  value       Float          @default(0)
+  source      String         @default("direct")
+  tags        String         @default("")
+  address     String         @default("")
+  city        String         @default("")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  orders      Order[]
+  invoices    Invoice[]
+  crmActivities CrmActivity[]
 }
 
 model Project {
@@ -167,28 +178,28 @@ model QuickNote {
 }
 
 model WPSyncConfig {
-  id        String   @id @default(cuid())
-  siteUrl   String
-  apiKey    String
-  username  String
-  syncFreq  String   @default("manual")
-  lastSync  DateTime?
-  active    Boolean  @default(true)
+  id          String         @id @default(cuid())
+  siteUrl     String
+  apiKey      String
+  username    String
+  syncFreq    String         @default("manual")
+  lastSync    DateTime?
+  active      Boolean        @default(true)
   syncedPosts WPSyncedPost[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model WPSyncedPost {
-  id           String   @id @default(cuid())
+  id           String       @id @default(cuid())
   wpPostId     Int
   localPostId  String
-  syncStatus   String   @default("synced")
-  syncedAt     DateTime @default(now())
+  syncStatus   String       @default("synced")
+  syncedAt     DateTime     @default(now())
   wpConfigId   String
   wpConfig     WPSyncConfig @relation(fields: [wpConfigId], references: [id])
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
 
 model CalendarEvent {
@@ -201,6 +212,223 @@ model CalendarEvent {
   color       String   @default("violet")
   location    String   @default("")
   type        String   @default("event")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// =============================================================================
+// Business Models — Cross-Module Integration
+// =============================================================================
+
+// Product: Links Store ↔ Inventory ↔ Accounting (via invoice items)
+model Product {
+  id            String            @id @default(cuid())
+  name          String
+  sku           String            @unique
+  description   String            @default("")
+  price         Float             @default(0)
+  salePrice     Float?
+  cost          Float             @default(0)
+  status        String            @default("active")
+  featured      Boolean           @default(false)
+  images        String            @default("[]")
+  productCategoryId String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  productCategory ProductCategory? @relation(fields: [productCategoryId], references: [id])
+  orderItems    OrderItem[]
+  invoiceItems  InvoiceItem[]
+  inventory     InventoryItem?
+}
+
+model ProductCategory {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  description String  @default("")
+  color     String    @default("#6366f1")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+// Order: Links Store ↔ Customer ↔ Accounting (via invoices)
+model Order {
+  id              String    @id @default(cuid())
+  orderNumber     String    @unique
+  customerId      String
+  status          String    @default("pending")
+  subtotal        Float     @default(0)
+  discount        Float     @default(0)
+  tax             Float     @default(0)
+  shippingCost    Float     @default(0)
+  total           Float     @default(0)
+  shippingAddress String    @default("")
+  notes           String    @default("")
+  couponId        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  customer        Customer  @relation(fields: [customerId], references: [id])
+  items           OrderItem[]
+  coupon          Coupon?   @relation(fields: [couponId], references: [id])
+  invoices        Invoice[]
+  outboundRecords OutboundRecord[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  unitPrice Float
+  totalPrice Float
+  createdAt DateTime @default(now())
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Coupon {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  type        String   @default("percent")
+  value       Float    @default(0)
+  minPurchase Float    @default(0)
+  maxUses     Int      @default(0)
+  usedCount   Int      @default(0)
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
+// Inventory: Links to Product + tracks stock movements
+model InventoryItem {
+  id            String            @id @default(cuid())
+  productId     String            @unique
+  stock         Int               @default(0)
+  minStock      Int               @default(5)
+  warehouse     String            @default("main")
+  location      String            @default("")
+  lastRestocked DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  product       Product           @relation(fields: [productId], references: [id])
+  inboundRecords  InboundRecord[]
+  outboundRecords OutboundRecord[]
+}
+
+model InboundRecord {
+  id              String        @id @default(cuid())
+  inventoryItemId String
+  quantity        Int
+  reference       String        @default("")
+  supplier        String        @default("")
+  unitCost        Float         @default(0)
+  notes           String        @default("")
+  createdAt       DateTime      @default(now())
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+}
+
+model OutboundRecord {
+  id              String        @id @default(cuid())
+  inventoryItemId String
+  quantity        Int
+  orderId         String?
+  reference       String        @default("")
+  notes           String        @default("")
+  createdAt       DateTime      @default(now())
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  order           Order?        @relation(fields: [orderId], references: [id])
+}
+
+// Invoice: Links Accounting ↔ Customer ↔ Store (via order) ↔ Products
+model Invoice {
+  id            String         @id @default(cuid())
+  invoiceNumber String         @unique
+  customerId    String
+  orderId       String?
+  status        String         @default("draft")
+  subtotal      Float          @default(0)
+  tax           Float          @default(0)
+  discount      Float          @default(0)
+  total         Float          @default(0)
+  dueDate       DateTime?
+  paidAt        DateTime?
+  notes         String         @default("")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  customer      Customer       @relation(fields: [customerId], references: [id])
+  order         Order?         @relation(fields: [orderId], references: [id])
+  items         InvoiceItem[]
+  transactions  Transaction[]
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  productId   String?
+  description String  @default("")
+  quantity    Int
+  unitPrice   Float
+  total       Float
+  createdAt   DateTime @default(now())
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+}
+
+// Transaction: Links Accounting ↔ Finance ↔ Bank
+model Transaction {
+  id            String       @id @default(cuid())
+  type          String       @default("expense")
+  amount        Float        @default(0)
+  description   String       @default("")
+  category      String       @default("")
+  invoiceId     String?
+  bankAccountId String?
+  reference     String       @default("")
+  createdAt     DateTime     @default(now())
+  invoice       Invoice?     @relation(fields: [invoiceId], references: [id])
+  bankAccount   BankAccount? @relation(fields: [bankAccountId], references: [id])
+}
+
+model BankAccount {
+  id            String        @id @default(cuid())
+  name          String
+  accountNumber String        @default("")
+  balance       Float         @default(0)
+  currency      String        @default("IRR")
+  type          String        @default("checking")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  transactions  Transaction[]
+}
+
+// CRM Activity: Links CRM ↔ Customer
+model CrmActivity {
+  id          String   @id @default(cuid())
+  customerId  String
+  type        String   @default("note")
+  title       String   @default("")
+  description String   @default("")
+  outcome     String   @default("")
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  customer    Customer @relation(fields: [customerId], references: [id])
+}
+
+// Budget: Used by Finance module
+model BudgetItem {
+  id          String   @id @default(cuid())
+  name        String
+  category    String   @default("")
+  allocated   Float    @default(0)
+  spent       Float    @default(0)
+  period      String   @default("monthly")
+  startDate   DateTime?
+  endDate     DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

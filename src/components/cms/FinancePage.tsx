@@ -24,6 +24,8 @@ import {
   Activity, Heart, ArrowLeftRight, Receipt,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRegisterFinanceData, ModuleStatsOverview, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -290,6 +292,10 @@ export default function FinancePage() {
   const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null)
   const [budgetForm, setBudgetForm] = useState(emptyBudgetForm)
 
+  // ── Cross-Module Data Registration ──
+  useRegisterFinanceData(transactions)
+  const { sharedTransactions } = useCrossModuleStore()
+
   const monthlyIncome = 60_000_000
   const monthlyExpense = 38_000_000
   const netProfit = monthlyIncome - monthlyExpense
@@ -465,6 +471,9 @@ export default function FinancePage() {
         <div>
           <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
+          <div className="mt-2">
+            <CrossModuleSyncStatus />
+          </div>
         </div>
         <Button
           className="gap-2 bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md"
@@ -688,6 +697,9 @@ export default function FinancePage() {
             </CardContent>
           </Card>
 
+          {/* Cross-Module Overview */}
+          <ModuleStatsOverview />
+
           {/* Income vs Expense Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
@@ -828,7 +840,17 @@ export default function FinancePage() {
                           style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         >
                           <td className="p-3 text-xs tabular-nums whitespace-nowrap">{transaction.date}</td>
-                          <td className="p-3 font-medium truncate max-w-[200px]">{transaction.description}</td>
+                          <td className="p-3 font-medium truncate max-w-[200px]">
+                            <div className="flex items-center gap-1.5">
+                              {transaction.description}
+                              {sharedTransactions.some(t => t.source === 'accounting' && t.description === transaction.description) && (
+                                <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[9px] h-4 px-1 shrink-0 gap-0.5" title="تراکنش مرتبط در حسابداری">
+                                  <Receipt className="h-2.5 w-2.5" />
+                                  حسابداری
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
                           <td className="p-3">
                             <Badge className={`${tc.bg} ${tc.text} border-0 text-[10px] gap-1`}>
                               <tc.icon className="h-3 w-3" />
@@ -874,7 +896,15 @@ export default function FinancePage() {
                         <TypeIcon className="h-5 w-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{transaction.description}</p>
+                        <p className="font-medium text-sm truncate">
+                          {transaction.description}
+                          {sharedTransactions.some(t => t.source === 'accounting' && t.description === transaction.description) && (
+                            <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[8px] h-3.5 px-1 mr-1 shrink-0 gap-0.5" title="تراکنش مرتبط در حسابداری">
+                              <Receipt className="h-2 w-2" />
+                              حسابداری
+                            </Badge>
+                          )}
+                        </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                             <Calendar className="h-2.5 w-2.5" />{transaction.date}

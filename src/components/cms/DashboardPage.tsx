@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
+import { ModuleStatsOverview, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -1212,6 +1213,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <CrossModuleSyncStatus />
             <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarDays className="h-4 w-4" />
               <PersianDate />
@@ -1653,6 +1655,9 @@ export default function DashboardPage() {
 
         {/* System Status Widget */}
         <SystemStatusWidget />
+
+        {/* Cross-Module Integration Overview */}
+        <ModuleStatsOverview />
       </div>
 
       {/* ═══════ New Feature Widgets ═══════ */}

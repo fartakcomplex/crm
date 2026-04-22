@@ -32,6 +32,8 @@ import {
   Filter, BadgeCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRegisterAccountingData, ContactCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -228,6 +230,10 @@ export default function AccountingPage() {
   const [batchOpen, setBatchOpen] = useState(false)
   const [batchStatus, setBatchStatus] = useState<Invoice['status']>('paid')
 
+  // ── Cross-Module Data Registration ──
+  useRegisterAccountingData(invoices, transactions)
+  const { getContactByName } = useCrossModuleStore()
+
   // Transactions filter
   const [txnSearch, setTxnSearch] = useState('')
   const [txnTypeFilter, setTxnTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
@@ -373,6 +379,9 @@ export default function AccountingPage() {
       </div>
 
       {/* Stats */}
+      <div className="flex flex-wrap gap-2 mb-1">
+        <CrossModuleSyncStatus />
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-4">
@@ -542,7 +551,21 @@ export default function AccountingPage() {
                               />
                             </TableCell>
                             <TableCell className="font-mono text-sm font-medium">{invoice.number}</TableCell>
-                            <TableCell className="font-medium">{invoice.customer}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-1 flex-wrap">
+                                {invoice.customer}
+                                {(() => {
+                                  const crossContact = getContactByName(invoice.customer)
+                                  if (!crossContact) return null
+                                  return (
+                                    <>
+                                      {crossContact.sources.includes('crm') && <ModuleBadge module="crm" />}
+                                      {crossContact.sources.includes('store') && <ModuleBadge module="store" />}
+                                    </>
+                                  )
+                                })()}
+                              </div>
+                            </TableCell>
                             <TableCell className="font-bold tabular-nums">{formatAmount(invoice.amount)} <span className="text-xs text-muted-foreground font-normal">{labels.toman}</span></TableCell>
                             <TableCell>
                               <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm ${invoice.status === 'paid' ? 'animate-in' : ''}`} style={invoice.status === 'paid' ? { animationDuration: '500ms', animationFillMode: 'both' } : undefined}>
@@ -987,6 +1010,9 @@ export default function AccountingPage() {
                       </Table>
                     </div>
                   </div>
+
+                  {/* Cross-Module Contact Cross-Reference */}
+                  <ContactCrossRef contactName={detailInvoice.customer} currentModule="accounting" />
 
                   {/* Totals */}
                   <div className="space-y-2 bg-gradient-to-br from-emerald-50/50 to-green-50/50 dark:from-emerald-950/20 dark:to-green-950/20 rounded-xl p-4 border border-emerald-200/30 dark:border-emerald-800/30">

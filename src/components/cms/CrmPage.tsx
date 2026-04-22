@@ -32,9 +32,11 @@ import {
   PhoneCall, Video, FileText, StickyNote, Calendar, Clock, Filter,
   BarChart3, PieChart as PieChartIcon, ArrowUpDown, Eye, History,
   MessageSquare, ChevronLeft, Circle, Target, CheckCircle2, XCircle,
-  Timer,
+  Timer, ShoppingBag,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { useRegisterCRMData, ContactCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useCrossModuleStore } from '@/lib/cross-module-store'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -230,6 +232,10 @@ export default function CrmPage() {
   const [contactSort, setContactSort] = useState<SortField>('name')
   const [contactSortDir, setContactSortDir] = useState<SortDir>('asc')
   const [activityFilter, setActivityFilter] = useState<'all' | 'call' | 'email' | 'meeting' | 'note'>('all')
+
+  // ── Cross-Module Data Registration ──
+  useRegisterCRMData(contacts)
+  const { getContactByName } = useCrossModuleStore()
 
   // ── Computed stats ──
   const totalDeals = contacts.filter(c => !['lost', 'success'].includes(c.stage)).length
@@ -469,12 +475,23 @@ export default function CrmPage() {
                             <span className="text-[11px] font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
                               {formatDealValue(contact.dealValue)}
                             </span>
-                            {cActivities.length > 0 && (
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                <History className="h-2.5 w-2.5" />
-                                {toPersianDigits(cActivities.length)} فعالیت
-                              </span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {cActivities.length > 0 && (
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                  <History className="h-2.5 w-2.5" />
+                                  {toPersianDigits(cActivities.length)} فعالیت
+                                </span>
+                              )}
+                              {(() => {
+                                const crossContact = getContactByName(contact.name)
+                                return crossContact && crossContact.storeOrderCount > 0 && (
+                                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                                    <ShoppingBag className="h-2.5 w-2.5" />
+                                    {toPersianDigits(crossContact.storeOrderCount)} سفارش
+                                  </span>
+                                )
+                              })()}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -575,7 +592,19 @@ export default function CrmPage() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      <span className="text-sm text-muted-foreground">{contact.company}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-muted-foreground">{contact.company}</span>
+                        {(() => {
+                          const crossContact = getContactByName(contact.name)
+                          return crossContact && crossContact.sources.length > 1 && (
+                            <div className="flex gap-1">
+                              {crossContact.sources.filter((s: string) => s !== 'crm').map((s: string) => (
+                                <ModuleBadge key={s} module={s as 'store' | 'accounting' | 'inventory' | 'finance'} />
+                              ))}
+                            </div>
+                          )
+                        })()}
+                      </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       <span className="text-xs text-muted-foreground" dir="ltr">{contact.phone}</span>
@@ -989,6 +1018,9 @@ export default function CrmPage() {
                   )}
                 </div>
 
+                {/* Cross-Module Reference */}
+                <ContactCrossRef contactName={selectedContact.name} currentModule="crm" />
+
                 {/* Action buttons */}
                 <div className="flex gap-3 pt-2">
                   <Button
@@ -1038,6 +1070,9 @@ export default function CrmPage() {
 
       {/* Stats */}
       {renderStats()}
+
+      {/* Cross-Module Sync Status */}
+      <CrossModuleSyncStatus />
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} dir="rtl" className="space-y-4">

@@ -169,6 +169,212 @@ export interface CalendarEvent {
   updatedAt: string
 }
 
+// Business Module Interfaces (cross-module integrated)
+
+export interface Product {
+  id: string
+  name: string
+  sku: string
+  description: string
+  price: number
+  salePrice: number | null
+  cost: number
+  status: string
+  featured: boolean
+  images: string
+  productCategoryId: string | null
+  createdAt: string
+  updatedAt: string
+  productCategory?: ProductCategory
+  inventory?: InventoryItem
+  orderItems?: OrderItem[]
+  invoiceItems?: InvoiceItem[]
+}
+
+export interface ProductCategory {
+  id: string
+  name: string
+  slug: string
+  description: string
+  color: string
+  createdAt: string
+  updatedAt: string
+  products?: Product[]
+}
+
+export interface Order {
+  id: string
+  orderNumber: string
+  customerId: string
+  status: string
+  subtotal: number
+  discount: number
+  tax: number
+  shippingCost: number
+  total: number
+  shippingAddress: string
+  notes: string
+  couponId: string | null
+  createdAt: string
+  updatedAt: string
+  customer?: Customer
+  items?: OrderItem[]
+  coupon?: Coupon
+  invoices?: Invoice[]
+}
+
+export interface OrderItem {
+  id: string
+  orderId: string
+  productId: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  createdAt: string
+  order?: Order
+  product?: Product
+}
+
+export interface Coupon {
+  id: string
+  code: string
+  type: string
+  value: number
+  minPurchase: number
+  maxUses: number
+  usedCount: number
+  active: boolean
+  expiresAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface InventoryItem {
+  id: string
+  productId: string
+  stock: number
+  minStock: number
+  warehouse: string
+  location: string
+  lastRestocked: string | null
+  createdAt: string
+  updatedAt: string
+  product?: Product
+  inboundRecords?: InboundRecord[]
+  outboundRecords?: OutboundRecord[]
+}
+
+export interface InboundRecord {
+  id: string
+  inventoryItemId: string
+  quantity: number
+  reference: string
+  supplier: string
+  unitCost: number
+  notes: string
+  createdAt: string
+  inventoryItem?: InventoryItem
+}
+
+export interface OutboundRecord {
+  id: string
+  inventoryItemId: string
+  quantity: number
+  orderId: string | null
+  reference: string
+  notes: string
+  createdAt: string
+  inventoryItem?: InventoryItem
+  order?: Order
+}
+
+export interface Invoice {
+  id: string
+  invoiceNumber: string
+  customerId: string
+  orderId: string | null
+  status: string
+  subtotal: number
+  tax: number
+  discount: number
+  total: number
+  dueDate: string | null
+  paidAt: string | null
+  notes: string
+  createdAt: string
+  updatedAt: string
+  customer?: Customer
+  order?: Order
+  items?: InvoiceItem[]
+  transactions?: Transaction[]
+}
+
+export interface InvoiceItem {
+  id: string
+  invoiceId: string
+  productId: string | null
+  description: string
+  quantity: number
+  unitPrice: number
+  total: number
+  createdAt: string
+  invoice?: Invoice
+  product?: Product
+}
+
+export interface Transaction {
+  id: string
+  type: string
+  amount: number
+  description: string
+  category: string
+  invoiceId: string | null
+  bankAccountId: string | null
+  reference: string
+  createdAt: string
+  invoice?: Invoice
+  bankAccount?: BankAccount
+}
+
+export interface BankAccount {
+  id: string
+  name: string
+  accountNumber: string
+  balance: number
+  currency: string
+  type: string
+  createdAt: string
+  updatedAt: string
+  transactions?: Transaction[]
+}
+
+export interface CrmActivity {
+  id: string
+  customerId: string
+  type: string
+  title: string
+  description: string
+  outcome: string
+  scheduledAt: string | null
+  completedAt: string | null
+  createdAt: string
+  updatedAt: string
+  customer?: Customer
+}
+
+export interface BudgetItem {
+  id: string
+  name: string
+  category: string
+  allocated: number
+  spent: number
+  period: string
+  startDate: string | null
+  endDate: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface WPSyncConfig {
   id: string
   siteUrl: string
@@ -199,6 +405,13 @@ export interface Stats {
   completedProjects: number
   teamMembers: number
   mediaCount: number
+  totalProducts: number
+  totalOrders: number
+  totalInvoices: number
+  totalInventoryValue: number
+  pendingOrders: number
+  unpaidInvoices: number
+  lowStockProducts: number
 }
 
 export interface ChartData {
