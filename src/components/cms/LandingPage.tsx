@@ -11,7 +11,7 @@ import {
   Users, Sparkles, Check, Star, ChevronDown,
   Menu, X, Moon, Sun, LayoutDashboard, Wand2, Cpu,
   Layers, Lock, Gauge, Rocket, Heart, Code, Workflow, Eye,
-  ShoppingCart, Database, TrendingUp,
+  ShoppingCart, Database, TrendingUp, Receipt,
 } from 'lucide-react'
 import Image from 'next/image'
 
