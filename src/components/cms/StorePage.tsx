@@ -7,94 +7,104 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu'
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
-import {
-  Package, ShoppingCart, FolderOpen, Tag, Settings,
-  Plus, Pencil, Trash2, Search, CheckCircle, FileEdit,
-  AlertTriangle, Clock, Loader2, Eye, X, Upload,
-  Store, CreditCard, Truck, Percent, Coins,
-  CheckSquare, Trash, MapPin, Phone, Mail,
+  ShoppingCart, Plus, Pencil, Trash2, Search, Package, DollarSign,
+  ShoppingBag, TrendingUp, Tag, FolderOpen, Settings, ChevronDown,
+  ChevronUp, Eye, MoreVertical, Copy, Percent, Gift, Truck,
+  CreditCard, Receipt, Building2, Palette, MonitorCheck,
+  Clock, CheckCircle2, XCircle, AlertCircle, Archive, RotateCcw,
+  Filter, Boxes, Store, BarChart3, CalendarDays, Hash, Weight,
+  Ruler, Image, Layers, FileText, ArrowUpDown, PackageCheck,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-// ─── Persian Helpers ──────────────────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function toPersianDigits(num: number | string): string {
-  const pd = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
-  return String(num).replace(/\d/g, d => pd[parseInt(d)])
+  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹']
+  return String(num).replace(/\d/g, d => persianDigits[parseInt(d)])
 }
 
 function formatPrice(price: number): string {
   return toPersianDigits(price.toLocaleString())
 }
 
-function relativeDate(daysAgo: number): string {
-  if (daysAgo === 0) return 'امروز'
-  if (daysAgo === 1) return 'دیروز'
-  return `${toPersianDigits(daysAgo)} روز پیش`
+function generateSlug(text: string): string {
+  return text
+    .replace(/\s+/g, '-')
+    .replace(/[^\u0600-\u06FF\w-]/g, '')
+    .toLowerCase()
 }
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-type ProductStatus = 'published' | 'draft' | 'hidden'
-type OrderStatus = 'pending' | 'processing' | 'shipped' | 'completed' | 'cancelled'
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface Product {
   id: string
   name: string
   slug: string
-  sku: string
+  shortDesc: string
+  fullDesc: string
   price: number
   salePrice: number
+  sku: string
+  stock: number
+  minStock: number
   category: string
   tags: string[]
-  stock: number
-  maxStock: number
-  status: ProductStatus
-  description: string
-  emoji: string
-  date: string
-}
-
-interface OrderItem {
-  name: string
-  qty: number
-  price: number
-  emoji: string
+  image: string
+  gallery: string[]
+  status: 'active' | 'inactive' | 'draft'
+  weight: number
+  dimensions: string
+  createdAt: string
 }
 
 interface Order {
   id: string
-  number: string
+  orderNumber: string
   customer: string
-  email: string
-  phone: string
-  address: string
+  customerPhone: string
   items: OrderItem[]
   subtotal: number
-  discount: number
-  shipping: number
+  shippingCost: number
+  tax: number
   total: number
-  status: OrderStatus
-  date: string
-  note: string
+  status: 'pending' | 'paid' | 'processing' | 'shipped' | 'completed' | 'cancelled' | 'returned'
+  shippingAddress: string
+  notes: string
+  createdAt: string
+}
+
+interface OrderItem {
+  name: string
+  quantity: number
+  price: number
+  total: number
 }
 
 interface Category {
@@ -102,200 +112,261 @@ interface Category {
   name: string
   slug: string
   description: string
-  color: string
+  image: string
+  parentId: string | null
   productCount: number
-  parent: string
 }
 
-interface StoreTag {
+interface Tag {
   id: string
   name: string
-  count: number
+  slug: string
+  productCount: number
 }
 
-// ─── Labels ──────────────────────────────────────────────────────────────────
-
-const tabLabels = {
-  products: 'محصولات',
-  orders: 'سفارشات',
-  categories: 'دسته‌بندی‌ها',
-  tags: 'برچسب‌ها',
-  settings: 'تنظیمات',
+interface Coupon {
+  id: string
+  code: string
+  type: 'percent' | 'fixed'
+  value: number
+  minOrder: number
+  maxDiscount: number
+  usedCount: number
+  maxUsage: number
+  startDate: string
+  expiryDate: string
+  allowedProducts: string
+  allowedCategories: string
+  active: boolean
 }
 
-const productStatusLabel: Record<ProductStatus, string> = {
-  published: 'منتشر شده',
-  draft: 'پیش‌نویس',
-  hidden: 'مخفی',
+interface StoreSettings {
+  storeName: string
+  storeAddress: string
+  country: string
+  province: string
+  city: string
+  postalCode: string
+  currency: string
+  shippingMethod: string
+  shippingCost: number
+  freeShippingMin: number
+  paymentZarinpal: boolean
+  paymentIdpay: boolean
+  paymentNextpay: boolean
+  paymentCod: boolean
+  taxEnabled: boolean
+  taxRate: number
+  taxExemptRegions: string
+  productsPerPage: number
+  showStock: boolean
+  showTags: boolean
 }
 
-const orderStatusLabel: Record<OrderStatus, string> = {
-  pending: 'در انتظار پرداخت',
-  processing: 'درحال پردازش',
-  shipped: 'ارسال شده',
-  completed: 'تکمیل شده',
-  cancelled: 'لغو شده',
+// ─── Status Configs ─────────────────────────────────────────────────────────
+
+const orderStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  pending: { label: 'در انتظار پرداخت', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800' },
+  paid: { label: 'پرداخت شده', color: 'text-sky-700 dark:text-sky-300', bg: 'bg-sky-100 dark:bg-sky-900/30 border-sky-200 dark:border-sky-800' },
+  processing: { label: 'در حال پردازش', color: 'text-violet-700 dark:text-violet-300', bg: 'bg-violet-100 dark:bg-violet-900/30 border-violet-200 dark:border-violet-800' },
+  shipped: { label: 'ارسال شده', color: 'text-indigo-700 dark:text-indigo-300', bg: 'bg-indigo-100 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-800' },
+  completed: { label: 'تکمیل شده', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800' },
+  cancelled: { label: 'لغو شده', color: 'text-red-700 dark:text-red-300', bg: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800' },
+  returned: { label: 'مرجوع شده', color: 'text-orange-700 dark:text-orange-300', bg: 'bg-orange-100 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800' },
 }
 
-const productStatusColors: Record<ProductStatus, { bg: string; text: string }> = {
-  published: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
-  draft: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300' },
-  hidden: { bg: 'bg-gray-100 dark:bg-gray-800/30', text: 'text-gray-600 dark:text-gray-400' },
+const productStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
+  active: { label: 'فعال', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800' },
+  inactive: { label: 'غیرفعال', color: 'text-gray-700 dark:text-gray-300', bg: 'bg-gray-100 dark:bg-gray-800/30 border-gray-200 dark:border-gray-700' },
+  draft: { label: 'پیش‌نویس', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800' },
 }
 
-const orderStatusColors: Record<OrderStatus, { bg: string; text: string }> = {
-  pending: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-300' },
-  processing: { bg: 'bg-violet-100 dark:bg-violet-900/30', text: 'text-violet-700 dark:text-violet-300' },
-  shipped: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
-  completed: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
-  cancelled: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
-}
-
-// ─── Sample Data ─────────────────────────────────────────────────────────────
+// ─── Sample Data ────────────────────────────────────────────────────────────
 
 const initialProducts: Product[] = [
-  { id: '1', name: 'لپ‌تاپ ایسوس زنف‌بوک ۱۴', slug: 'asus-zenbook-14', sku: 'ASU-ZB14-001', price: 45000000, salePrice: 42500000, category: 'الکترونیک و دیجیتال', tags: ['ویژه تخفیف', 'پرفروش', 'گارانتی اصلی'], stock: 25, maxStock: 100, status: 'published', description: 'لپ‌تاپ سبک و قدرتمند با پردازنده نسل ۱۳ اینتل و حافظه ۱۶ گیگابایت', emoji: '💻', date: '2' },
-  { id: '2', name: 'گوشی سامسونگ گلکسی S24', slug: 'samsung-galaxy-s24', sku: 'SAM-S24-002', price: 38000000, salePrice: 36000000, category: 'الکترونیک و دیجیتال', tags: ['محبوب', 'جدید', 'گارانتی اصلی'], stock: 40, maxStock: 80, status: 'published', description: 'گوشی پرچمدار سامسونگ با دوربین ۲۰۰ مگاپیکسل و پردازنده اسنپ‌دراگون', emoji: '📱', date: '3' },
-  { id: '3', name: 'پیراهن مردانه کلاسیک', slug: 'mens-classic-shirt', sku: 'CLS-MSH-003', price: 1250000, salePrice: 0, category: 'پوشاک و فشن', tags: ['پرفروش'], stock: 120, maxStock: 200, status: 'published', description: 'پیراهن رسمی با پارچه نخی درجه یک و دوخت عالی', emoji: '👔', date: '5' },
-  { id: '4', name: 'ست آشپزخانه ۱۲ پارچه', slug: 'kitchen-set-12', sku: 'KIT-SET-004', price: 3200000, salePrice: 2850000, category: 'خانه و آشپزخانه', tags: ['ویژه تخفیف', 'جدید'], stock: 35, maxStock: 60, status: 'published', description: 'ست قابلمه و تابه با روکش سرامیکی و دسته چوبی', emoji: '🍳', date: '1' },
-  { id: '5', name: 'کفش ورزشی نایکی ایرمکس', slug: 'nike-airmax-sport', sku: 'NIK-AMX-005', price: 5200000, salePrice: 4800000, category: 'لوازم ورزشی', tags: ['محبوب', 'پرفروش'], stock: 60, maxStock: 100, status: 'published', description: 'کفش ورزشی راحت برای استفاده روزانه با زیره بادی', emoji: '👟', date: '7' },
-  { id: '6', name: 'عسل طبیعی کوهستان', slug: 'natural-mountain-honey', sku: 'HON-MNT-006', price: 380000, salePrice: 350000, category: 'مواد غذایی', tags: ['اورجینال', 'پرفروش'], stock: 200, maxStock: 300, status: 'published', description: 'عسل خالص و طبیعی از دامنه‌های زاگرس با طعم بی‌نظیر', emoji: '🍯', date: '4' },
-  { id: '7', name: 'مانتو زنانه بهاره', slug: 'womens-spring-coat', sku: 'MNT-SPR-007', price: 1800000, salePrice: 0, category: 'پوشاک و فشن', tags: ['جدید'], stock: 80, maxStock: 150, status: 'draft', description: 'مانتو شیک با طرح گلدوزی دستی و پارچه لنین', emoji: '👗', date: '10' },
-  { id: '8', name: 'هدفون سونی WH-1000XM5', slug: 'sony-wh1000xm5', sku: 'SNY-WH5-008', price: 14500000, salePrice: 12800000, category: 'الکترونیک و دیجیتال', tags: ['ویژه تخفیف', 'گارانتی اصلی', 'محبوب'], stock: 8, maxStock: 50, status: 'published', description: 'هدفون بی‌سیم با قابلیت نویزکنسلینگ و باتری ۳۰ ساعته', emoji: '🎧', date: '6' },
-  { id: '9', name: 'مجموعه کتاب شاهنامه فردوسی', slug: 'shahnameh-ferdowsi', sku: 'BOK-SHN-009', price: 2500000, salePrice: 2200000, category: 'کتاب و لوازم التحریر', tags: ['جدید', 'ارسال رایگان'], stock: 45, maxStock: 100, status: 'published', description: 'مجموعه کامل شاهنامه فردوسی در ۸ جلد با تصویرگری', emoji: '📚', date: '8' },
-  { id: '10', name: 'کرم ضد آفتاب spf50', slug: 'sunscreen-spf50', sku: 'BTY-SPF-010', price: 450000, salePrice: 390000, category: 'زیبایی و بهداشت', tags: ['ویژه تخفیف', 'ضد آب'], stock: 5, maxStock: 200, status: 'published', description: 'کرم ضد آفتاب با SPF50 و فرمولاسیون ضد آب', emoji: '🧴', date: '3' },
-  { id: '11', name: 'ربورن لگو شهر بزرگ', slug: 'lego-city-creator', sku: 'TOY-LGC-011', price: 3500000, salePrice: 0, category: 'اسباب بازی', tags: ['محبوب', 'جدید'], stock: 0, maxStock: 40, status: 'draft', description: 'ربورن لگو شهری با ۱۲۰۰ قطعه برای کودکان ۸ سال به بالا', emoji: '🧩', date: '15' },
-  { id: '12', name: 'تبلت اپل آیپد ایر M2', slug: 'apple-ipad-air-m2', sku: 'APL-IPA-012', price: 31000000, salePrice: 29500000, category: 'الکترونیک و دیجیتال', tags: ['ویژه تخفیف', 'گارانتی اصلی', 'محبوب'], stock: 12, maxStock: 30, status: 'published', description: 'تبلت اپل با تراشه M2 و صفحه نمایش ۱۰.۹ اینچی', emoji: '📱', date: '0' },
+  { id: 'p1', name: 'لپ‌تاپ ایسوس زنف‌بوک ۱۴', slug: 'asus-zenbook-14', shortDesc: 'لپ‌تاپ سبک و قدرتمند', fullDesc: 'لپ‌تاپ سبک و قدرتمند با پردازنده نسل ۱۳ اینتل و ۱۶ گیگابایت رم', price: 45000000, salePrice: 42000000, sku: 'ASU-ZB14-001', stock: 25, minStock: 5, category: 'لوازم الکترونیکی', tags: ['پرفروش', 'تخفیف ویژه'], image: '💻', gallery: ['💻', '🖥️'], status: 'active', weight: 1.4, dimensions: '۳۲×۲۲×۱.۸', createdAt: '۱۴۰۳/۰۹/۱۵' },
+  { id: 'p2', name: 'گوشی سامسونگ گلکسی S24', slug: 'samsung-galaxy-s24', shortDesc: 'گوشی پرچمدار سامسونگ', fullDesc: 'گوشی پرچمدار سامسونگ با دوربین ۲۰۰ مگاپیکسل و پردازنده اسنپ‌دراگون ۸ نسل ۳', price: 38000000, salePrice: 36000000, sku: 'SAM-S24-001', stock: 40, minStock: 10, category: 'لوازم الکترونیکی', tags: ['پرفروش', 'جدید'], image: '📱', gallery: ['📱'], status: 'active', weight: 0.17, dimensions: '۱۵×۷×۰.۸', createdAt: '۱۴۰۳/۰۹/۱۰' },
+  { id: 'p3', name: 'هدفون سونی WH-1000XM5', slug: 'sony-wh1000xm5', shortDesc: 'هدفون بی‌سیم با نویزکنسلینگ', fullDesc: 'هدفون بی‌سیم با قابلیت نویزکنسلینگ فعال و باتری ۳۰ ساعته', price: 12000000, salePrice: 0, sku: 'SON-WH1K-001', stock: 15, minStock: 3, category: 'لوازم الکترونیکی', tags: ['ویژه زمستان'], image: '🎧', gallery: ['🎧'], status: 'active', weight: 0.25, dimensions: '۲۲×۱۸×۸', createdAt: '۱۴۰۳/۰۸/۲۰' },
+  { id: 'p4', name: 'پیراهن مردانه کلاسیک', slug: 'classic-mens-shirt', shortDesc: 'پیراهن رسمی با پارچه نخی', fullDesc: 'پیراهن رسمی با پارچه نخی درجه یک، مناسب فصل بهار و تابستان', price: 850000, salePrice: 0, sku: 'CLO-SHR-001', stock: 120, minStock: 20, category: 'پوشاک و مد', tags: ['جدید'], image: '👔', gallery: ['👔'], status: 'active', weight: 0.2, dimensions: '۴۰×۳۰×۲', createdAt: '۱۴۰۳/۰۸/۲۵' },
+  { id: 'p5', name: 'کفش ورزشی نایکی ایرمکس', slug: 'nike-airmax-sport', shortDesc: 'کفش ورزشی راحت', fullDesc: 'کفش ورزشی راحت برای استفاده روزانه با زیره انعطاف‌پذیر', price: 4200000, salePrice: 3500000, sku: 'CLO-NKE-001', stock: 60, minStock: 10, category: 'پوشاک و مد', tags: ['تخفیف ویژه', 'پرفروش'], image: '👟', gallery: ['👟'], status: 'active', weight: 0.8, dimensions: '۳۰×۱۲×۱۰', createdAt: '۱۴۰۳/۰۹/۰۱' },
+  { id: 'p6', name: 'عسل طبیعی کوهستان ۵۰۰ گرم', slug: 'natural-mountain-honey', shortDesc: 'عسل خالص و طبیعی', fullDesc: 'عسل خالص و طبیعی از دامنه‌های زاگرس، بدون افزودنی', price: 350000, salePrice: 0, sku: 'FOD-HNY-001', stock: 200, minStock: 30, category: 'مواد غذایی و آشامیدنی', tags: ['پرفروش', 'ارسال رایگان'], image: '🍯', gallery: ['🍯'], status: 'active', weight: 0.55, dimensions: '۱۰×۱۰×۱۲', createdAt: '۱۴۰۳/۰۷/۱۰' },
+  { id: 'p7', name: 'چای سبز ارگانیک', slug: 'organic-green-tea', shortDesc: 'چای سبز پرکیفیت', fullDesc: 'چای سبز پرکیفیت از باغ‌های لاهیجان', price: 180000, salePrice: 0, sku: 'FOD-TEA-001', stock: 0, minStock: 20, category: 'مواد غذایی و آشامیدنی', tags: [], image: '🍵', gallery: ['🍵'], status: 'inactive', weight: 0.1, dimensions: '۱۰×۱۰×۱۵', createdAt: '۱۴۰۳/۰۶/۱۵' },
+  { id: 'p8', name: 'ست آشپزخانه ۱۲ پارچه', slug: 'kitchen-set-12pc', shortDesc: 'ست قابلمه و تابه سرامیکی', fullDesc: 'ست قابلمه و تابه با روکش سرامیکی و دسته‌های ضد حرارت', price: 2800000, salePrice: 2400000, sku: 'HOM-KIT-001', stock: 35, minStock: 5, category: 'خانه و دکوراسیون', tags: ['تخفیف ویژه'], image: '🍳', gallery: ['🍳'], status: 'active', weight: 5.2, dimensions: '۵۰×۳۰×۲۵', createdAt: '۱۴۰۳/۰۸/۰۵' },
+  { id: 'p9', name: 'مبل ال شکل مدرن', slug: 'modern-l-shape-sofa', shortDesc: 'مبل راحتی ال شکل', fullDesc: 'مبل راحتی ال شکل با پارچه ضد لک و اسکلت فلزی محکم', price: 32000000, salePrice: 0, sku: 'HOM-SFA-001', stock: 8, minStock: 2, category: 'خانه و دکوراسیون', tags: ['محدود'], image: '🛋️', gallery: ['🛋️'], status: 'active', weight: 85, dimensions: '۲۵۰×۱۸۰×۸۵', createdAt: '۱۴۰۳/۰۷/۲۰' },
+  { id: 'p10', name: 'تبلت اپل آیپد ایر', slug: 'apple-ipad-air', shortDesc: 'تبلت اپل با M1', fullDesc: 'تبلت اپل آیپد ایر نسل ۵ با چیپ M1 و صفحه نمایش ۱۰.۹ اینچی', price: 28000000, salePrice: 0, sku: 'ELC-IPA-001', stock: 0, minStock: 3, category: 'لوازم الکترونیکی', tags: ['محدود'], image: '📱', gallery: ['📱'], status: 'draft', weight: 0.46, dimensions: '۲۵×۱۷×۰.۶', createdAt: '۱۴۰۳/۰۹/۲۰' },
+  { id: 'p11', name: 'مانتو زنانه بهاره', slug: 'spring-womens-coat', shortDesc: 'مانتو شیک با گلدوزی', fullDesc: 'مانتو شیک با طرح گلدوزی دستی، سایز ۳۸ تا ۴۸', price: 1200000, salePrice: 990000, sku: 'CLO-MNT-001', stock: 80, minStock: 15, category: 'پوشاک و مد', tags: ['تخفیف ویژه', 'جدید'], image: '👗', gallery: ['👗'], status: 'active', weight: 0.4, dimensions: '۴۵×۳۵×۳', createdAt: '۱۴۰۳/۰۹/۰۵' },
+  { id: 'p12', name: 'زعفران نگین سرگل ۵ گرم', slug: 'saffron-negin-5g', shortDesc: 'زعفران درجه یک قائنات', fullDesc: 'زعفران نگین درجه یک از مزارع قائنات، بسته‌بندی طلایی', price: 950000, salePrice: 0, sku: 'FOD-SAF-001', stock: 150, minStock: 25, category: 'مواد غذایی و آشامیدنی', tags: ['پرفروش', 'ارسال رایگان'], image: '🌸', gallery: ['🌸'], status: 'active', weight: 0.01, dimensions: '۵×۵×۸', createdAt: '۱۴۰۳/۰۵/۱۰' },
+  { id: 'p13', name: 'سرم ویتامین C پوستی', slug: 'vitamin-c-serum', shortDesc: 'سرم ضد لک و روشن‌کننده', fullDesc: 'سرم ویتامین C با غلظت ۲۰٪ برای روشن‌سازی و جوانسازی پوست', price: 450000, salePrice: 380000, sku: 'BEA-SER-001', stock: 90, minStock: 15, category: 'زیبایی و بهداشت', tags: ['تخفیف ویژه'], image: '✨', gallery: ['✨'], status: 'active', weight: 0.05, dimensions: '۴×۴×۱۲', createdAt: '۱۴۰۳/۰۸/۳۰' },
+  { id: 'p14', name: 'مجموعه اشعار حافظ', slug: 'hafez-poetry-book', shortDesc: 'دیوان حافظ با تصحیح قاسم غنی', fullDesc: 'مجموعه اشعار حافظ شیرازی با تصحیح قاسم غنی و Giovanni، چاپ امیرکبیر', price: 280000, salePrice: 0, sku: 'BOK-HAF-001', stock: 200, minStock: 30, category: 'کتاب و لوازم تحریر', tags: ['پرفروش'], image: '📖', gallery: ['📖'], status: 'active', weight: 0.35, dimensions: '۲۰×۱۴×۲', createdAt: '۱۴۰۳/۰۶/۰۱' },
+  { id: 'p15', name: 'دمبل ۱۰ کیلویی جفتی', slug: 'dumbbell-10kg-pair', shortDesc: 'دمبل روکش لاستیکی', fullDesc: 'دمبل ۱۰ کیلویی جفتی با روکش لاستیکی ضد لغزش و دسته ارگونومیک', price: 1800000, salePrice: 1500000, sku: 'SPT-DMB-001', stock: 45, minStock: 8, category: 'ورزش و سفر', tags: ['تخفیف ویژه'], image: '🏋️', gallery: ['🏋️'], status: 'active', weight: 21, dimensions: '۳۵×۱۵×۱۵', createdAt: '۱۴۰۳/۰۸/۱۵' },
 ]
 
 const initialOrders: Order[] = [
-  { id: '1', number: '#۱۰۴۵', customer: 'علی محمدی', email: 'ali@example.com', phone: '۰۹۱۲۱۲۳۴۵۶۷', address: 'تهران، خیابان ولیعصر، پلاک ۱۲۰', items: [{ name: 'لپ‌تاپ ایسوس زنف‌بوک ۱۴', qty: 1, price: 42500000, emoji: '💻' }, { name: 'هدفون سونی WH-1000XM5', qty: 1, price: 12800000, emoji: '🎧' }], subtotal: 55300000, discount: 1500000, shipping: 0, total: 53800000, status: 'completed', date: '0', note: '' },
-  { id: '2', number: '#۱۰۴۴', customer: 'سارا احمدی', email: 'sara@example.com', phone: '۰۹۳۵۱۲۳۴۵۶۷', address: 'اصفهان، خیابان چهارباغ، کوچه ۵', items: [{ name: 'مانتو زنانه بهاره', qty: 2, price: 1800000, emoji: '👗' }, { name: 'کرم ضد آفتاب spf50', qty: 1, price: 390000, emoji: '🧴' }], subtotal: 3990000, discount: 200000, shipping: 45000, total: 3835000, status: 'shipped', date: '1', note: 'لطفاً بسته‌بندی ویژه شود.' },
-  { id: '3', number: '#۱۰۴۳', customer: 'محمد رضایی', email: 'mrezaei@example.com', phone: '۰۹۱۳۱۲۳۴۵۶۷', address: 'شیراز، بلوار ارم، خیابان ۲۰', items: [{ name: 'گوشی سامسونگ گلکسی S24', qty: 1, price: 36000000, emoji: '📱' }], subtotal: 36000000, discount: 0, shipping: 0, total: 36000000, status: 'processing', date: '1', note: '' },
-  { id: '4', number: '#۱۰۴۲', customer: 'فاطمه حسینی', email: 'fatemeh@example.com', phone: '۰۹۳۶۱۲۳۴۵۶۷', address: 'تبریز، خیابان استقلال، پلاک ۸۵', items: [{ name: 'مجموعه کتاب شاهنامه فردوسی', qty: 1, price: 2200000, emoji: '📚' }, { name: 'ست آشپزخانه ۱۲ پارچه', qty: 1, price: 2850000, emoji: '🍳' }], subtotal: 5050000, discount: 0, shipping: 65000, total: 5115000, status: 'pending', date: '2', note: '' },
-  { id: '5', number: '#۱۰۴۱', customer: 'رضا کریمی', email: 'reza.k@example.com', phone: '۰۹۱۴۱۲۳۴۵۶۷', address: 'مشهد، خیابان امام رضا، نبش کوچه ۳', items: [{ name: 'کفش ورزشی نایکی ایرمکس', qty: 1, price: 4800000, emoji: '👟' }, { name: 'پیراهن مردانه کلاسیک', qty: 3, price: 1250000, emoji: '👔' }], subtotal: 8550000, discount: 300000, shipping: 0, total: 8250000, status: 'completed', date: '3', note: 'اندازه پیراهن: L' },
-  { id: '6', number: '#۱۰۴۰', customer: 'مریم نوری', email: 'maryam@example.com', phone: '۰۹۳۳۱۲۳۴۵۶۷', address: 'کرج، مهرشهر، فاز ۴، بلوار ارم', items: [{ name: 'عسل طبیعی کوهستان', qty: 3, price: 350000, emoji: '🍯' }], subtotal: 1050000, discount: 50000, shipping: 35000, total: 1035000, status: 'completed', date: '5', note: '' },
-  { id: '7', number: '#۱۰۳۹', customer: 'امیر حسین جعفری', email: 'amirh@example.com', phone: '۰۹۱۶۱۲۳۴۵۶۷', address: 'اهواز، خیابان کیانپارس، پلاک ۲۲', items: [{ name: 'تبلت اپل آیپد ایر M2', qty: 1, price: 29500000, emoji: '📱' }], subtotal: 29500000, discount: 1000000, shipping: 0, total: 28500000, status: 'processing', date: '2', note: 'پیش‌فاضل پرداخت شده' },
-  { id: '8', number: '#۱۰۳۸', customer: 'زهرا صادقی', email: 'zahra.s@example.com', phone: '۰۹۳۸۱۲۳۴۵۶۷', address: 'رشت، خیابان سعدی، پلاک ۴۵', items: [{ name: 'ربورن لگو شهر بزرگ', qty: 2, price: 3500000, emoji: '🧩' }], subtotal: 7000000, discount: 0, shipping: 55000, total: 7055000, status: 'pending', date: '0', note: '' },
-  { id: '9', number: '#۱۰۳۷', customer: 'حسین موسوی', email: 'hossein@example.com', phone: '۰۹۱۹۱۲۳۴۵۶۷', address: 'قم، خیابان معلم، کوچه ۱۲', items: [{ name: 'لپ‌تاپ ایسوس زنف‌بوک ۱۴', qty: 1, price: 42500000, emoji: '💻' }], subtotal: 42500000, discount: 2000000, shipping: 0, total: 40500000, status: 'cancelled', date: '7', note: 'درخواست لغو توسط مشتری' },
-  { id: '10', number: '#۱۰۳۶', customer: 'نرگس رحمانی', email: 'narges@example.com', phone: '۰۹۳۱۱۲۳۴۵۶۷', address: 'یزد، خیابان امام، پلاک ۹۰', items: [{ name: 'کرم ضد آفتاب spf50', qty: 2, price: 390000, emoji: '🧴' }, { name: 'مانتو زنانه بهاره', qty: 1, price: 1800000, emoji: '👗' }], subtotal: 2580000, discount: 100000, shipping: 45000, total: 2525000, status: 'completed', date: '10', note: '' },
+  { id: 'o1', orderNumber: 'ORD-1403091', customer: 'علی محمدی', customerPhone: '۰۹۱۲۱۲۳۴۵۶۷', items: [{ name: 'لپ‌تاپ ایسوس زنف‌بوک ۱۴', quantity: 1, price: 42000000, total: 42000000 }], subtotal: 42000000, shippingCost: 50000, tax: 2100000, total: 44150000, status: 'completed', shippingAddress: 'تهران، خیابان ولیعصر، پلاک ۱۲۳', notes: 'لطفاً قبل از ارسال تماس بگیرید', createdAt: '۱۴۰۳/۰۹/۱۵' },
+  { id: 'o2', orderNumber: 'ORD-1403092', customer: 'فاطمه احمدی', customerPhone: '۰۹۳۵۱۲۳۴۵۶۷', items: [{ name: 'گوشی سامسونگ گلکسی S24', quantity: 1, price: 36000000, total: 36000000 }, { name: 'قاب گوشی', quantity: 1, price: 150000, total: 150000 }], subtotal: 36150000, shippingCost: 35000, tax: 1807500, total: 37992500, status: 'shipped', shippingAddress: 'اصفهان، خیابان چهارباغ، کوچه ۵', notes: '', createdAt: '۱۴۰۳/۰۹/۱۴' },
+  { id: 'o3', orderNumber: 'ORD-1403093', customer: 'رضا کریمی', customerPhone: '۰۹۱۳۱۲۳۴۵۶۷', items: [{ name: 'عسل طبیعی کوهستان ۵۰۰ گرم', quantity: 3, price: 350000, total: 1050000 }, { name: 'زعفران نگین سرگل ۵ گرم', quantity: 2, price: 950000, total: 1900000 }], subtotal: 2950000, shippingCost: 0, tax: 147500, total: 3097500, status: 'paid', shippingAddress: 'شیراز، بلوار ارم، خیابان ۲۳', notes: 'ارسال رایگان', createdAt: '۱۴۰۳/۰۹/۱۴' },
+  { id: 'o4', orderNumber: 'ORD-1403094', customer: 'مریم حسینی', customerPhone: '۰۹۳۶۱۲۳۴۵۶۷', items: [{ name: 'مانتو زنانه بهاره', quantity: 2, price: 990000, total: 1980000 }], subtotal: 1980000, shippingCost: 25000, tax: 99000, total: 2104000, status: 'processing', shippingAddress: 'مشهد، خیابان امام رضا، پلاک ۴۵', notes: '', createdAt: '۱۴۰۳/۰۹/۱۳' },
+  { id: 'o5', orderNumber: 'ORD-1403095', customer: 'حسین رضایی', customerPhone: '۰۹۱۴۱۲۳۴۵۶۷', items: [{ name: 'ست آشپزخانه ۱۲ پارچه', quantity: 1, price: 2400000, total: 2400000 }], subtotal: 2400000, shippingCost: 45000, tax: 120000, total: 2565000, status: 'pending', shippingAddress: 'تبریز، خیابان ائل‌گلی، پلاک ۸۸', notes: 'لطفاً فاکتور همراه مرسوله باشد', createdAt: '۱۴۰۳/۰۹/۱۳' },
+  { id: 'o6', orderNumber: 'ORD-1403096', customer: 'زهرا موسوی', customerPhone: '۰۹۳۷۱۲۳۴۵۶۷', items: [{ name: 'سرم ویتامین C پوستی', quantity: 2, price: 380000, total: 760000 }], subtotal: 760000, shippingCost: 20000, tax: 38000, total: 818000, status: 'completed', shippingAddress: 'کرج، مهرشهر، فاز ۴، پلاک ۲۰', notes: '', createdAt: '۱۴۰۳/۰۹/۱۲' },
+  { id: 'o7', orderNumber: 'ORD-1403097', customer: 'محمد جعفری', customerPhone: '۰۹۱۸۱۲۳۴۵۶۷', items: [{ name: 'دمبل ۱۰ کیلویی جفتی', quantity: 1, price: 1500000, total: 1500000 }, { name: 'کفش ورزشی نایکی ایرمکس', quantity: 1, price: 3500000, total: 3500000 }], subtotal: 5000000, shippingCost: 0, tax: 250000, total: 5250000, status: 'shipped', shippingAddress: 'اهواز، کیانپارس، بلوار ۲۴', notes: 'ارسال رایگان', createdAt: '۱۴۰۳/۰۹/۱۲' },
+  { id: 'o8', orderNumber: 'ORD-1403098', customer: 'سارا نوری', customerPhone: '۰۹۳۸۱۲۳۴۵۶۷', items: [{ name: 'مجموعه اشعار حافظ', quantity: 1, price: 280000, total: 280000 }], subtotal: 280000, shippingCost: 15000, tax: 14000, total: 309000, status: 'cancelled', shippingAddress: 'قم، خیابان معلم، کوچه ۳', notes: 'مشتری درخواست لغو کرد', createdAt: '۱۴۰۳/۰۹/۱۱' },
+  { id: 'o9', orderNumber: 'ORD-1403099', customer: 'امیر صادقی', customerPhone: '۰۹۱۹۱۲۳۴۵۶۷', items: [{ name: 'هدفون سونی WH-1000XM5', quantity: 1, price: 12000000, total: 12000000 }], subtotal: 12000000, shippingCost: 30000, tax: 600000, total: 12630000, status: 'returned', shippingAddress: 'رشت، خیابان سعدی، پلاک ۱۵', notes: 'کالا معیوب بود', createdAt: '۱۴۰۳/۰۹/۱۰' },
+  { id: 'o10', orderNumber: 'ORD-1403100', customer: 'نرگس رحمانی', customerPhone: '۰۹۲۰۱۲۳۴۵۶۷', items: [{ name: 'پیراهن مردانه کلاسیک', quantity: 3, price: 850000, total: 2550000 }, { name: 'مانتو زنانه بهاره', quantity: 1, price: 990000, total: 990000 }], subtotal: 3540000, shippingCost: 35000, tax: 177000, total: 3752000, status: 'paid', shippingAddress: 'یزد، خیابان امیرچخماق، پلاک ۷۰', notes: '', createdAt: '۱۴۰۳/۰۹/۱۰' },
+  { id: 'o11', orderNumber: 'ORD-1403101', customer: 'کیان باقری', customerPhone: '۰۹۱۱۲۲۳۳۴۴۵', items: [{ name: 'مبل ال شکل مدرن', quantity: 1, price: 32000000, total: 32000000 }], subtotal: 32000000, shippingCost: 150000, tax: 1600000, total: 33750000, status: 'processing', shippingAddress: 'تهران، سعادت‌آباد، بلوار دریا', notes: 'تحویل درب ساختمان', createdAt: '۱۴۰۳/۰۹/۰۹' },
+  { id: 'o12', orderNumber: 'ORD-1403102', customer: 'مهسا تقوی', customerPhone: '۰۹۳۳۲۲۳۳۴۴۵', items: [{ name: 'چای سبز ارگانیک', quantity: 5, price: 180000, total: 900000 }, { name: 'عسل طبیعی کوهستان ۵۰۰ گرم', quantity: 2, price: 350000, total: 700000 }], subtotal: 1600000, shippingCost: 0, tax: 80000, total: 1680000, status: 'completed', shippingAddress: 'کرمانشاه، خیابان طالقانی، پلاک ۳۳', notes: '', createdAt: '۱۴۰۳/۰۹/۰۸' },
+  { id: 'o13', orderNumber: 'ORD-1403103', customer: 'آرش فرهادی', customerPhone: '۰۹۱۶۲۲۳۳۴۴۵', items: [{ name: 'کفش ورزشی نایکی ایرمکس', quantity: 1, price: 3500000, total: 3500000 }], subtotal: 3500000, shippingCost: 25000, tax: 175000, total: 3700000, status: 'pending', shippingAddress: 'ساری، خیابان ۲۲ بهمن، پلاک ۱۱', notes: 'لطفاً سایز ۴۳ باشد', createdAt: '۱۴۰۳/۰۹/۰۸' },
+  { id: 'o14', orderNumber: 'ORD-1403104', customer: 'لیلا کشاورز', customerPhone: '۰۹۳۹۲۲۳۳۴۴۵', items: [{ name: 'زعفران نگین سرگل ۵ گرم', quantity: 10, price: 950000, total: 9500000 }], subtotal: 9500000, shippingCost: 0, tax: 475000, total: 9975000, status: 'completed', shippingAddress: 'مشهد، بلوار وکیل‌آباد، پلاک ۱۴۰', notes: 'خرید عمده', createdAt: '۱۴۰۳/۰۹/۰۷' },
+  { id: 'o15', orderNumber: 'ORD-1403105', customer: 'بهنام خانی', customerPhone: '۰۹۱۲۳۳۴۴۵۵۶', items: [{ name: 'تبلت اپل آیپد ایر', quantity: 1, price: 28000000, total: 28000000 }, { name: 'قلم اپل پنسیل', quantity: 1, price: 3500000, total: 3500000 }], subtotal: 31500000, shippingCost: 40000, tax: 1575000, total: 33115000, status: 'shipped', shippingAddress: 'تهران، ونک، خیابان گاندی، پلاک ۹۰', notes: '', createdAt: '۱۴۰۳/۰۹/۰۶' },
+  { id: 'o16', orderNumber: 'ORD-1403106', customer: 'سمیرا عباسی', customerPhone: '۰۹۳۴۳۳۴۴۵۵۶', items: [{ name: 'سرم ویتامین C پوستی', quantity: 1, price: 380000, total: 380000 }, { name: 'مجموعه اشعار حافظ', quantity: 2, price: 280000, total: 560000 }], subtotal: 940000, shippingCost: 20000, tax: 47000, total: 1007000, status: 'paid', shippingAddress: 'بجنورد، بلوار شهید آوینی', notes: '', createdAt: '۱۴۰۳/۰۹/۰۵' },
 ]
 
 const initialCategories: Category[] = [
-  { id: '1', name: 'الکترونیک و دیجیتال', slug: 'electronics-digital', description: 'گوشی، لپ‌تاپ، تبلت و لوازم جانبی', color: '#8b5cf6', productCount: 4, parent: '' },
-  { id: '2', name: 'پوشاک و فشن', slug: 'clothing-fashion', description: 'پوشاک مردانه و زنانه، کیف و کفش', color: '#ec4899', productCount: 2, parent: '' },
-  { id: '3', name: 'خانه و آشپزخانه', slug: 'home-kitchen', description: 'لوازم آشپزخانه و دکوراسیون منزل', color: '#f59e0b', productCount: 1, parent: '' },
-  { id: '4', name: 'لوازم ورزشی', slug: 'sports-equipment', description: 'لوازم ورزشی و تناسب اندام', color: '#10b981', productCount: 1, parent: '' },
-  { id: '5', name: 'کتاب و لوازم التحریر', slug: 'books-stationery', description: 'کتاب، لوازم‌التحریر و مقالات', color: '#06b6d4', productCount: 1, parent: '' },
-  { id: '6', name: 'زیبایی و بهداشت', slug: 'beauty-health', description: 'لوازم آرایشی، بهداشتی و مراقبت از پوست', color: '#f43f5e', productCount: 1, parent: '' },
-  { id: '7', name: 'مواد غذایی', slug: 'food-grocery', description: 'مواد غذایی، خشکبار و نوشیدنی', color: '#84cc16', productCount: 1, parent: '' },
-  { id: '8', name: 'اسباب بازی', slug: 'toys-games', description: 'اسباب‌بازی، بازی و سرگرمی کودکان', color: '#f97316', productCount: 1, parent: '' },
+  { id: 'c1', name: 'لوازم الکترونیکی', slug: 'electronics', description: 'گوشی، لپ‌تاپ، تبلت و لوازم جانبی', image: '💻', parentId: null, productCount: 4 },
+  { id: 'c2', name: 'گوشی موبایل', slug: 'mobile-phones', description: 'انواع گوشی موبایل', image: '📱', parentId: 'c1', productCount: 1 },
+  { id: 'c3', name: 'لپ‌تاپ و کامپیوتر', slug: 'laptops-computers', description: 'لپ‌تاپ و کامپیوترهای رومیزی', image: '💻', parentId: 'c1', productCount: 1 },
+  { id: 'c4', name: 'پوشاک و مد', slug: 'clothing-fashion', description: 'پوشاک مردانه و زنانه', image: '👔', parentId: null, productCount: 3 },
+  { id: 'c5', name: 'پوشاک مردانه', slug: 'mens-clothing', description: 'پیراهن، شلوار و کفش مردانه', image: '👔', parentId: 'c4', productCount: 1 },
+  { id: 'c6', name: 'پوشاک زنانه', slug: 'womens-clothing', description: 'مانتو، بلوز و کیف زنانه', image: '👗', parentId: 'c4', productCount: 1 },
+  { id: 'c7', name: 'مواد غذایی و آشامیدنی', slug: 'food-beverages', description: 'مواد غذایی و نوشیدنی‌ها', image: '🍯', parentId: null, productCount: 3 },
+  { id: 'c8', name: 'خانه و دکوراسیون', slug: 'home-decoration', description: 'لوازم خانه و دکوراسیون', image: '🏠', parentId: null, productCount: 2 },
+  { id: 'c9', name: 'زیبایی و بهداشت', slug: 'beauty-health', description: 'محصولات آرایشی و بهداشتی', image: '✨', parentId: null, productCount: 1 },
+  { id: 'c10', name: 'کتاب و لوازم تحریر', slug: 'books-stationery', description: 'کتاب، دفتر و لوازم‌التحریر', image: '📖', parentId: null, productCount: 1 },
+  { id: 'c11', name: 'ورزش و سفر', slug: 'sports-travel', description: 'لوازم ورزشی و سفر', image: '🏋️', parentId: null, productCount: 1 },
+  { id: 'c12', name: 'اسباب‌بازی', slug: 'toys', description: 'اسباب‌بازی و بازی‌های فکری', image: '🧸', parentId: null, productCount: 0 },
 ]
 
-const initialTags: StoreTag[] = [
-  { id: '1', name: 'ویژه تخفیف', count: 6 },
-  { id: '2', name: 'پرفروش', count: 5 },
-  { id: '3', name: 'جدید', count: 5 },
-  { id: '4', name: 'محبوب', count: 4 },
-  { id: '5', name: 'ارسال رایگان', count: 3 },
-  { id: '6', name: 'گارانتی اصلی', count: 4 },
-  { id: '7', name: 'اورجینال', count: 3 },
-  { id: '8', name: 'ضد آب', count: 2 },
+const initialTags: Tag[] = [
+  { id: 't1', name: 'تخفیف ویژه', slug: 'special-discount', productCount: 7 },
+  { id: 't2', name: 'پرفروش', slug: 'bestseller', productCount: 5 },
+  { id: 't3', name: 'جدید', slug: 'new', productCount: 4 },
+  { id: 't4', name: 'محدود', slug: 'limited', productCount: 3 },
+  { id: 't5', name: 'ویژه زمستان', slug: 'winter-special', productCount: 1 },
+  { id: 't6', name: 'ارسال رایگان', slug: 'free-shipping', productCount: 3 },
 ]
 
-const emptyProduct: Omit<Product, 'id'> = {
-  name: '', slug: '', sku: '', price: 0, salePrice: 0,
-  category: 'الکترونیک و دیجیتال', tags: [], stock: 0, maxStock: 100,
-  status: 'draft', description: '', emoji: '📦', date: '0',
+const initialCoupons: Coupon[] = [
+  { id: 'cp1', code: 'WINTER20', type: 'percent', value: 20, minOrder: 500000, maxDiscount: 2000000, usedCount: 145, maxUsage: 500, startDate: '۱۴۰۳/۰۹/۰۱', expiryDate: '۱۴۰۳/۱۱/۳۰', allowedProducts: '', allowedCategories: 'همه', active: true },
+  { id: 'cp2', code: 'FIRST50', type: 'fixed', value: 500000, minOrder: 2000000, maxDiscount: 500000, usedCount: 89, maxUsage: 200, startDate: '۱۴۰۳/۰۱/۰۱', expiryDate: '۱۴۰۴/۰۱/۰۱', allowedProducts: '', allowedCategories: 'همه', active: true },
+  { id: 'cp3', code: 'FREEDELIVERY', type: 'fixed', value: 0, minOrder: 1000000, maxDiscount: 100000, usedCount: 312, maxUsage: 0, startDate: '۱۴۰۳/۰۶/۰۱', expiryDate: '۱۴۰۳/۱۲/۲۹', allowedProducts: '', allowedCategories: 'همه', active: true },
+  { id: 'cp4', code: 'VIP30', type: 'percent', value: 30, minOrder: 5000000, maxDiscount: 5000000, usedCount: 23, maxUsage: 50, startDate: '۱۴۰۳/۰۸/۰۱', expiryDate: '۱۴۰۳/۱۰/۳۰', allowedProducts: '', allowedCategories: 'لوازم الکترونیکی', active: true },
+  { id: 'cp5', code: 'SUMMER15', type: 'percent', value: 15, minOrder: 300000, maxDiscount: 1000000, usedCount: 0, maxUsage: 1000, startDate: '۱۴۰۴/۰۴/۰۱', expiryDate: '۱۴۰۴/۰۶/۳۱', allowedProducts: '', allowedCategories: 'پوشاک و مد', active: false },
+  { id: 'cp6', code: 'BOOK10', type: 'percent', value: 10, minOrder: 100000, maxDiscount: 200000, usedCount: 67, maxUsage: 300, startDate: '۱۴۰۳/۰۵/۰۱', expiryDate: '۱۴۰۴/۰۵/۳۱', allowedProducts: '', allowedCategories: 'کتاب و لوازم تحریر', active: true },
+  { id: 'cp7', code: 'SPRING25', type: 'percent', value: 25, minOrder: 1000000, maxDiscount: 3000000, usedCount: 178, maxUsage: 400, startDate: '۱۴۰۳/۰۱/۰۱', expiryDate: '۱۴۰۳/۰۳/۳۱', allowedProducts: '', allowedCategories: 'همه', active: false },
+  { id: 'cp8', code: 'LOYALTY100', type: 'fixed', value: 1000000, minOrder: 8000000, maxDiscount: 1000000, usedCount: 12, maxUsage: 100, startDate: '۱۴۰۳/۰۷/۰۱', expiryDate: '۱۴۰۴/۰۶/۳۱', allowedProducts: '', allowedCategories: 'همه', active: true },
+  { id: 'cp9', code: 'BEAUTY5', type: 'percent', value: 5, minOrder: 200000, maxDiscount: 500000, usedCount: 95, maxUsage: 0, startDate: '۱۴۰۳/۰۳/۰۱', expiryDate: '۱۴۰۴/۰۲/۳۰', allowedProducts: '', allowedCategories: 'زیبایی و بهداشت', active: true },
+]
+
+const initialSettings: StoreSettings = {
+  storeName: 'فروشگاه آنلاین مگامارکت',
+  storeAddress: 'تهران، خیابان ولیعصر، پلاک ۱۰۰',
+  country: 'ایران',
+  province: 'تهران',
+  city: 'تهران',
+  postalCode: '۱۲۳۴۵۶۷۸۹۰',
+  currency: 'تومان',
+  shippingMethod: 'پست پیشتاز',
+  shippingCost: 50000,
+  freeShippingMin: 1000000,
+  paymentZarinpal: true,
+  paymentIdpay: true,
+  paymentNextpay: false,
+  paymentCod: true,
+  taxEnabled: true,
+  taxRate: 9,
+  taxExemptRegions: 'مناطق آزاد تجاری، کیش',
+  productsPerPage: 12,
+  showStock: true,
+  showTags: true,
 }
 
-const emptyCategory: Omit<Category, 'id'> = {
-  name: '', slug: '', description: '', color: '#6366f1', productCount: 0, parent: '',
+// ─── Empty Templates ───────────────────────────────────────────────────────
+
+const emptyProduct: Omit<Product, 'id' | 'createdAt'> = {
+  name: '', slug: '', shortDesc: '', fullDesc: '', price: 0, salePrice: 0,
+  sku: '', stock: 0, minStock: 5, category: 'لوازم الکترونیکی', tags: [],
+  image: '📦', gallery: [], status: 'draft', weight: 0, dimensions: '',
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+const emptyCategory: Omit<Category, 'id' | 'productCount'> = {
+  name: '', slug: '', description: '', image: '📁', parentId: null,
+}
+
+const emptyTag: Omit<Tag, 'id' | 'productCount'> = {
+  name: '', slug: '',
+}
+
+const emptyCoupon: Omit<Coupon, 'id'> = {
+  code: '', type: 'percent', value: 0, minOrder: 0, maxDiscount: 0,
+  usedCount: 0, maxUsage: 0, startDate: '', expiryDate: '',
+  allowedProducts: '', allowedCategories: '', active: true,
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function StorePage() {
-  const [activeTab, setActiveTab] = useState<string>('products')
-
-  // Products state
+  // ── Products State ──
   const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [prodSearch, setProdSearch] = useState('')
-  const [prodCatFilter, setProdCatFilter] = useState('all')
-  const [prodStatusFilter, setProdStatusFilter] = useState('all')
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set())
+  const [productSearch, setProductSearch] = useState('')
+  const [productCategoryFilter, setProductCategoryFilter] = useState('all')
+  const [productStatusFilter, setProductStatusFilter] = useState('all')
+  const [productSelected, setProductSelected] = useState<Set<string>>(new Set())
   const [productDialogOpen, setProductDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [productForm, setProductForm] = useState<Omit<Product, 'id'>>(emptyProduct)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deletingType, setDeletingType] = useState<'product' | 'category'>('product')
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [productForm, setProductForm] = useState<Omit<Product, 'id' | 'createdAt'>>(emptyProduct)
+  const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false)
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
 
-  // Orders state
+  // ── Orders State ──
   const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [orderSearch, setOrderSearch] = useState('')
   const [orderStatusFilter, setOrderStatusFilter] = useState('all')
-  const [orderDialogOpen, setOrderDialogOpen] = useState(false)
-  const [viewingOrder, setViewingOrder] = useState<Order | null>(null)
-  const [orderNote, setOrderNote] = useState('')
-  const [orderNewStatus, setOrderNewStatus] = useState<OrderStatus>('pending')
+  const [orderDetailOpen, setOrderDetailOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
-  // Categories state
+  // ── Categories State ──
   const [categories, setCategories] = useState<Category[]>(initialCategories)
-  const [catDialogOpen, setCatDialogOpen] = useState(false)
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
-  const [catForm, setCatForm] = useState<Omit<Category, 'id'>>(emptyCategory)
+  const [categoryForm, setCategoryForm] = useState<Omit<Category, 'id' | 'productCount'>>(emptyCategory)
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false)
+  const [deletingCategoryId, setDeletingCategoryId] = useState<string | null>(null)
 
-  // Tags state
-  const [tags, setTags] = useState<StoreTag[]>(initialTags)
-  const [tagSearch, setTagSearch] = useState('')
-  const [newTagName, setNewTagName] = useState('')
+  // ── Tags State ──
+  const [tags, setTags] = useState<Tag[]>(initialTags)
+  const [tagDialogOpen, setTagDialogOpen] = useState(false)
+  const [editingTag, setEditingTag] = useState<Tag | null>(null)
+  const [tagForm, setTagForm] = useState<Omit<Tag, 'id' | 'productCount'>>(emptyTag)
+  const [tagSelected, setTagSelected] = useState<Set<string>>(new Set())
+  const [deleteTagDialogOpen, setDeleteTagDialogOpen] = useState(false)
 
-  // Settings state
-  const [settings, setSettings] = useState({
-    storeName: 'فروشگاه من',
-    storeDesc: 'بهترین محصولات با کیفیت عالی و قیمت مناسب',
-    storeUrl: 'https://myshop.ir',
-    storeEmail: 'info@myshop.ir',
-    gateway: 'zarinpal',
-    testMode: false,
-    apiKey: '',
-    shippingMethod: 'post',
-    freeShippingThreshold: 500000,
-    deliveryDays: '۳ تا ۵ روز کاری',
-    taxEnabled: false,
-    taxRate: 9,
-    taxByProvince: false,
-    currency: 'toman',
-    currencySymbol: 'تومان',
-    symbolPosition: 'after',
-  })
+  // ── Coupons State ──
+  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
+  const [couponDialogOpen, setCouponDialogOpen] = useState(false)
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null)
+  const [couponForm, setCouponForm] = useState<Omit<Coupon, 'id'>>(emptyCoupon)
 
-  // ─── Tab config ─────────────────────────────────────────────────────────
+  // ── Settings State ──
+  const [settings, setSettings] = useState<StoreSettings>(initialSettings)
 
-  const tabs = [
-    { id: 'products', label: tabLabels.products, icon: Package, color: 'text-rose-600 dark:text-rose-400' },
-    { id: 'orders', label: tabLabels.orders, icon: ShoppingCart, color: 'text-blue-600 dark:text-blue-400' },
-    { id: 'categories', label: tabLabels.categories, icon: FolderOpen, color: 'text-amber-600 dark:text-amber-400' },
-    { id: 'tags', label: tabLabels.tags, icon: Tag, color: 'text-emerald-600 dark:text-emerald-400' },
-    { id: 'settings', label: tabLabels.settings, icon: Settings, color: 'text-slate-600 dark:text-slate-400' },
-  ]
+  // ── Quick Stats ──
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length
+  const monthRevenue = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0)
+  const avgOrder = orders.length > 0 ? Math.round(orders.reduce((sum, o) => sum + o.total, 0) / orders.length) : 0
 
-  // ─── Product Helpers ─────────────────────────────────────────────────────
+  // ── Product Helpers ──
+  const categoryNames = useMemo(() => [...new Set(categories.map(c => c.name))], [categories])
 
-  const categoryList = categories.map(c => c.name)
-
-  const filteredProducts = products.filter(p => {
-    const matchSearch = p.name.includes(prodSearch) || p.sku.includes(prodSearch)
-    const matchCat = prodCatFilter === 'all' || p.category === prodCatFilter
-    const matchStatus = prodStatusFilter === 'all' || p.status === prodStatusFilter
-    return matchSearch && matchCat && matchStatus
-  })
-
-  const allProductsSelected = filteredProducts.length > 0 && filteredProducts.every(p => selectedProducts.has(p.id))
-  const someProductsSelected = filteredProducts.some(p => selectedProducts.has(p.id)) && !allProductsSelected
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const matchSearch = !productSearch || p.name.includes(productSearch) || p.sku.includes(productSearch)
+      const matchCategory = productCategoryFilter === 'all' || p.category === productCategoryFilter
+      const matchStatus = productStatusFilter === 'all' || p.status === productStatusFilter
+      return matchSearch && matchCategory && matchStatus
+    })
+  }, [products, productSearch, productCategoryFilter, productStatusFilter])
 
   const toggleProductSelect = (id: string) => {
-    setSelectedProducts(prev => {
+    setProductSelected(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
@@ -303,334 +374,661 @@ export default function StorePage() {
     })
   }
 
-  const toggleAllProducts = () => {
-    if (allProductsSelected) {
-      setSelectedProducts(prev => {
-        const next = new Set(prev)
-        filteredProducts.forEach(p => next.delete(p.id))
-        return next
-      })
+  const toggleProductSelectAll = () => {
+    if (productSelected.size === filteredProducts.length) {
+      setProductSelected(new Set())
     } else {
-      setSelectedProducts(prev => {
-        const next = new Set(prev)
-        filteredProducts.forEach(p => next.add(p.id))
-        return next
-      })
+      setProductSelected(new Set(filteredProducts.map(p => p.id)))
     }
   }
 
-  const generateSlug = (name: string) => {
-    return name.trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9آ-ی۰-۹\-]/g, '').toLowerCase()
-  }
-
-  const openCreateProduct = () => {
-    setEditingProduct(null)
-    setProductForm({ ...emptyProduct })
-    setProductDialogOpen(true)
-  }
-
-  const openEditProduct = (p: Product) => {
-    setEditingProduct(p)
-    setProductForm({ name: p.name, slug: p.slug, sku: p.sku, price: p.price, salePrice: p.salePrice, category: p.category, tags: [...p.tags], stock: p.stock, maxStock: p.maxStock, status: p.status, description: p.description, emoji: p.emoji, date: p.date })
-    setProductDialogOpen(true)
-  }
-
-  const handleSaveProduct = () => {
+  const handleProductSave = () => {
     if (!productForm.name) return
     if (editingProduct) {
       setProducts(prev => prev.map(p => p.id === editingProduct.id ? { ...p, ...productForm } : p))
       toast.success('محصول با موفقیت بروزرسانی شد')
     } else {
-      setProducts(prev => [...prev, { ...productForm, id: Date.now().toString() }])
+      const newProduct: Product = { ...productForm, id: Date.now().toString(), createdAt: '۱۴۰۳/۰۹/۲۰' }
+      setProducts(prev => [...prev, newProduct])
       toast.success('محصول جدید با موفقیت ایجاد شد')
     }
     setProductDialogOpen(false)
   }
 
-  const handleBulkPublish = () => {
-    setProducts(prev => prev.map(p => selectedProducts.has(p.id) ? { ...p, status: 'published' as ProductStatus } : p))
-    toast.success(`${toPersianDigits(selectedProducts.size)} محصول منتشر شد`)
-    setSelectedProducts(new Set())
+  const handleProductDelete = () => {
+    if (!deletingProductId) return
+    setProducts(prev => prev.filter(p => p.id !== deletingProductId))
+    setDeleteProductDialogOpen(false)
+    setDeletingProductId(null)
+    toast.success('محصول با موفقیت حذف شد')
   }
 
-  const handleBulkDeleteProducts = () => {
-    setProducts(prev => prev.filter(p => !selectedProducts.has(p.id)))
-    toast.success(`${toPersianDigits(selectedProducts.size)} محصول حذف شد`)
-    setSelectedProducts(new Set())
-    setDeleteDialogOpen(false)
+  const handleBulkAction = (action: string) => {
+    if (productSelected.size === 0) {
+      toast.error('لطفاً حداقل یک محصول انتخاب کنید')
+      return
+    }
+    if (action === 'delete') {
+      setProducts(prev => prev.filter(p => !productSelected.has(p.id)))
+      toast.success(`${toPersianDigits(productSelected.size)} محصول حذف شد`)
+    } else if (action === 'active') {
+      setProducts(prev => prev.map(p => productSelected.has(p.id) ? { ...p, status: 'active' } : p))
+      toast.success(`${toPersianDigits(productSelected.size)} محصول فعال شد`)
+    } else if (action === 'inactive') {
+      setProducts(prev => prev.map(p => productSelected.has(p.id) ? { ...p, status: 'inactive' } : p))
+      toast.success(`${toPersianDigits(productSelected.size)} محصول غیرفعال شد`)
+    } else if (action === 'draft') {
+      setProducts(prev => prev.map(p => productSelected.has(p.id) ? { ...p, status: 'draft' } : p))
+      toast.success(`${toPersianDigits(productSelected.size)} محصول به پیش‌نویس تغییر یافت`)
+    }
+    setProductSelected(new Set())
   }
 
-  const getStockColor = (stock: number, max: number) => {
-    const ratio = max > 0 ? stock / max : 0
-    if (stock === 0) return 'bg-red-500'
-    if (ratio < 0.2) return 'bg-red-500'
-    if (ratio < 0.5) return 'bg-amber-500'
-    return 'bg-green-500'
+  const openProductCreate = () => {
+    setEditingProduct(null)
+    setProductForm(emptyProduct)
+    setProductDialogOpen(true)
   }
 
-  const getStockTextColor = (stock: number, max: number) => {
-    const ratio = max > 0 ? stock / max : 0
-    if (stock === 0) return 'text-red-600 dark:text-red-400'
-    if (ratio < 0.2) return 'text-red-600 dark:text-red-400'
-    if (ratio < 0.5) return 'text-amber-600 dark:text-amber-400'
-    return 'text-green-600 dark:text-green-400'
+  const openProductEdit = (product: Product) => {
+    setEditingProduct(product)
+    const { id, createdAt, ...rest } = product
+    setProductForm(rest)
+    setProductDialogOpen(true)
   }
 
-  // ─── Order Helpers ───────────────────────────────────────────────────────
+  // ── Order Helpers ──
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      const matchSearch = !orderSearch || o.orderNumber.includes(orderSearch) || o.customer.includes(orderSearch)
+      const matchStatus = orderStatusFilter === 'all' || o.status === orderStatusFilter
+      return matchSearch && matchStatus
+    })
+  }, [orders, orderSearch, orderStatusFilter])
 
-  const filteredOrders = orders.filter(o => orderStatusFilter === 'all' || o.status === orderStatusFilter)
-
-  const openViewOrder = (order: Order) => {
-    setViewingOrder(order)
-    setOrderNewStatus(order.status)
-    setOrderNote(order.note)
-    setOrderDialogOpen(true)
+  const openOrderDetail = (order: Order) => {
+    setSelectedOrder(order)
+    setOrderDetailOpen(true)
   }
 
-  const handleSaveOrderStatus = () => {
-    if (!viewingOrder) return
-    setOrders(prev => prev.map(o => o.id === viewingOrder.id ? { ...o, status: orderNewStatus, note: orderNote } : o))
+  const handleOrderStatusChange = (orderId: string, newStatus: Order['status']) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
     toast.success('وضعیت سفارش بروزرسانی شد')
-    setOrderDialogOpen(false)
   }
 
-  const orderStatusTabs = ['all', 'pending', 'processing', 'shipped', 'completed', 'cancelled'] as const
-  const orderStatusTabLabels: Record<string, string> = {
-    all: 'همه',
-    pending: 'در انتظار',
-    processing: 'پردازش',
-    shipped: 'ارسال شده',
-    completed: 'تکمیل شده',
-    cancelled: 'لغو شده',
-  }
-
-  // ─── Category Helpers ────────────────────────────────────────────────────
-
-  const openCreateCategory = () => {
+  // ── Category Helpers ──
+  const openCategoryCreate = () => {
     setEditingCategory(null)
-    setCatForm({ ...emptyCategory })
-    setCatDialogOpen(true)
+    setCategoryForm(emptyCategory)
+    setCategoryDialogOpen(true)
   }
 
-  const openEditCategory = (c: Category) => {
-    setEditingCategory(c)
-    setCatForm({ name: c.name, slug: c.slug, description: c.description, color: c.color, productCount: c.productCount, parent: c.parent })
-    setCatDialogOpen(true)
+  const openCategoryEdit = (cat: Category) => {
+    setEditingCategory(cat)
+    const { id, productCount, ...rest } = cat
+    setCategoryForm(rest)
+    setCategoryDialogOpen(true)
   }
 
-  const handleSaveCategory = () => {
-    if (!catForm.name) return
+  const handleCategorySave = () => {
+    if (!categoryForm.name) return
+    const slug = categoryForm.slug || generateSlug(categoryForm.name)
     if (editingCategory) {
-      setCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...c, ...catForm } : c))
+      setCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...c, ...categoryForm, slug } : c))
       toast.success('دسته‌بندی بروزرسانی شد')
     } else {
-      setCategories(prev => [...prev, { ...catForm, id: Date.now().toString() }])
+      const newCat: Category = { ...categoryForm, slug, id: Date.now().toString(), productCount: 0 }
+      setCategories(prev => [...prev, newCat])
       toast.success('دسته‌بندی جدید ایجاد شد')
     }
-    setCatDialogOpen(false)
+    setCategoryDialogOpen(false)
   }
 
-  // ─── Tag Helpers ────────────────────────────────────────────────────────
-
-  const filteredTags = tags.filter(t => t.name.includes(tagSearch))
-
-  const handleAddTag = () => {
-    const name = newTagName.trim()
-    if (!name) return
-    if (tags.some(t => t.name === name)) { toast.error('این برچسب قبلاً وجود دارد'); return }
-    setTags(prev => [...prev, { id: Date.now().toString(), name, count: 0 }])
-    setNewTagName('')
-    toast.success('برچسب جدید اضافه شد')
+  const handleCategoryDelete = () => {
+    if (!deletingCategoryId) return
+    setCategories(prev => prev.filter(c => c.id !== deletingCategoryId))
+    setDeleteCategoryDialogOpen(false)
+    setDeletingCategoryId(null)
+    toast.success('دسته‌بندی حذف شد')
   }
 
-  const handleDeleteTag = (id: string) => {
-    setTags(prev => prev.filter(t => t.id !== id))
-    toast.success('برچسب حذف شد')
+  const getCategoryDepth = (catId: string): number => {
+    let depth = 0
+    let current = categories.find(c => c.id === catId)
+    while (current?.parentId) {
+      depth++
+      current = categories.find(c => c.id === current!.parentId)
+    }
+    return depth
   }
 
-  // ─── Settings Helpers ───────────────────────────────────────────────────
+  // ── Tag Helpers ──
+  const openTagCreate = () => {
+    setEditingTag(null)
+    setTagForm(emptyTag)
+    setTagDialogOpen(true)
+  }
+
+  const openTagEdit = (tag: Tag) => {
+    setEditingTag(tag)
+    const { id, productCount, ...rest } = tag
+    setTagForm(rest)
+    setTagDialogOpen(true)
+  }
+
+  const handleTagSave = () => {
+    if (!tagForm.name) return
+    const slug = tagForm.slug || generateSlug(tagForm.name)
+    if (editingTag) {
+      setTags(prev => prev.map(t => t.id === editingTag.id ? { ...t, ...tagForm, slug } : t))
+      toast.success('برچسب بروزرسانی شد')
+    } else {
+      const newTag: Tag = { ...tagForm, slug, id: Date.now().toString(), productCount: 0 }
+      setTags(prev => [...prev, newTag])
+      toast.success('برچسب جدید ایجاد شد')
+    }
+    setTagDialogOpen(false)
+  }
+
+  const toggleTagSelect = (id: string) => {
+    setTagSelected(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleTagBulkDelete = () => {
+    if (tagSelected.size === 0) {
+      toast.error('لطفاً حداقل یک برچسب انتخاب کنید')
+      return
+    }
+    setTags(prev => prev.filter(t => !tagSelected.has(t.id)))
+    toast.success(`${toPersianDigits(tagSelected.size)} برچسب حذف شد`)
+    setTagSelected(new Set())
+  }
+
+  // ── Coupon Helpers ──
+  const openCouponCreate = () => {
+    setEditingCoupon(null)
+    setCouponForm(emptyCoupon)
+    setCouponDialogOpen(true)
+  }
+
+  const openCouponEdit = (coupon: Coupon) => {
+    setEditingCoupon(coupon)
+    const { id, ...rest } = coupon
+    setCouponForm(rest)
+    setCouponDialogOpen(true)
+  }
+
+  const handleCouponSave = () => {
+    if (!couponForm.code) return
+    if (editingCoupon) {
+      setCoupons(prev => prev.map(c => c.id === editingCoupon.id ? { ...c, ...couponForm } : c))
+      toast.success('کوپن بروزرسانی شد')
+    } else {
+      const newCoupon: Coupon = { ...couponForm, id: Date.now().toString() }
+      setCoupons(prev => [...prev, newCoupon])
+      toast.success('کوپن جدید ایجاد شد')
+    }
+    setCouponDialogOpen(false)
+  }
+
+  const toggleCouponActive = (couponId: string) => {
+    setCoupons(prev => prev.map(c => c.id === couponId ? { ...c, active: !c.active } : c))
+    toast.success('وضعیت کوپن تغییر کرد')
+  }
+
+  // ── Settings Helpers ──
+  const updateSettings = (key: keyof StoreSettings, value: string | number | boolean) => {
+    setSettings(prev => ({ ...prev, [key]: value }))
+  }
 
   const handleSaveSettings = () => {
-    toast.success('تنظیمات با موفقیت ذخیره شد')
+    toast.success('تنظیمات فروشگاه ذخیره شد')
   }
 
-  // ─── Stats ───────────────────────────────────────────────────────────────
-
-  const publishedCount = products.filter(p => p.status === 'published').length
-  const draftCount = products.filter(p => p.status === 'draft').length
-  const lowStockCount = products.filter(p => p.stock > 0 && p.stock < p.maxStock * 0.2).length
-
-  const pendingOrders = orders.filter(o => o.status === 'pending').length
-  const processingOrders = orders.filter(o => o.status === 'processing').length
-  const completedOrders = orders.filter(o => o.status === 'completed').length
-
-  // ─── Render ──────────────────────────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+  // RENDER
+  // ══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div dir="rtl" className="space-y-6 p-4 md:p-6 page-enter content-area">
+    <div className="space-y-6 p-4 md:p-6 page-enter">
       {/* ─── Header ─── */}
-      <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
-        <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 via-pink-500/5 to-orange-500/10 pointer-events-none" />
-        <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-rose-400/10 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-orange-400/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-lg shadow-rose-500/25 animate-in">
-              <Store className="h-7 w-7 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold gradient-text">مدیریت فروشگاه</h1>
-              <p className="text-sm text-muted-foreground mt-1 animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>مدیریت محصولات، سفارشات و تنظیمات فروشگاه</p>
-            </div>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold gradient-text">مدیریت فروشگاه</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">مدیریت کامل محصولات، سفارشات و تنظیمات فروشگاه</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="gap-1.5 text-xs">
+            <Store className="h-3.5 w-3.5 text-pink-500" />
+            ووکامرس فارسی
+          </Badge>
         </div>
       </div>
 
-      {/* ─── Tab Bar ─── */}
-      <div className="flex gap-1 p-1 bg-muted/50 rounded-xl overflow-x-auto animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-        {tabs.map(tab => {
-          const Icon = tab.icon
-          const isActive = activeTab === tab.id
-          return (
-            <Button
-              key={tab.id}
-              variant="ghost"
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 min-w-0 gap-2 rounded-lg h-11 text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                isActive
-                  ? 'bg-background shadow-sm text-foreground hover:bg-background'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
-              }`}
-            >
-              <Icon className={`h-4 w-4 shrink-0 ${isActive ? tab.color : ''}`} />
-              <span className="hidden sm:inline truncate">{tab.label}</span>
-            </Button>
-          )
-        })}
+      {/* ─── Quick Stats ─── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'کل محصولات', value: toPersianDigits(products.length), icon: Package, gradient: 'from-pink-400 to-rose-500', shadow: 'shadow-pink-500/25', textColor: 'text-pink-600 dark:text-pink-400' },
+          { label: 'سفارشات در انتظار', value: toPersianDigits(pendingOrders), icon: Clock, gradient: 'from-amber-400 to-orange-500', shadow: 'shadow-amber-500/25', textColor: 'text-amber-600 dark:text-amber-400' },
+          { label: 'درآمد ماه جاری', value: `${formatPrice(monthRevenue)} تومان`, icon: DollarSign, gradient: 'from-emerald-400 to-green-500', shadow: 'shadow-emerald-500/25', textColor: 'text-emerald-600 dark:text-emerald-400' },
+          { label: 'میانگین سفارش', value: `${formatPrice(avgOrder)} تومان`, icon: BarChart3, gradient: 'from-violet-400 to-purple-500', shadow: 'shadow-violet-500/25', textColor: 'text-violet-600 dark:text-violet-400' },
+        ].map((stat, i) => (
+          <Card key={stat.label} className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-md ${stat.shadow} shrink-0`}>
+                <stat.icon className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-muted-foreground">{stat.label}</p>
+                <p className={`text-lg font-bold tabular-nums ${stat.textColor}`}>{stat.value}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── PRODUCTS TAB ───────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'products' && (
-        <div className="space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* ─── Main Tabs ─── */}
+      <Tabs defaultValue="products" className="w-full" dir="rtl">
+        <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md py-2 -mx-4 px-4 md:-mx-6 md:px-6 border-b">
+          <TabsList className="w-full sm:w-auto flex flex-wrap h-auto gap-1 p-1">
             {[
-              { label: 'کل محصولات', value: toPersianDigits(products.length), icon: Package, gradient: 'from-slate-400 to-slate-600', textColor: 'text-slate-600 dark:text-slate-400' },
-              { label: 'منتشر شده', value: toPersianDigits(publishedCount), icon: CheckCircle, gradient: 'from-emerald-400 to-emerald-600', textColor: 'text-emerald-600 dark:text-emerald-400' },
-              { label: 'پیش‌نویس', value: toPersianDigits(draftCount), icon: FileEdit, gradient: 'from-amber-400 to-amber-600', textColor: 'text-amber-600 dark:text-amber-400' },
-              { label: 'موجودی کم', value: toPersianDigits(lowStockCount), icon: AlertTriangle, gradient: 'from-rose-400 to-rose-600', textColor: 'text-rose-600 dark:text-rose-400' },
-            ].map((stat, i) => (
-              <Card key={stat.label} className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300 animate-in" style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-md shrink-0`}>
-                    <stat.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`text-xl font-bold tabular-nums ${stat.textColor}`}>{stat.value}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{stat.label}</p>
-                  </div>
+              { value: 'products', label: 'محصولات', icon: Package, count: products.length },
+              { value: 'orders', label: 'سفارشات', icon: ShoppingCart, count: orders.length },
+              { value: 'categories', label: 'دسته‌بندی‌ها', icon: FolderOpen, count: categories.length },
+              { value: 'tags', label: 'برچسب‌ها', icon: Tag, count: tags.length },
+              { value: 'coupons', label: 'کوپن‌ها', icon: Gift, count: coupons.length },
+              { value: 'settings', label: 'تنظیمات', icon: Settings, count: 0 },
+            ].map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-pink-500 data-[state=active]:to-rose-500 data-[state=active]:text-white data-[state=active]:shadow-md">
+                <tab.icon className="h-4 w-4" />
+                <span>{tab.label}</span>
+                {tab.count > 0 && (
+                  <Badge variant="secondary" className="h-5 px-1.5 text-[10px] data-[state=active]:bg-white/20 data-[state=active]:text-white">
+                    {toPersianDigits(tab.count)}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
+
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 1: PRODUCTS                                                     */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="products" className="space-y-4 mt-4">
+          {/* Tab Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'کل', value: products.length, color: 'text-foreground' },
+              { label: 'فعال', value: products.filter(p => p.status === 'active').length, color: 'text-emerald-600 dark:text-emerald-400' },
+              { label: 'غیرفعال', value: products.filter(p => p.status === 'inactive').length, color: 'text-gray-600 dark:text-gray-400' },
+              { label: 'پیش‌نویس', value: products.filter(p => p.status === 'draft').length, color: 'text-amber-600 dark:text-amber-400' },
+            ].map(s => (
+              <Card key={s.label} className="glass-card shadow-sm">
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold tabular-nums ${s.color}`}>{toPersianDigits(s.value)}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Toolbar */}
-          <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="جستجو در محصولات..." value={prodSearch} onChange={e => setProdSearch(e.target.value)} className="pr-10" />
+          {/* Filters & Actions Bar */}
+          <Card className="glass-card-pink shadow-sm">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                {/* Search */}
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="جستجو نام محصول یا SKU..."
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    className="pr-10"
+                  />
+                </div>
+                {/* Category Filter */}
+                <Select value={productCategoryFilter} onValueChange={setProductCategoryFilter}>
+                  <SelectTrigger className="w-full sm:w-44">
+                    <SelectValue placeholder="دسته‌بندی" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
+                    {categoryNames.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Status Filter */}
+                <Select value={productStatusFilter} onValueChange={setProductStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-36">
+                    <SelectValue placeholder="وضعیت" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">همه وضعیت‌ها</SelectItem>
+                    <SelectItem value="active">فعال</SelectItem>
+                    <SelectItem value="inactive">غیرفعال</SelectItem>
+                    <SelectItem value="draft">پیش‌نویس</SelectItem>
+                  </SelectContent>
+                </Select>
+                {/* Add Button */}
+                <Button
+                  className="gap-2 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md whitespace-nowrap"
+                  onClick={openProductCreate}
+                >
+                  <Plus className="h-4 w-4" />
+                  افزودن محصول
+                </Button>
               </div>
-              <Select value={prodCatFilter} onValueChange={setProdCatFilter}>
-                <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="دسته‌بندی" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">همه دسته‌بندی‌ها</SelectItem>
-                  {categoryList.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={prodStatusFilter} onValueChange={setProdStatusFilter}>
-                <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="وضعیت" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">همه</SelectItem>
-                  <SelectItem value="published">منتشر شده</SelectItem>
-                  <SelectItem value="draft">پیش‌نویس</SelectItem>
-                  <SelectItem value="hidden">مخفی</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button className="gap-2 bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm shrink-0" onClick={openCreateProduct}>
-                <Plus className="h-4 w-4" />افزودن محصول
-              </Button>
+              {/* Bulk Actions */}
+              {productSelected.size > 0 && (
+                <div className="flex items-center gap-3 p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg border border-pink-200 dark:border-pink-800">
+                  <span className="text-sm text-pink-700 dark:text-pink-300 font-medium">
+                    {toPersianDigits(productSelected.size)} محصول انتخاب شده
+                  </span>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="gap-1 text-xs">
+                        <Filter className="h-3.5 w-3.5" />
+                        اقدام دسته‌جمعی
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>انتخاب bulk</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleBulkAction('delete')} className="text-red-600 dark:text-red-400">
+                        <Trash2 className="h-4 w-4" /> حذف
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkAction('active')}>
+                        <CheckCircle2 className="h-4 w-4" /> تغییر وضعیت به فعال
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkAction('inactive')}>
+                        <XCircle className="h-4 w-4" /> غیرفعال
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkAction('draft')}>
+                        <Archive className="h-4 w-4" /> پیش‌نویس
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setProductSelected(new Set())}>
+                    لغو انتخاب
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Products Table */}
-          <Card className="glass-card shadow-sm overflow-hidden animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+          <Card className="glass-card shadow-sm">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="w-10 p-3">
+                        <Checkbox
+                          checked={productSelected.size === filteredProducts.length && filteredProducts.length > 0}
+                          onCheckedChange={toggleProductSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">تصویر</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">نام محصول</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">SKU</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">قیمت</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">موجودی</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">وضعیت</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">دسته‌بندی</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">تاریخ</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map(product => {
+                      const sc = productStatusConfig[product.status]
+                      return (
+                        <TableRow key={product.id} className="group" data-state={productSelected.has(product.id) ? 'selected' : undefined}>
+                          <TableCell className="p-3">
+                            <Checkbox
+                              checked={productSelected.has(product.id)}
+                              onCheckedChange={() => toggleProductSelect(product.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="p-3">
+                            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/30 flex items-center justify-center text-xl">
+                              {product.image}
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-3">
+                            <div className="max-w-[200px]">
+                              <p className="font-medium text-sm truncate">{product.name}</p>
+                              {product.salePrice > 0 && (
+                                <p className="text-xs text-red-500 line-through">{formatPrice(product.price)}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground font-mono" dir="ltr">{product.sku}</TableCell>
+                          <TableCell className="p-3">
+                            <span className={`font-bold text-sm tabular-nums ${product.salePrice > 0 ? 'text-red-500' : 'text-foreground'}`}>
+                              {formatPrice(product.salePrice || product.price)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground mr-1">تومان</span>
+                          </TableCell>
+                          <TableCell className="p-3">
+                            <span className={`text-sm font-medium tabular-nums ${product.stock === 0 ? 'text-red-500' : product.stock <= product.minStock ? 'text-amber-500' : 'text-emerald-600'}`}>
+                              {toPersianDigits(product.stock)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="p-3">
+                            <Badge variant="outline" className={`text-[10px] ${sc.color} ${sc.bg}`}>
+                              {sc.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground">{product.category}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground">{product.createdAt}</TableCell>
+                          <TableCell className="p-3">
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => openProductEdit(product)}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                                onClick={() => { setDeletingProductId(product.id); setDeleteProductDialogOpen(true) }}
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+                {filteredProducts.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <Package className="h-12 w-12 mb-3 opacity-40" />
+                    <p className="text-sm font-medium">محصولی یافت نشد</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 2: ORDERS                                                      */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="orders" className="space-y-4 mt-4">
+          {/* Tab Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { label: 'کل سفارشات', value: orders.length, color: 'text-foreground' },
+              { label: 'در انتظار پرداخت', value: orders.filter(o => o.status === 'pending').length, color: 'text-amber-600' },
+              { label: 'در حال پردازش', value: orders.filter(o => o.status === 'processing').length, color: 'text-violet-600' },
+              { label: 'تکمیل شده', value: orders.filter(o => o.status === 'completed').length, color: 'text-emerald-600' },
+            ].map(s => (
+              <Card key={s.label} className="glass-card shadow-sm">
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold tabular-nums ${s.color}`}>{toPersianDigits(s.value)}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Filters */}
+          <Card className="glass-card-pink shadow-sm">
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="جستجو شماره سفارش یا نام مشتری..."
+                    value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)}
+                    className="pr-10"
+                  />
+                </div>
+                <Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-48">
+                    <SelectValue placeholder="وضعیت سفارش" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">همه وضعیت‌ها</SelectItem>
+                    <SelectItem value="pending">در انتظار پرداخت</SelectItem>
+                    <SelectItem value="paid">پرداخت شده</SelectItem>
+                    <SelectItem value="processing">در حال پردازش</SelectItem>
+                    <SelectItem value="shipped">ارسال شده</SelectItem>
+                    <SelectItem value="completed">تکمیل شده</SelectItem>
+                    <SelectItem value="cancelled">لغو شده</SelectItem>
+                    <SelectItem value="returned">مرجوع شده</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Orders Table */}
+          <Card className="glass-card shadow-sm">
+            <CardContent className="p-0">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="p-3 text-xs font-semibold">شماره سفارش</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">مشتری</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">تعداد اقلام</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">مبلغ کل</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">وضعیت سفارش</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">تاریخ</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.map(order => {
+                      const sc = orderStatusConfig[order.status]
+                      return (
+                        <TableRow key={order.id} className="group cursor-pointer" onClick={() => openOrderDetail(order)}>
+                          <TableCell className="p-3 font-mono text-sm font-medium text-pink-600 dark:text-pink-400" dir="ltr">{order.orderNumber}</TableCell>
+                          <TableCell className="p-3">
+                            <div>
+                              <p className="font-medium text-sm">{order.customer}</p>
+                              <p className="text-xs text-muted-foreground" dir="ltr">{order.customerPhone}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="p-3 text-sm tabular-nums">
+                            {toPersianDigits(order.items.reduce((s, i) => s + i.quantity, 0))} عدد
+                          </TableCell>
+                          <TableCell className="p-3 font-bold text-sm tabular-nums">{formatPrice(order.total)} <span className="text-[10px] font-normal text-muted-foreground">تومان</span></TableCell>
+                          <TableCell className="p-3">
+                            <Badge variant="outline" className={`text-[10px] ${sc.color} ${sc.bg}`}>
+                              {sc.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground">{order.createdAt}</TableCell>
+                          <TableCell className="p-3">
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Eye className="h-3.5 w-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+                {filteredOrders.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <ShoppingCart className="h-12 w-12 mb-3 opacity-40" />
+                    <p className="text-sm font-medium">سفارشی یافت نشد</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 3: CATEGORIES                                                  */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="categories" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{toPersianDigits(categories.length)} دسته‌بندی</p>
+            <Button
+              className="gap-2 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              size="sm"
+              onClick={openCategoryCreate}
+            >
+              <Plus className="h-4 w-4" />
+              افزودن دسته‌بندی
+            </Button>
+          </div>
+
+          <Card className="glass-card shadow-sm">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-10">
-                        <Checkbox checked={allProductsSelected ? true : someProductsSelected ? 'indeterminate' : false} onCheckedChange={toggleAllProducts} aria-label="انتخاب همه" />
-                      </TableHead>
-                      <TableHead>تصویر</TableHead>
-                      <TableHead>نام محصول</TableHead>
-                      <TableHead className="hidden md:table-cell">دسته‌بندی</TableHead>
-                      <TableHead>قیمت</TableHead>
-                      <TableHead className="hidden lg:table-cell">موجودی</TableHead>
-                      <TableHead className="hidden sm:table-cell">وضعیت</TableHead>
-                      <TableHead className="hidden xl:table-cell">تاریخ</TableHead>
-                      <TableHead>عملیات</TableHead>
+                    <TableRow>
+                      <TableHead className="p-3 text-xs font-semibold">نام</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">Slug</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">تعداد محصولات</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">توضیحات</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((product, idx) => {
-                      const sc = productStatusColors[product.status]
-                      const stockPct = product.maxStock > 0 ? Math.round((product.stock / product.maxStock) * 100) : 0
+                    {categories.map(cat => {
+                      const depth = getCategoryDepth(cat.id)
                       return (
-                        <TableRow key={product.id} className="hover-lift transition-all duration-200 animate-in" style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}>
-                          <TableCell>
-                            <Checkbox checked={selectedProducts.has(product.id)} onCheckedChange={() => toggleProductSelect(product.id)} aria-label={`انتخاب ${product.name}`} />
-                          </TableCell>
-                          <TableCell>
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center text-xl shadow-sm">{product.emoji}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-medium text-sm">{product.name}</div>
-                            <div className="text-[11px] text-muted-foreground font-mono" dir="ltr">{product.sku}</div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            <Badge variant="outline" className="text-[10px]">{product.category}</Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="tabular-nums text-sm font-semibold text-rose-600 dark:text-rose-400">{formatPrice(product.salePrice > 0 ? product.salePrice : product.price)}</div>
-                            {product.salePrice > 0 && (
-                              <div className="text-[10px] text-muted-foreground line-through tabular-nums">{formatPrice(product.price)}</div>
-                            )}
-                            <div className="text-[10px] text-muted-foreground">تومان</div>
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <div className="flex items-center gap-2 min-w-[100px]">
-                              <Progress value={stockPct} className={`h-2 flex-1 [&>div]:${getStockColor(product.stock, product.maxStock)}`} />
-                              <span className={`text-xs font-medium tabular-nums w-8 text-left ${getStockTextColor(product.stock, product.maxStock)}`}>
-                                {toPersianDigits(product.stock)}
-                              </span>
+                        <TableRow key={cat.id} className="group">
+                          <TableCell className="p-3">
+                            <div className="flex items-center gap-2" style={{ paddingRight: `${depth * 24}px` }}>
+                              {depth > 0 && <span className="text-muted-foreground">└</span>}
+                              <span className="text-lg">{cat.image}</span>
+                              <span className="font-medium text-sm">{cat.name}</span>
+                              {cat.parentId === null && <Badge variant="outline" className="text-[9px] text-pink-500 border-pink-300 dark:border-pink-700">والد</Badge>}
                             </div>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm text-[10px]`}>{productStatusLabel[product.status]}</Badge>
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell text-xs text-muted-foreground">
-                            {relativeDate(parseInt(product.date))}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-rose-600 dark:text-rose-400 hover:bg-rose-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => openEditProduct(product)} title="ویرایش">
+                          <TableCell className="p-3 text-xs text-muted-foreground font-mono" dir="ltr">{cat.slug}</TableCell>
+                          <TableCell className="p-3 text-sm tabular-nums">{toPersianDigits(cat.productCount)}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground max-w-[200px] truncate">{cat.description}</TableCell>
+                          <TableCell className="p-3">
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCategoryEdit(cat)}>
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => { setDeletingType('product'); setDeletingId(product.id); setDeleteDialogOpen(true) }} title="حذف">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-600 hover:bg-red-500/10" onClick={() => { setDeletingCategoryId(cat.id); setDeleteCategoryDialogOpen(true) }}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>
@@ -643,167 +1041,163 @@ export default function StorePage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
 
-          {/* Bulk Action Bar */}
-          {selectedProducts.size > 0 && (
-            <div className="glass-card sticky bottom-0 z-10 border-t border-border/60 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 animate-in slide-in-from-bottom-4 duration-300 shadow-lg">
-              <div className="flex items-center gap-2 text-sm font-medium">
-                <CheckSquare className="h-4 w-4 text-primary" />
-                <span>{toPersianDigits(selectedProducts.size)} مورد انتخاب شده</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button size="sm" className="gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleBulkPublish}>
-                  <CheckCircle className="h-3.5 w-3.5" />انتشار انتخابی
-                </Button>
-                <Button size="sm" className="gap-1.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={() => { setDeletingType('product'); setDeletingId('bulk'); setDeleteDialogOpen(true) }}>
-                  <Trash className="h-3.5 w-3.5" />حذف انتخابی
-                </Button>
-              </div>
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 4: TAGS                                                        */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="tags" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">{toPersianDigits(tags.length)} برچسب</p>
+            <div className="flex items-center gap-2">
+              {tagSelected.size > 0 && (
+                <>
+                  <span className="text-xs text-muted-foreground">{toPersianDigits(tagSelected.size)} انتخاب شده</span>
+                  <Button variant="outline" size="sm" className="gap-1 text-xs text-red-500" onClick={handleTagBulkDelete}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    حذف دسته‌جمعی
+                  </Button>
+                </>
+              )}
+              <Button
+                className="gap-2 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                size="sm"
+                onClick={openTagCreate}
+              >
+                <Plus className="h-4 w-4" />
+                افزودن برچسب
+              </Button>
             </div>
-          )}
-        </div>
-      )}
+          </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── ORDERS TAB ────────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'orders' && (
-        <div className="space-y-4">
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Card className="glass-card shadow-sm">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-10 p-3">
+                      <Checkbox
+                        checked={tagSelected.size === tags.length && tags.length > 0}
+                        onCheckedChange={() => {
+                          if (tagSelected.size === tags.length) setTagSelected(new Set())
+                          else setTagSelected(new Set(tags.map(t => t.id)))
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead className="p-3 text-xs font-semibold">نام</TableHead>
+                    <TableHead className="p-3 text-xs font-semibold">Slug</TableHead>
+                    <TableHead className="p-3 text-xs font-semibold">تعداد محصولات</TableHead>
+                    <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tags.map(tag => (
+                    <TableRow key={tag.id} className="group" data-state={tagSelected.has(tag.id) ? 'selected' : undefined}>
+                      <TableCell className="p-3">
+                        <Checkbox checked={tagSelected.has(tag.id)} onCheckedChange={() => toggleTagSelect(tag.id)} />
+                      </TableCell>
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-3.5 w-3.5 text-pink-500" />
+                          <span className="font-medium text-sm">{tag.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="p-3 text-xs text-muted-foreground font-mono" dir="ltr">{tag.slug}</TableCell>
+                      <TableCell className="p-3 text-sm tabular-nums">{toPersianDigits(tag.productCount)}</TableCell>
+                      <TableCell className="p-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openTagEdit(tag)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 5: COUPONS                                                     */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="coupons" className="space-y-4 mt-4">
+          {/* Tab Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {[
-              { label: 'کل سفارشات', value: toPersianDigits(orders.length), icon: ShoppingCart, gradient: 'from-blue-400 to-blue-600', textColor: 'text-blue-600 dark:text-blue-400' },
-              { label: 'در انتظار', value: toPersianDigits(pendingOrders), icon: Clock, gradient: 'from-amber-400 to-amber-600', textColor: 'text-amber-600 dark:text-amber-400' },
-              { label: 'درحال پردازش', value: toPersianDigits(processingOrders), icon: Loader2, gradient: 'from-violet-400 to-violet-600', textColor: 'text-violet-600 dark:text-violet-400' },
-              { label: 'تکمیل شده', value: toPersianDigits(completedOrders), icon: CheckCircle, gradient: 'from-emerald-400 to-emerald-600', textColor: 'text-emerald-600 dark:text-emerald-400' },
-            ].map((stat, i) => (
-              <Card key={stat.label} className="glass-card stat-card-gradient hover-lift card-inner-glow shadow-sm overflow-hidden transition-all duration-300 animate-in" style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center shadow-md shrink-0`}>
-                    <stat.icon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`text-xl font-bold tabular-nums ${stat.textColor}`}>{stat.value}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{stat.label}</p>
-                  </div>
+              { label: 'کل کوپن‌ها', value: coupons.length, color: 'text-foreground' },
+              { label: 'فعال', value: coupons.filter(c => c.active).length, color: 'text-emerald-600' },
+              { label: 'غیرفعال', value: coupons.filter(c => !c.active).length, color: 'text-gray-500' },
+            ].map(s => (
+              <Card key={s.label} className="glass-card shadow-sm">
+                <CardContent className="p-3 text-center">
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold tabular-nums ${s.color}`}>{toPersianDigits(s.value)}</p>
                 </CardContent>
               </Card>
             ))}
           </div>
 
-          {/* Status Filter */}
-          <div className="flex gap-1 p-1 bg-muted/50 rounded-xl overflow-x-auto animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            {orderStatusTabs.map(s => {
-              const isActive = orderStatusFilter === s
-              return (
-                <Button key={s} variant="ghost" size="sm" onClick={() => setOrderStatusFilter(s)}
-                  className={`flex-1 min-w-0 rounded-lg text-xs font-medium transition-all duration-200 ${isActive ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}`}>
-                  {orderStatusTabLabels[s]}
-                </Button>
-              )
-            })}
-          </div>
-
-          {/* Orders Table */}
-          <Card className="glass-card shadow-sm overflow-hidden animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead>شماره سفارش</TableHead>
-                      <TableHead>مشتری</TableHead>
-                      <TableHead className="hidden md:table-cell">محصولات</TableHead>
-                      <TableHead>مبلغ کل</TableHead>
-                      <TableHead>وضعیت</TableHead>
-                      <TableHead className="hidden sm:table-cell">تاریخ</TableHead>
-                      <TableHead>عملیات</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.map((order, idx) => {
-                      const osc = orderStatusColors[order.status]
-                      return (
-                        <TableRow key={order.id} className="hover-lift transition-all duration-200 animate-in" style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}>
-                          <TableCell className="font-mono text-sm font-semibold">{order.number}</TableCell>
-                          <TableCell>
-                            <div className="font-medium text-sm">{order.customer}</div>
-                            <div className="text-[11px] text-muted-foreground">{order.email}</div>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                            {toPersianDigits(order.items.reduce((sum, item) => sum + item.qty, 0))} محصول
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-semibold text-sm tabular-nums text-blue-600 dark:text-blue-400">{formatPrice(order.total)}</div>
-                            <div className="text-[10px] text-muted-foreground">تومان</div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={`${osc.bg} ${osc.text} border-0 shadow-sm text-[10px]`}>{orderStatusLabel[order.status]}</Badge>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">{relativeDate(parseInt(order.date))}</TableCell>
-                          <TableCell>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => openViewOrder(order)} title="مشاهده">
-                              <Eye className="h-3.5 w-3.5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── CATEGORIES TAB ────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'categories' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-            <h2 className="text-lg font-semibold text-amber-700 dark:text-amber-300">مدیریت دسته‌بندی‌ها</h2>
-            <Button className="gap-2 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={openCreateCategory}>
-              <Plus className="h-4 w-4" />افزودن دسته‌بندی
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">مدیریت کدهای تخفیف</p>
+            <Button
+              className="gap-2 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              size="sm"
+              onClick={openCouponCreate}
+            >
+              <Plus className="h-4 w-4" />
+              افزودن کوپن
             </Button>
           </div>
-          <Card className="glass-card shadow-sm overflow-hidden animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+
+          <Card className="glass-card shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead>نام</TableHead>
-                      <TableHead className="hidden md:table-cell">اسلاگ</TableHead>
-                      <TableHead>تعداد محصولات</TableHead>
-                      <TableHead className="hidden lg:table-cell">توضیحات</TableHead>
-                      <TableHead>عملیات</TableHead>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      <TableHead className="p-3 text-xs font-semibold">کد تخفیف</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">نوع</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">مقدار</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">حداقل سفارش</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">استفاده</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">انقضا</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">وضعیت</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {categories.map((cat, idx) => (
-                      <TableRow key={cat.id} className="hover-lift transition-all duration-200 animate-in" style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
-                            <span className="font-medium text-sm">{cat.name}</span>
+                    {coupons.map(coupon => (
+                      <TableRow key={coupon.id} className="group">
+                        <TableCell className="p-3">
+                          <Badge variant="outline" className="font-mono text-xs font-bold border-dashed border-pink-300 text-pink-600 dark:text-pink-400 dark:border-pink-700" dir="ltr">
+                            {coupon.code}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="p-3">
+                          <div className="flex items-center gap-1.5">
+                            {coupon.type === 'percent' ? <Percent className="h-3.5 w-3.5 text-pink-500" /> : <DollarSign className="h-3.5 w-3.5 text-pink-500" />}
+                            <span className="text-xs">{coupon.type === 'percent' ? 'درصدی' : 'مبلغی'}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground font-mono" dir="ltr">{cat.slug}</TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="text-xs tabular-nums">{toPersianDigits(cat.productCount)}</Badge>
+                        <TableCell className="p-3 font-bold text-sm tabular-nums">
+                          {coupon.type === 'percent' ? `${toPersianDigits(coupon.value)}٪` : `${formatPrice(coupon.value)} تومان`}
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell text-sm text-muted-foreground max-w-[250px] truncate">{cat.description}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => openEditCategory(cat)} title="ویرایش">
-                              <Pencil className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => { setDeletingType('category'); setDeletingId(cat.id); setDeleteDialogOpen(true) }} title="حذف">
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
+                        <TableCell className="p-3 text-sm tabular-nums">
+                          {coupon.minOrder > 0 ? `${formatPrice(coupon.minOrder)} تومان` : '—'}
+                        </TableCell>
+                        <TableCell className="p-3 text-sm tabular-nums">
+                          {toPersianDigits(coupon.usedCount)}{coupon.maxUsage > 0 ? `/${toPersianDigits(coupon.maxUsage)}` : ''}
+                        </TableCell>
+                        <TableCell className="p-3 text-xs text-muted-foreground">{coupon.expiryDate}</TableCell>
+                        <TableCell className="p-3">
+                          <Switch checked={coupon.active} onCheckedChange={() => toggleCouponActive(coupon.id)} />
+                        </TableCell>
+                        <TableCell className="p-3">
+                          <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => openCouponEdit(coupon)}>
+                            <Pencil className="h-3.5 w-3.5" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -812,247 +1206,292 @@ export default function StorePage() {
               </div>
             </CardContent>
           </Card>
-        </div>
-      )}
+        </TabsContent>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── TAGS TAB ──────────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'tags' && (
-        <div className="space-y-4">
-          {/* Add Tag */}
-          <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-            <CardContent className="p-4 flex gap-3">
-              <Input placeholder="نام برچسب جدید..." value={newTagName} onChange={e => setNewTagName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddTag()} className="flex-1" />
-              <Button className="gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm shrink-0" onClick={handleAddTag}>
-                <Plus className="h-4 w-4" />افزودن
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Search Tags */}
-          <div className="relative animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="جستجو در برچسب‌ها..." value={tagSearch} onChange={e => setTagSearch(e.target.value)} className="pr-10" />
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 6: SETTINGS                                                    */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="settings" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">پیکربندی و تنظیمات فروشگاه</p>
+            <Button
+              className="gap-2 bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+              size="sm"
+              onClick={handleSaveSettings}
+            >
+              <PackageCheck className="h-4 w-4" />
+              ذخیره تنظیمات
+            </Button>
           </div>
 
-          {/* Tags Cloud */}
-          <div className="flex flex-wrap gap-2 animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            {filteredTags.map((tag, idx) => (
-              <Badge key={tag.id} variant="secondary" className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-full hover-lift transition-all duration-200 animate-in" style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}>
-                <Tag className="h-3 w-3 text-emerald-500" />
-                <span>{tag.name}</span>
-                <span className="text-[10px] text-muted-foreground tabular-nums">({toPersianDigits(tag.count)})</span>
-                <button onClick={() => handleDeleteTag(tag.id)} className="h-4 w-4 rounded-full flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-500 transition-colors mr-0.5">
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            {filteredTags.length === 0 && (
-              <div className="w-full text-center py-10 text-muted-foreground">
-                <Tag className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
-                <p className="text-sm">برچسبی یافت نشد</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── SETTINGS TAB ──────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {activeTab === 'settings' && (
-        <div className="space-y-4">
           {/* General */}
-          <Card className="glass-card hover-lift card-inner-glow shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center shadow-sm">
-                  <Store className="h-4 w-4 text-white" />
-                </div>
-                عمومی
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Store className="h-3.5 w-3.5 text-slate-500" />نام فروشگاه</Label>
-                <Input value={settings.storeName} onChange={e => setSettings({ ...settings, storeName: e.target.value })} className="hover:border-slate-400 transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Store className="h-3.5 w-3.5 text-slate-500" />توضیحات فروشگاه</Label>
-                <Textarea value={settings.storeDesc} onChange={e => setSettings({ ...settings, storeDesc: e.target.value })} rows={2} className="hover:border-slate-400 transition-colors" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5"><Store className="h-3.5 w-3.5 text-slate-500" />آدرس سایت</Label>
-                  <Input value={settings.storeUrl} onChange={e => setSettings({ ...settings, storeUrl: e.target.value })} dir="ltr" className="hover:border-slate-400 transition-colors" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-500" />ایمیل فروشگاه</Label>
-                  <Input value={settings.storeEmail} onChange={e => setSettings({ ...settings, storeEmail: e.target.value })} dir="ltr" className="hover:border-slate-400 transition-colors" />
-                </div>
-              </div>
-              <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-slate-600 to-slate-500 hover:from-slate-700 hover:to-slate-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
-                ذخیره تنظیمات عمومی
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Payment */}
-          <Card className="glass-card hover-lift card-inner-glow shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-rose-700 dark:text-rose-300 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-sm">
-                  <CreditCard className="h-4 w-4 text-white" />
-                </div>
-                پرداخت
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-rose-500" />درگاه فعال</Label>
-                <Select value={settings.gateway} onValueChange={v => setSettings({ ...settings, gateway: v })}>
-                  <SelectTrigger className="hover:border-rose-400 transition-colors"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="zarinpal">زرین‌پال</SelectItem>
-                    <SelectItem value="melli">ملی</SelectItem>
-                    <SelectItem value="pay">پی</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-rose-500" />حالت آزمایشی</Label>
-                <Switch checked={settings.testMode} onCheckedChange={v => setSettings({ ...settings, testMode: v })} />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5 text-rose-500" />کلید API</Label>
-                <Input value={settings.apiKey} onChange={e => setSettings({ ...settings, apiKey: e.target.value })} type="password" dir="ltr" placeholder="کلید API درگاه پرداخت" className="hover:border-rose-400 transition-colors" />
-              </div>
-              <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
-                ذخیره تنظیمات پرداخت
-              </Button>
-            </CardContent>
-          </Card>
+          <Collapsible defaultOpen>
+            <Card className="glass-card shadow-sm overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-md shadow-pink-500/20">
+                        <Store className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">عمومی</CardTitle>
+                        <p className="text-xs text-muted-foreground">اطلاعات پایه فروشگاه</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="px-6 pb-6 space-y-4">
+                  <Separator />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">نام فروشگاه</Label>
+                      <Input value={settings.storeName} onChange={e => updateSettings('storeName', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">واحد پول</Label>
+                      <Select value={settings.currency} onValueChange={v => updateSettings('currency', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="تومان">تومان</SelectItem>
+                          <SelectItem value="ریال">ریال</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs">آدرس فروشگاه</Label>
+                    <Input value={settings.storeAddress} onChange={e => updateSettings('storeAddress', e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">کشور</Label>
+                      <Input value={settings.country} onChange={e => updateSettings('country', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">استان</Label>
+                      <Input value={settings.province} onChange={e => updateSettings('province', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">شهر</Label>
+                      <Input value={settings.city} onChange={e => updateSettings('city', e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">کد پستی</Label>
+                      <Input value={settings.postalCode} onChange={e => updateSettings('postalCode', e.target.value)} dir="ltr" />
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Shipping */}
-          <Card className="glass-card hover-lift card-inner-glow shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-sm">
-                  <Truck className="h-4 w-4 text-white" />
-                </div>
-                ارسال
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-blue-500" />روش ارسال پیش‌فرض</Label>
-                <Select value={settings.shippingMethod} onValueChange={v => setSettings({ ...settings, shippingMethod: v })}>
-                  <SelectTrigger className="hover:border-blue-400 transition-colors"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="post">پست پیشتاز</SelectItem>
-                    <SelectItem value="express">پیک موتوری</SelectItem>
-                    <SelectItem value="tipax">تیپاکس</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-blue-500" />ارسال رایگان بالای مبلغ (تومان)</Label>
-                <Input value={settings.freeShippingThreshold} onChange={e => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })} type="number" dir="ltr" className="hover:border-blue-400 transition-colors" />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-blue-500" />زمان تحویل پیش‌فرض</Label>
-                <Input value={settings.deliveryDays} onChange={e => setSettings({ ...settings, deliveryDays: e.target.value })} placeholder="مثلاً: ۳ تا ۵ روز کاری" className="hover:border-blue-400 transition-colors" />
-              </div>
-              <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
-                ذخیره تنظیمات ارسال
-              </Button>
-            </CardContent>
-          </Card>
+          <Collapsible defaultOpen>
+            <Card className="glass-card shadow-sm overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md shadow-emerald-500/20">
+                        <Truck className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">حمل و نقل</CardTitle>
+                        <p className="text-xs text-muted-foreground">تنظیمات ارسال و حمل و نقل</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="px-6 pb-6 space-y-4">
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="text-xs">روش ارسال</Label>
+                    <Select value={settings.shippingMethod} onValueChange={v => updateSettings('shippingMethod', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="پست پیشتاز">پست پیشتاز</SelectItem>
+                        <SelectItem value="پست سفارشی">پست سفارشی</SelectItem>
+                        <SelectItem value="پیک">پیک</SelectItem>
+                        <SelectItem value="باربری">باربری</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">هزینه ارسال (تومان)</Label>
+                      <Input type="number" value={settings.shippingCost} onChange={e => updateSettings('shippingCost', Number(e.target.value))} dir="ltr" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">ارسال رایگان بالای مبلغ (تومان)</Label>
+                      <Input type="number" value={settings.freeShippingMin} onChange={e => updateSettings('freeShippingMin', Number(e.target.value))} dir="ltr" />
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Payment */}
+          <Collapsible defaultOpen>
+            <Card className="glass-card shadow-sm overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-400 to-blue-500 flex items-center justify-center shadow-md shadow-sky-500/20">
+                        <CreditCard className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">پرداخت</CardTitle>
+                        <p className="text-xs text-muted-foreground">درگاه‌های پرداخت</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="px-6 pb-6 space-y-4">
+                  <Separator />
+                  <div className="space-y-4">
+                    {[
+                      { key: 'paymentZarinpal' as const, label: 'زرین‌پال', desc: 'درگاه پرداخت زرین‌پال' },
+                      { key: 'paymentIdpay' as const, label: 'آیدی‌پی', desc: 'درگاه پرداخت آیدی‌پی' },
+                      { key: 'paymentNextpay' as const, label: 'نکست‌پی', desc: 'درگاه پرداخت نکست‌پی' },
+                      { key: 'paymentCod' as const, label: 'پرداخت در محل', desc: 'پرداخت هنگام تحویل کالا' },
+                    ].map(gateway => (
+                      <div key={gateway.key} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
+                        <div>
+                          <p className="font-medium text-sm">{gateway.label}</p>
+                          <p className="text-xs text-muted-foreground">{gateway.desc}</p>
+                        </div>
+                        <Switch checked={settings[gateway.key]} onCheckedChange={v => updateSettings(gateway.key, v)} />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {/* Tax */}
-          <Card className="glass-card hover-lift card-inner-glow shadow-sm animate-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-sm">
-                  <Percent className="h-4 w-4 text-white" />
-                </div>
-                مالیات
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-1.5"><Percent className="h-3.5 w-3.5 text-violet-500" />فعال‌سازی مالیات</Label>
-                <Switch checked={settings.taxEnabled} onCheckedChange={v => setSettings({ ...settings, taxEnabled: v })} />
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Percent className="h-3.5 w-3.5 text-violet-500" />نرخ مالیات (درصد)</Label>
-                <Input value={settings.taxRate} onChange={e => setSettings({ ...settings, taxRate: Number(e.target.value) })} type="number" dir="ltr" className="hover:border-violet-400 transition-colors" disabled={!settings.taxEnabled} />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-1.5"><Percent className="h-3.5 w-3.5 text-violet-500" />مالیات بر اساس استان</Label>
-                <Switch checked={settings.taxByProvince} onCheckedChange={v => setSettings({ ...settings, taxByProvince: v })} disabled={!settings.taxEnabled} />
-              </div>
-              <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
-                ذخیره تنظیمات مالیات
-              </Button>
-            </CardContent>
-          </Card>
+          <Collapsible defaultOpen>
+            <Card className="glass-card shadow-sm overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20">
+                        <Receipt className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">مالیات</CardTitle>
+                        <p className="text-xs text-muted-foreground">تنظیمات مالیات بر ارزش افزوده</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="px-6 pb-6 space-y-4">
+                  <Separator />
+                  <div className="flex items-center justify-between p-3 rounded-lg border">
+                    <div>
+                      <p className="font-medium text-sm">فعال‌سازی مالیات</p>
+                      <p className="text-xs text-muted-foreground">محاسبه خودکار مالیات بر ارزش افزوده</p>
+                    </div>
+                    <Switch checked={settings.taxEnabled} onCheckedChange={v => updateSettings('taxEnabled', v)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs">نرخ مالیات (درصد)</Label>
+                      <Input type="number" value={settings.taxRate} onChange={e => updateSettings('taxRate', Number(e.target.value))} dir="ltr" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs">مناطق معاف</Label>
+                      <Input value={settings.taxExemptRegions} onChange={e => updateSettings('taxExemptRegions', e.target.value)} />
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
-          {/* Currency */}
-          <Card className="glass-card hover-lift card-inner-glow shadow-sm animate-in" style={{ animationDelay: '500ms', animationFillMode: 'both' }}>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base text-emerald-700 dark:text-emerald-300 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-sm">
-                  <Coins className="h-4 w-4 text-white" />
-                </div>
-                واحد پول
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5"><Coins className="h-3.5 w-3.5 text-emerald-500" />واحد پول</Label>
-                  <Select value={settings.currency} onValueChange={v => setSettings({ ...settings, currency: v })}>
-                    <SelectTrigger className="hover:border-emerald-400 transition-colors"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="toman">تومان</SelectItem>
-                      <SelectItem value="rial">ریال</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5"><Coins className="h-3.5 w-3.5 text-emerald-500" />نماد پول</Label>
-                  <Input value={settings.currencySymbol} onChange={e => setSettings({ ...settings, currencySymbol: e.target.value })} className="hover:border-emerald-400 transition-colors" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="flex items-center gap-1.5"><Coins className="h-3.5 w-3.5 text-emerald-500" />موقعیت نماد</Label>
-                <Select value={settings.symbolPosition} onValueChange={v => setSettings({ ...settings, symbolPosition: v })}>
-                  <SelectTrigger className="hover:border-emerald-400 transition-colors"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="after">بعد از قیمت</SelectItem>
-                    <SelectItem value="before">قبل از قیمت</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button onClick={handleSaveSettings} className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
-                ذخیره تنظیمات واحد پول
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+          {/* Display */}
+          <Collapsible defaultOpen>
+            <Card className="glass-card shadow-sm overflow-hidden">
+              <CollapsibleTrigger asChild>
+                <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-4 px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-500/20">
+                        <MonitorCheck className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base">نمایشی</CardTitle>
+                        <p className="text-xs text-muted-foreground">تنظیمات نمایش فروشگاه</p>
+                      </div>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="px-6 pb-6 space-y-4">
+                  <Separator />
+                  <div className="space-y-2">
+                    <Label className="text-xs">تعداد محصول در هر صفحه</Label>
+                    <Select value={String(settings.productsPerPage)} onValueChange={v => updateSettings('productsPerPage', Number(v))}>
+                      <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="8">۸</SelectItem>
+                        <SelectItem value="12">۱۲</SelectItem>
+                        <SelectItem value="16">۱۶</SelectItem>
+                        <SelectItem value="24">۲۴</SelectItem>
+                        <SelectItem value="48">۴۸</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="font-medium text-sm">نمایش موجودی</p>
+                        <p className="text-xs text-muted-foreground">نمایش تعداد موجودی محصول به مشتری</p>
+                      </div>
+                      <Switch checked={settings.showStock} onCheckedChange={v => updateSettings('showStock', v)} />
+                    </div>
+                    <div className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <p className="font-medium text-sm">نمایش برچسب‌ها</p>
+                        <p className="text-xs text-muted-foreground">نمایش برچسب‌های محصول در صفحه فروشگاه</p>
+                      </div>
+                      <Switch checked={settings.showTags} onCheckedChange={v => updateSettings('showTags', v)} />
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+        </TabsContent>
+      </Tabs>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* ─── DIALOGS ───────────────────────────────────────────────────── */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* ════════════════════════════════════════════════════════════════════════ */}
+      {/* DIALOGS                                                              */}
+      {/* ════════════════════════════════════════════════════════════════════════ */}
 
-      {/* Product Dialog */}
+      {/* ─── Product Dialog ─── */}
       <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card shadow-xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card shadow-xl" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-rose-700 dark:text-rose-300">
+            <DialogTitle className="text-pink-700 dark:text-pink-300">
               {editingProduct ? 'ویرایش محصول' : 'افزودن محصول جدید'}
             </DialogTitle>
             <DialogDescription>
@@ -1060,216 +1499,322 @@ export default function StorePage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>نام محصول</Label>
-                <Input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value, slug: generateSlug(e.target.value) })} placeholder="نام محصول را وارد کنید" />
+            {/* Basic Info */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">اطلاعات پایه</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">نام محصول *</Label>
+                  <Input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value, slug: productForm.slug || generateSlug(e.target.value) })} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Slug</Label>
+                  <Input value={productForm.slug} onChange={e => setProductForm({ ...productForm, slug: e.target.value })} dir="ltr" />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>نامک (Slug)</Label>
-                <Input value={productForm.slug} onChange={e => setProductForm({ ...productForm, slug: e.target.value })} dir="ltr" placeholder="auto-generated-slug" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>توضیحات</Label>
-              <Textarea value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} rows={3} placeholder="توضیحات محصول..." />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>قیمت عادی (تومان)</Label>
-                <Input type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} dir="ltr" placeholder="0" />
+                <Label className="text-xs">توضیحات کوتاه</Label>
+                <Textarea value={productForm.shortDesc} onChange={e => setProductForm({ ...productForm, shortDesc: e.target.value })} rows={2} />
               </div>
               <div className="space-y-2">
-                <Label>قیمت تخفیفی (تومان)</Label>
-                <Input type="number" value={productForm.salePrice} onChange={e => setProductForm({ ...productForm, salePrice: Number(e.target.value) })} dir="ltr" placeholder="0" />
+                <Label className="text-xs">توضیحات کامل</Label>
+                <Textarea value={productForm.fullDesc} onChange={e => setProductForm({ ...productForm, fullDesc: e.target.value })} rows={3} />
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+            <Separator />
+
+            {/* Pricing */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">قیمت‌گذاری</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">قیمت (تومان)</Label>
+                  <Input type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} dir="ltr" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">قیمت تخفیفی (تومان)</Label>
+                  <Input type="number" value={productForm.salePrice} onChange={e => setProductForm({ ...productForm, salePrice: Number(e.target.value) })} dir="ltr" placeholder="۰ = بدون تخفیف" />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Inventory */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">موجودی و SKU</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">SKU</Label>
+                  <Input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} dir="ltr" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">موجودی</Label>
+                  <Input type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} dir="ltr" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">حداقل موجودی</Label>
+                  <Input type="number" value={productForm.minStock} onChange={e => setProductForm({ ...productForm, minStock: Number(e.target.value) })} dir="ltr" />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Categorization */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">دسته‌بندی و برچسب</p>
               <div className="space-y-2">
-                <Label>دسته‌بندی</Label>
+                <Label className="text-xs">دسته‌بندی</Label>
                 <Select value={productForm.category} onValueChange={v => setProductForm({ ...productForm, category: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {categoryList.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    {categoryNames.map(name => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>برچسب‌ها</Label>
-                <Select value={productForm.tags.join(',')} onValueChange={v => setProductForm({ ...productForm, tags: v.split(',') })}>
-                  <SelectTrigger><SelectValue placeholder="انتخاب برچسب‌ها" /></SelectTrigger>
-                  <SelectContent>
-                    {tags.map(t => <SelectItem key={t.id} value={t.name}>{t.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="space-y-2">
-                <Label>موجودی</Label>
-                <Input type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} dir="ltr" placeholder="0" />
-              </div>
-              <div className="space-y-2">
-                <Label>SKU</Label>
-                <Input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} dir="ltr" placeholder="SKU-001" />
-              </div>
-              <div className="space-y-2">
-                <Label>وضعیت</Label>
-                <Select value={productForm.status} onValueChange={v => setProductForm({ ...productForm, status: v as ProductStatus })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">منتشر شده</SelectItem>
-                    <SelectItem value="draft">پیش‌نویس</SelectItem>
-                    <SelectItem value="hidden">مخفی</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            {/* Image placeholder */}
-            <div className="space-y-2">
-              <Label>تصویر شاخص</Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-xl p-8 flex flex-col items-center justify-center gap-3 hover:border-rose-400/50 transition-colors cursor-pointer">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-100 to-pink-100 dark:from-rose-900/20 dark:to-pink-900/20 flex items-center justify-center">
-                  <Upload className="h-6 w-6 text-rose-400" />
+                <Label className="text-xs">برچسب‌ها</Label>
+                <div className="flex flex-wrap gap-2 p-3 rounded-lg border min-h-[44px]">
+                  {productForm.tags.map((tag, idx) => (
+                    <Badge key={idx} variant="secondary" className="gap-1 text-xs">
+                      {tag}
+                      <button className="hover:text-red-500" onClick={() => setProductForm({ ...productForm, tags: productForm.tags.filter((_, i) => i !== idx) })}>✕</button>
+                    </Badge>
+                  ))}
+                  <Select onValueChange={v => {
+                    if (!productForm.tags.includes(v)) setProductForm({ ...productForm, tags: [...productForm.tags, v] })
+                  }}>
+                    <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="+ افزودن" /></SelectTrigger>
+                    <SelectContent>
+                      {initialTags.map(t => (
+                        <SelectItem key={t.id} value={t.name} disabled={productForm.tags.includes(t.name)}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <p className="text-sm text-muted-foreground">تصویر را اینجا بکشید و رها کنید یا کلیک کنید</p>
-                <p className="text-[10px] text-muted-foreground/60">PNG, JPG حداکثر ۲ مگابایت</p>
               </div>
+            </div>
+
+            <Separator />
+
+            {/* Media & Physical */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">رسانه و مشخصات فیزیکی</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">تصویر شاخص (ایموجی)</Label>
+                  <Input value={productForm.image} onChange={e => setProductForm({ ...productForm, image: e.target.value })} placeholder="📦" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">وزن (کیلوگرم)</Label>
+                  <Input type="number" step="0.01" value={productForm.weight} onChange={e => setProductForm({ ...productForm, weight: Number(e.target.value) })} dir="ltr" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">ابعاد (ط×ع×ا)</Label>
+                  <Input value={productForm.dimensions} onChange={e => setProductForm({ ...productForm, dimensions: e.target.value })} placeholder="۳۰×۲۰×۱۰" dir="ltr" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">گالری تصاویر (ایموجی‌ها با کاما)</Label>
+                <Input value={productForm.gallery.join(', ')} onChange={e => setProductForm({ ...productForm, gallery: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} placeholder="💻, 🖥️" dir="ltr" />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label className="text-xs">وضعیت</Label>
+              <Select value={productForm.status} onValueChange={v => setProductForm({ ...productForm, status: v as Product['status'] })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">فعال</SelectItem>
+                  <SelectItem value="inactive">غیرفعال</SelectItem>
+                  <SelectItem value="draft">پیش‌نویس</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setProductDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">انصراف</Button>
-            <Button className="bg-gradient-to-r from-rose-600 to-pink-500 hover:from-rose-700 hover:to-pink-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSaveProduct} disabled={!productForm.name}>
-              ذخیره محصول
+            <Button variant="outline" onClick={() => setProductDialogOpen(false)}>انصراف</Button>
+            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleProductSave} disabled={!productForm.name}>
+              {editingProduct ? 'بروزرسانی' : 'ایجاد محصول'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Order Detail Dialog */}
-      <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card shadow-xl">
+      {/* ─── Delete Product Confirmation ─── */}
+      <AlertDialog open={deleteProductDialogOpen} onOpenChange={setDeleteProductDialogOpen}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف محصول</AlertDialogTitle>
+            <AlertDialogDescription>آیا مطمئن هستید که می‌خواهید این محصول را حذف کنید؟ این عمل قابل بازگشت نیست.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>انصراف</AlertDialogCancel>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleProductDelete}>حذف</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ─── Order Detail Dialog ─── */}
+      <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card shadow-xl" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-blue-700 dark:text-blue-300 flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              جزئیات سفارش {viewingOrder?.number}
+            <DialogTitle className="text-pink-700 dark:text-pink-300">
+              جزئیات سفارش {selectedOrder?.orderNumber}
             </DialogTitle>
           </DialogHeader>
-          {viewingOrder && (
-            <div className="space-y-5">
-              {/* Customer Info */}
-              <div className="rounded-xl bg-muted/30 border p-4 space-y-3">
-                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />اطلاعات مشتری
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                  <div><span className="text-muted-foreground">نام:</span> <span className="font-medium">{viewingOrder.customer}</span></div>
-                  <div><span className="text-muted-foreground">تلفن:</span> <span className="font-medium" dir="ltr">{viewingOrder.phone}</span></div>
-                  <div className="sm:col-span-2"><span className="text-muted-foreground">ایمیل:</span> <span className="font-medium" dir="ltr">{viewingOrder.email}</span></div>
-                  <div className="sm:col-span-2"><span className="text-muted-foreground">آدرس:</span> <span className="font-medium">{viewingOrder.address}</span></div>
+          {selectedOrder && (
+            <div className="space-y-4">
+              {/* Order Status */}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">وضعیت سفارش:</span>
+                  <Badge variant="outline" className={`text-xs ${orderStatusConfig[selectedOrder.status]?.color} ${orderStatusConfig[selectedOrder.status]?.bg}`}>
+                    {orderStatusConfig[selectedOrder.status]?.label}
+                  </Badge>
                 </div>
+                <Select value={selectedOrder.status} onValueChange={v => handleOrderStatusChange(selectedOrder.id, v as Order['status'])}>
+                  <SelectTrigger className="w-40 h-8 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(orderStatusConfig).map(([key, val]) => (
+                      <SelectItem key={key} value={key}>{val.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Items */}
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-300">لیست محصولات</h4>
-                <div className="rounded-xl border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead>محصول</TableHead>
-                        <TableHead className="text-center">تعداد</TableHead>
-                        <TableHead className="text-left">قیمت واحد</TableHead>
-                        <TableHead className="text-left">جمع</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {viewingOrder.items.map((item, idx) => (
-                        <TableRow key={idx}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">{item.emoji}</span>
-                              <span className="text-sm font-medium">{item.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center tabular-nums">{toPersianDigits(item.qty)}</TableCell>
-                          <TableCell className="text-left tabular-nums text-sm">{formatPrice(item.price)}</TableCell>
-                          <TableCell className="text-left tabular-nums text-sm font-semibold">{formatPrice(item.qty * item.price)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+              {/* Customer Info */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="glass-card shadow-sm">
+                  <CardContent className="p-3 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">اطلاعات مشتری</p>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{selectedOrder.customer}</p>
+                      <p className="text-xs text-muted-foreground" dir="ltr">{selectedOrder.customerPhone}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="glass-card shadow-sm">
+                  <CardContent className="p-3 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">آدرس ارسال</p>
+                    <p className="text-xs">{selectedOrder.shippingAddress}</p>
+                  </CardContent>
+                </Card>
               </div>
+
+              {/* Order Items */}
+              <Card className="glass-card shadow-sm">
+                <CardContent className="p-3 space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground">اقلام سفارش</p>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="text-xs p-2">محصول</TableHead>
+                          <TableHead className="text-xs p-2 text-center">تعداد</TableHead>
+                          <TableHead className="text-xs p-2 text-left">قیمت واحد</TableHead>
+                          <TableHead className="text-xs p-2 text-left">جمع</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedOrder.items.map((item, idx) => (
+                          <TableRow key={idx}>
+                            <TableCell className="p-2 text-sm">{item.name}</TableCell>
+                            <TableCell className="p-2 text-sm text-center tabular-nums">{toPersianDigits(item.quantity)}</TableCell>
+                            <TableCell className="p-2 text-sm text-left tabular-nums">{formatPrice(item.price)}</TableCell>
+                            <TableCell className="p-2 text-sm text-left font-medium tabular-nums">{formatPrice(item.total)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Totals */}
-              <div className="rounded-xl bg-muted/30 border p-4 space-y-2">
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">جمع محصولات</span><span className="tabular-nums">{formatPrice(viewingOrder.subtotal)} تومان</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">تخفیف</span><span className="tabular-nums text-red-500">-{formatPrice(viewingOrder.discount)} تومان</span></div>
-                <div className="flex justify-between text-sm"><span className="text-muted-foreground">هزینه ارسال</span><span className="tabular-nums">{viewingOrder.shipping > 0 ? `${formatPrice(viewingOrder.shipping)} تومان` : 'رایگان'}</span></div>
-                <Separator />
-                <div className="flex justify-between text-base font-bold"><span>مبلغ نهایی</span><span className="tabular-nums text-blue-600 dark:text-blue-400">{formatPrice(viewingOrder.total)} تومان</span></div>
-              </div>
-
-              {/* Status & Notes */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label>تغییر وضعیت</Label>
-                    <Select value={orderNewStatus} onValueChange={v => setOrderNewStatus(v as OrderStatus)}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(orderStatusLabel).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>{label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+              <Card className="glass-card shadow-sm">
+                <CardContent className="p-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">جمع اقلام</span>
+                    <span className="tabular-nums">{formatPrice(selectedOrder.subtotal)} تومان</span>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>یادداشت سفارش</Label>
-                  <Textarea value={orderNote} onChange={e => setOrderNote(e.target.value)} rows={3} placeholder="یادداشت یا توضیحی اضافه کنید..." />
-                </div>
-              </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">هزینه ارسال</span>
+                    <span className="tabular-nums">{selectedOrder.shippingCost > 0 ? `${formatPrice(selectedOrder.shippingCost)} تومان` : 'رایگان'}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">مالیات</span>
+                    <span className="tabular-nums">{formatPrice(selectedOrder.tax)} تومان</span>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <span>مبلغ نهایی</span>
+                    <span className="text-pink-600 dark:text-pink-400 tabular-nums">{formatPrice(selectedOrder.total)} تومان</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Notes */}
+              {selectedOrder.notes && (
+                <Card className="glass-card shadow-sm">
+                  <CardContent className="p-3 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">یادداشت‌ها</p>
+                    <p className="text-sm">{selectedOrder.notes}</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Date */}
+              <p className="text-xs text-muted-foreground text-center">
+                تاریخ سفارش: {selectedOrder.createdAt}
+              </p>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOrderDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">بستن</Button>
-            <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSaveOrderStatus}>
-              ذخیره تغییرات
-            </Button>
+            <Button variant="outline" onClick={() => setOrderDetailOpen(false)}>بستن</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Category Dialog */}
-      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-card shadow-xl">
+      {/* ─── Category Dialog ─── */}
+      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
+        <DialogContent className="max-w-md glass-card shadow-xl" dir="rtl">
           <DialogHeader>
-            <DialogTitle className="text-amber-700 dark:text-amber-300">
+            <DialogTitle className="text-pink-700 dark:text-pink-300">
               {editingCategory ? 'ویرایش دسته‌بندی' : 'افزودن دسته‌بندی جدید'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>نام دسته‌بندی</Label>
-              <Input value={catForm.name} onChange={e => setCatForm({ ...catForm, name: e.target.value, slug: generateSlug(e.target.value) })} placeholder="نام دسته‌بندی" />
+              <Label className="text-xs">نام دسته‌بندی *</Label>
+              <Input value={categoryForm.name} onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value, slug: categoryForm.slug || generateSlug(e.target.value) })} />
             </div>
             <div className="space-y-2">
-              <Label>اسلاگ</Label>
-              <Input value={catForm.slug} onChange={e => setCatForm({ ...catForm, slug: e.target.value })} dir="ltr" placeholder="category-slug" />
+              <Label className="text-xs">Slug (خودکار از نام)</Label>
+              <Input value={categoryForm.slug} onChange={e => setCategoryForm({ ...categoryForm, slug: e.target.value })} dir="ltr" />
             </div>
             <div className="space-y-2">
-              <Label>توضیحات</Label>
-              <Textarea value={catForm.description} onChange={e => setCatForm({ ...catForm, description: e.target.value })} rows={2} placeholder="توضیحات دسته‌بندی..." />
+              <Label className="text-xs">توضیحات</Label>
+              <Textarea value={categoryForm.description} onChange={e => setCategoryForm({ ...categoryForm, description: e.target.value })} rows={2} />
             </div>
             <div className="space-y-2">
-              <Label>دسته‌بندی والد</Label>
-              <Select value={catForm.parent} onValueChange={v => setCatForm({ ...catForm, parent: v })}>
-                <SelectTrigger><SelectValue placeholder="بدون والد" /></SelectTrigger>
+              <Label className="text-xs">تصویر (ایموجی)</Label>
+              <Input value={categoryForm.image} onChange={e => setCategoryForm({ ...categoryForm, image: e.target.value })} placeholder="📁" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">دسته والد</Label>
+              <Select value={categoryForm.parentId || 'none'} onValueChange={v => setCategoryForm({ ...categoryForm, parentId: v === 'none' ? null : v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">بدون والد (دسته‌بندی اصلی)</SelectItem>
-                  {categories.filter(c => c.id !== editingCategory?.id).map(c => (
+                  <SelectItem value="none">بدون والد (دسته اصلی)</SelectItem>
+                  {categories.filter(c => c.parentId === null).map(c => (
                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -1277,51 +1822,142 @@ export default function StorePage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCatDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">انصراف</Button>
-            <Button className="bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSaveCategory} disabled={!catForm.name}>
-              ذخیره
+            <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>انصراف</Button>
+            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleCategorySave} disabled={!categoryForm.name}>
+              {editingCategory ? 'بروزرسانی' : 'ایجاد'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="glass-card shadow-xl">
+      {/* ─── Delete Category Confirmation ─── */}
+      <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
+        <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>آیا مطمئن هستید؟</AlertDialogTitle>
-            <AlertDialogDescription>
-              {deletingType === 'product'
-                ? (deletingId === 'bulk'
-                  ? `تمام ${toPersianDigits(selectedProducts.size)} محصول انتخاب‌شده حذف خواهند شد. این عمل قابل بازگشت نیست.`
-                  : 'این محصول حذف خواهد شد. این عمل قابل بازگشت نیست.')
-                : 'این دسته‌بندی حذف خواهد شد. این عمل قابل بازگشت نیست.'}
-            </AlertDialogDescription>
+            <AlertDialogTitle>حذف دسته‌بندی</AlertDialogTitle>
+            <AlertDialogDescription>آیا مطمئن هستید؟ دسته‌بندی‌های زیرمجموعه به دسته والد منتقل خواهند شد.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>انصراف</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deletingType === 'product') {
-                  if (deletingId === 'bulk') { handleBulkDeleteProducts() }
-                  else if (deletingId) {
-                    setProducts(prev => prev.filter(p => p.id !== deletingId))
-                    toast.success('محصول حذف شد')
-                    setDeleteDialogOpen(false)
-                  }
-                } else if (deletingType === 'category' && deletingId) {
-                  setCategories(prev => prev.filter(c => c.id !== deletingId))
-                  toast.success('دسته‌بندی حذف شد')
-                  setDeleteDialogOpen(false)
-                }
-              }}
-              className="bg-red-600 hover:bg-red-700 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              حذف
-            </AlertDialogAction>
+            <AlertDialogAction className="bg-red-600 hover:bg-red-700 text-white" onClick={handleCategoryDelete}>حذف</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* ─── Tag Dialog ─── */}
+      <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
+        <DialogContent className="max-w-sm glass-card shadow-xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-pink-700 dark:text-pink-300">
+              {editingTag ? 'ویرایش برچسب' : 'افزودن برچسب جدید'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs">نام برچسب *</Label>
+              <Input value={tagForm.name} onChange={e => setTagForm({ ...tagForm, name: e.target.value, slug: tagForm.slug || generateSlug(e.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Slug</Label>
+              <Input value={tagForm.slug} onChange={e => setTagForm({ ...tagForm, slug: e.target.value })} dir="ltr" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTagDialogOpen(false)}>انصراف</Button>
+            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleTagSave} disabled={!tagForm.name}>
+              {editingTag ? 'بروزرسانی' : 'ایجاد'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Coupon Dialog ─── */}
+      <Dialog open={couponDialogOpen} onOpenChange={setCouponDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-card shadow-xl" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-pink-700 dark:text-pink-300">
+              {editingCoupon ? 'ویرایش کوپن تخفیف' : 'افزودن کوپن تخفیف جدید'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs">کد تخفیف *</Label>
+              <Input value={couponForm.code} onChange={e => setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })} dir="ltr" placeholder="WINTER20" className="font-mono" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">نوع تخفیف</Label>
+                <Select value={couponForm.type} onValueChange={v => setCouponForm({ ...couponForm, type: v as 'percent' | 'fixed' })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">درصدی (٪)</SelectItem>
+                    <SelectItem value="fixed">مبلغی (تومان)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">مقدار</Label>
+                <Input type="number" value={couponForm.value} onChange={e => setCouponForm({ ...couponForm, value: Number(e.target.value) })} dir="ltr" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">حداقل سفارش (تومان)</Label>
+                <Input type="number" value={couponForm.minOrder} onChange={e => setCouponForm({ ...couponForm, minOrder: Number(e.target.value) })} dir="ltr" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">حداکثر تخفیف (تومان)</Label>
+                <Input type="number" value={couponForm.maxDiscount} onChange={e => setCouponForm({ ...couponForm, maxDiscount: Number(e.target.value) })} dir="ltr" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">تعداد استفاده مجاز (۰ = نامحدود)</Label>
+                <Input type="number" value={couponForm.maxUsage} onChange={e => setCouponForm({ ...couponForm, maxUsage: Number(e.target.value) })} dir="ltr" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">وضعیت</Label>
+                <div className="flex items-center gap-2 h-10">
+                  <Switch checked={couponForm.active} onCheckedChange={v => setCouponForm({ ...couponForm, active: v })} />
+                  <span className="text-sm">{couponForm.active ? 'فعال' : 'غیرفعال'}</span>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label className="text-xs">تاریخ شروع</Label>
+                <Input value={couponForm.startDate} onChange={e => setCouponForm({ ...couponForm, startDate: e.target.value })} placeholder="۱۴۰۳/۰۹/۰۱" dir="ltr" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">تاریخ انقضا</Label>
+                <Input value={couponForm.expiryDate} onChange={e => setCouponForm({ ...couponForm, expiryDate: e.target.value })} placeholder="۱۴۰۳/۱۲/۳۰" dir="ltr" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">محصولات مجاز (خالی = همه)</Label>
+              <Input value={couponForm.allowedProducts} onChange={e => setCouponForm({ ...couponForm, allowedProducts: e.target.value })} placeholder="نام محصولات با کاما" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">دسته‌بندی‌های مجاز</Label>
+              <Select value={couponForm.allowedCategories || 'همه'} onValueChange={v => setCouponForm({ ...couponForm, allowedCategories: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="همه">همه دسته‌بندی‌ها</SelectItem>
+                  {categoryNames.map(name => (
+                    <SelectItem key={name} value={name}>{name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCouponDialogOpen(false)}>انصراف</Button>
+            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleCouponSave} disabled={!couponForm.code}>
+              {editingCoupon ? 'بروزرسانی' : 'ایجاد کوپن'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
