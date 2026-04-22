@@ -3454,3 +3454,190 @@ tbody tr:hover {
 }
 
 /* === END OF STYLES - Round 4-a Styling Enhancements === */
+
+/* ========================================================================== */
+/*  LANDING PAGE STYLES                                                       */
+/* ========================================================================== */
+
+/* Smooth scroll for landing page anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hero gradient orbs */
+.landing-orb {
+  filter: blur(80px);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Landing card hover effect */
+.landing-card-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 20px 40px oklch(0 0 0 / 8%),
+    0 8px 16px oklch(0 0 0 / 5%);
+}
+
+.dark .landing-card-hover:hover {
+  box-shadow:
+    0 20px 40px oklch(0 0 0 / 30%),
+    0 8px 16px oklch(0 0 0 / 20%);
+}
+
+/* Landing button glow */
+.btn-landing-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-landing-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(217, 70, 239, 0.5), rgba(139, 92, 246, 0.5));
+  filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+  border-radius: inherit;
+}
+
+.btn-landing-glow:hover::before {
+  opacity: 1;
+}
+
+/* Gradient mesh background for CTA */
+.cta-gradient-mesh {
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 50%, rgba(217, 70, 239, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 0%, rgba(6, 182, 212, 0.1) 0%, transparent 50%);
+}
+
+/* Pricing card popular highlight */
+.pricing-popular {
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.1),
+    0 0 60px rgba(139, 92, 246, 0.05);
+}
+
+.dark .pricing-popular {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.15),
+    0 0 60px rgba(139, 92, 246, 0.08);
+}
+
+/* Feature card shine sweep */
+.feature-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.feature-shine:hover::before {
+  left: 100%;
+}
+
+/* Testimonial card gradient border */
+.testimonial-card {
+  position: relative;
+}
+
+.testimonial-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(217, 70, 239, 0.05));
+  border-radius: 0 0 0 60px;
+  pointer-events: none;
+}
+
+/* Navbar glass effect on scroll */
+.navbar-scrolled {
+  background: oklch(1 0 0 / 80%);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid oklch(0 0 0 / 6%);
+  box-shadow: 0 1px 12px oklch(0 0 0 / 4%);
+}
+
+.dark .navbar-scrolled {
+  background: oklch(0.145 0 0 / 80%);
+  border-bottom-color: oklch(1 0 0 / 6%);
+  box-shadow: 0 1px 12px oklch(0 0 0 / 20%);
+}
+
+/* Floating stat badge */
+.floating-badge {
+  animation: floating-badge 3s ease-in-out infinite;
+}
+
+@keyframes floating-badge {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Gradient text with animation */
+.landing-gradient-text {
+  background: linear-gradient(135deg, #8b5cf6, #a855f7, #d946ef, #a855f7, #8b5cf6);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: landing-text-flow 4s ease infinite;
+}
+
+@keyframes landing-text-flow {
+  0%, 100% { background-position: 0% center; }
+  50% { background-position: 200% center; }
+}
+
+/* Section divider gradient */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.55 0.2 270 / 20%) 20%,
+    oklch(0.65 0.2 180 / 30%) 50%,
+    oklch(0.55 0.2 270 / 20%) 80%,
+    transparent 100%
+  );
+}
+
+.dark .section-divider {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.7 0.2 270 / 15%) 20%,
+    oklch(0.75 0.2 180 / 20%) 50%,
+    oklch(0.7 0.2 270 / 15%) 80%,
+    transparent 100%
+  );
+}

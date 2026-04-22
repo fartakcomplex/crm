@@ -87,6 +87,11 @@ const DynamicLoginPage = dynamic(
   { ssr: false }
 )
 
+const DynamicLandingPage = dynamic(
+  () => import('@/components/cms/LandingPage'),
+  { ssr: false }
+)
+
 // ─── Icon Map ──────────────────────────────────────────────────────────
 
 const iconComponents: Record<string, React.ComponentType<{className?: string}>> = {
@@ -617,7 +622,7 @@ function AppContent() {
   const [profileOpen, setProfileOpen] = useState(false)
   const [quickDraftOpen, setQuickDraftOpen] = useState(false)
   const [notificationSheetOpen, setNotificationSheetOpen] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(true)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
 
@@ -718,9 +723,9 @@ function AppContent() {
   const PageComponent = pageComponents[activeTab] ?? pageComponents.dashboard
   const activeTabData = CMS_TABS.find(t => t.id === activeTab)
 
-  // Full-screen login when not authenticated
+  // Full-screen landing page when not authenticated
   if (!isLoggedIn) {
-    return <DynamicLoginPage onLogin={handleLogin} />
+    return <DynamicLandingPage onEnter={() => setIsLoggedIn(true)} />
   }
 
   return (

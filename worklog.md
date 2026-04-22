@@ -2453,3 +2453,39 @@ Stage Summary:
   - Tag editor: full page with name, slug, info section
 - Server HTTP 200, dev server healthy
 - Pre-existing nested button warning in BookmarkManager (not from our changes)
+
+---
+Task ID: landing-page
+Agent: Main Agent
+Task: Create stunning landing page for Smart CMS
+
+Work Log:
+- Generated 3 AI images for landing page (hero-cms.png, ai-feature.png, dashboard-preview.png)
+- Created LandingPage.tsx component (~600 lines) with 9 sections:
+  1. Navbar — sticky glassmorphism with scroll detection, mobile responsive menu, theme toggle
+  2. Hero Section — parallax scroll, floating particles, gradient orbs, trust indicators
+  3. Stats Section — 4 animated stat cards (users, content, uptime, satisfaction)
+  4. Features Section — 9 feature cards with gradient icons and hover glow effects
+  5. Products Showcase — 2 alternating image+text sections with feature checklists
+  6. AI Capabilities Section — 9 AI feature items with gradient backgrounds
+  7. Testimonials Section — 3 user testimonials with star ratings
+  8. Pricing Section — 3 pricing plans (Free, Pro, Enterprise) with popular highlight
+  9. CTA Section — gradient full-width CTA with action buttons
+  10. Footer — 5-column layout with links and status indicator
+- Used Framer Motion for scroll-triggered animations (IntersectionObserver-based)
+- Used framer-motion useScroll/useTransform for parallax hero effects
+- Floating particles with random sizes, positions, and animation durations
+- All text in Persian/Farsi (RTL)
+- Updated page.tsx to show landing page by default (isLoggedIn=false)
+- Added landing page CSS to globals.css (~150 lines)
+- ESLint: 0 errors, 0 warnings
+- Server compiles successfully (HTTP 200)
+
+Stage Summary:
+- 1 new file created: LandingPage.tsx
+- 3 images generated: hero-cms.png, ai-feature.png, dashboard-preview.png
+- 2 files modified: page.tsx (landing page integration), globals.css (landing styles)
+- Landing page shows by default, clicking "ورود به پنل" enters CMS
+- Full dark/light theme support
+- Responsive design (mobile + desktop)
+- Smooth scroll navigation between sections
