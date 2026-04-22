@@ -124,15 +124,15 @@ function SidebarNav({
               <Bot className="h-4.5 w-4.5 text-white" />
             </div>
             <div className="text-right">
-              <span className="font-bold text-sm tracking-tight">Smart CMS</span>
-              <span className="block text-[10px] text-muted-foreground -mt-0.5">مدیریت هوشمند</span>
+              <span className="font-bold text-sm tracking-tight">سیستم مدیریت هوشمند</span>
+              <span className="block text-[10px] text-muted-foreground -mt-0.5">نسخه ۲.۰</span>
             </div>
           </div>
         )}
       </div>
 
       {/* Nav Items — scrollable area */}
-      <ScrollArea className="flex-1 py-2 overflow-hidden">
+      <ScrollArea className="flex-1 min-h-0 py-2">
         <nav className="space-y-0.5 px-2" dir="rtl">
           {CMS_TABS.map((tab, i) => {
             // Show category header before first item in each category (skip 'main')
