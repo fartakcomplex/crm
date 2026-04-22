@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { restoreFromBackup, deleteBackup } from '@/lib/backup'
+import { restoreFromBackup, deleteBackup, getBackupDetail, verifyBackupIntegrity } from '@/lib/backup'
 import { db } from '@/lib/db'
 import { existsSync, createReadStream, statSync } from 'fs'
 
@@ -10,6 +10,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    const searchParams = new URL(request.url).searchParams
+    const detail = searchParams.get('detail') === 'true'
+    const verify = searchParams.get('verify') === 'true'
+
     const record = await db.backupRecord.findUnique({
       where: { id },
     })
@@ -18,6 +22,19 @@ export async function GET(
       return NextResponse.json({ error: 'بکاپ یافت نشد' }, { status: 404 })
     }
 
+    // Return backup detail
+    if (detail) {
+      const backupDetail = await getBackupDetail(id)
+      return NextResponse.json(backupDetail)
+    }
+
+    // Return verification result
+    if (verify && record.filePath) {
+      const integrity = await verifyBackupIntegrity(record.filePath)
+      return NextResponse.json(integrity)
+    }
+
+    // Download backup file
     if (!existsSync(record.filePath)) {
       return NextResponse.json({ error: 'فایل بکاپ وجود ندارد' }, { status: 404 })
     }
@@ -32,9 +49,9 @@ export async function GET(
       },
     })
   } catch (error) {
-    console.error('Error downloading backup:', error)
+    console.error('Error in backup [id] GET:', error)
     return NextResponse.json(
-      { error: 'خطا در دانلود بکاپ' },
+      { error: error instanceof Error ? error.message : 'خطا در دریافت بکاپ' },
       { status: 500 }
     )
   }
@@ -47,8 +64,8 @@ export async function POST(
 ) {
   try {
     const { id } = await params
-    await restoreFromBackup(id)
-    return NextResponse.json({ success: true, message: 'بازیابی با موفقیت انجام شد' })
+    const result = await restoreFromBackup(id)
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Error restoring backup:', error)
     return NextResponse.json(

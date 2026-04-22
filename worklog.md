@@ -2661,3 +2661,42 @@ Stage Summary:
 - Safety backup created automatically before any restore operation
 - Server compiles successfully (HTTP 200)
 - Backup creation verified: creates .db copy file + database record
+---
+Task ID: backup-system
+Agent: Main Agent
+Task: Add automatic backup system with daily/weekly backups and restore/recovery capability
+
+Work Log:
+- Analyzed existing backup system (backup.ts, API routes, BackupPanel.tsx, BackupRecord Prisma model)
+- Enhanced /src/lib/backup.ts with new features:
+  - `restoreFromUploadedFile()` — restore database from uploaded .db/.sqlite file
+  - `verifyBackupIntegrity()` — checks file existence, size, SQLite header magic bytes
+  - `getBackupDetail()` — detailed backup info with health check, size comparison, age
+  - `getSystemHealth()` — full system health check (DB, backup dir, disk usage, backup age)
+  - Enhanced `restoreFromBackup()` — now verifies integrity before restoring, returns safety backup ID
+- Enhanced /src/app/api/backups/route.ts:
+  - Added multipart/form-data support for file upload restore
+  - File type validation (.db, .sqlite, .sqlite3)
+  - File size limit (500MB)
+- Enhanced /src/app/api/backups/[id]/route.ts:
+  - Added `?detail=true` query param for backup detail
+  - Added `?verify=true` query param for integrity verification
+- Created /src/app/api/backups/health/route.ts:
+  - GET endpoint returning full system health status
+- Completely redesigned /src/components/cms/BackupPanel.tsx:
+  - Three-tab layout: بکاپ‌گیری (Backup) | بازیابی (Restore) | زمان‌بندی خودکار (Auto Schedule)
+  - System health card with issue warnings
+  - Upload file restore section with drag-and-drop
+  - Restore from existing backups with detailed dialog (size comparison, age, health)
+  - Auto backup schedule summary with visual cards
+  - Backup list with enhanced icons per type (daily/weekly/manual)
+- Set up cron job for automatic backup (every hour check, job ID: 112659)
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings
+- 4 files modified, 1 new file created (health API route)
+- Full backup lifecycle: Create → List → Download → Restore → Delete
+- Restore options: from existing backup ID, or upload .db file
+- Safety: automatic pre-restore safety backup, integrity verification
+- Auto scheduling: daily (every 24h, max 30), weekly (every 7d, max 12), manual (max 50)
+- Health monitoring: DB status, backup dir, disk usage, backup age
