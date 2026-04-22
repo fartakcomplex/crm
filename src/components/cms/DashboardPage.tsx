@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useSyncExternalStore } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { ModuleStatsOverview, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
@@ -253,15 +253,15 @@ function Section({ title, defaultOpen, children, delay }: {
 // ──────────────────── Persian Date ──────────────────────────────
 
 function PersianDate() {
-  const date = useMemo(() => {
-    const now = new Date()
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-    }
-    return now.toLocaleDateString('fa-IR', options)
-  }, [])
+  const date = useSyncExternalStore(
+    emptySubscribe,
+    () => new Date().toLocaleDateString('fa-IR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+    () => '',
+  )
   return <span>{date}</span>
 }
+
+const emptySubscribe = (_callback: () => void) => () => {}
 
 // ──────────────────── Mini Trend Card ────────────────────────────
 
@@ -484,19 +484,52 @@ const TIPS = [
   '🌙 از حالت تاریک برای کار راحت‌تر در شب استفاده کنید',
 ]
 
+// ─── Tip Banner External Store ──────────────────────────────────────
+
+interface TipBannerState { dismissed: boolean; tip: string }
+
+let tipBannerListeners: Array<() => void> = []
+let tipBannerCache: TipBannerState | null = null
+
+function getTipBannerSnapshot(): TipBannerState {
+  if (tipBannerCache !== null) return tipBannerCache
+  if (typeof window === 'undefined') return { dismissed: false, tip: TIPS[0] }
+  tipBannerCache = {
+    dismissed: localStorage.getItem('cms-tip-dismissed') !== null,
+    tip: TIPS[Math.floor(Math.random() * TIPS.length)],
+  }
+  return tipBannerCache
+}
+
+function getTipBannerServerSnapshot(): TipBannerState {
+  return { dismissed: false, tip: TIPS[0] }
+}
+
+function subscribeToTipBanner(callback: () => void): () => void {
+  tipBannerListeners.push(callback)
+  return () => { tipBannerListeners = tipBannerListeners.filter(l => l !== callback) }
+}
+
+function updateTipBanner(partial: Partial<TipBannerState>): void {
+  tipBannerCache = null
+  if (typeof window !== 'undefined' && partial.dismissed) {
+    localStorage.setItem('cms-tip-dismissed', 'true')
+  }
+  for (const listener of tipBannerListeners) listener()
+}
+
 function OnboardingTipBanner() {
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return localStorage.getItem('cms-tip-dismissed') !== null
-  })
+  const { dismissed, tip } = useSyncExternalStore(
+    subscribeToTipBanner,
+    getTipBannerSnapshot,
+    getTipBannerServerSnapshot,
+  )
   const [visible, setVisible] = useState(true)
-  const [tip] = useState(() => TIPS[Math.floor(Math.random() * TIPS.length)])
 
   const handleDismiss = () => {
     setVisible(false)
     setTimeout(() => {
-      setDismissed(true)
-      localStorage.setItem('cms-tip-dismissed', 'true')
+      updateTipBanner({ dismissed: true })
     }, 300)
   }
 
@@ -742,25 +775,45 @@ function SystemHealthWidget() {
 
 const PERSIAN_WEEK_DAYS = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
 
+// ─── Calendar External Store ──────────────────────────────────────
+
+interface CalendarData { persianMonth: string; persianFirstDay: number; daysInMonth: number; today: number }
+
+let calendarListeners: Array<() => void> = []
+let calendarCache: CalendarData | null = null
+
+const CALENDAR_SERVER_SNAPSHOT: CalendarData = { persianMonth: '', persianFirstDay: 0, daysInMonth: 30, today: 0 }
+
+function getCalendarSnapshot(): CalendarData {
+  if (calendarCache !== null) return calendarCache
+  if (typeof window === 'undefined') return CALENDAR_SERVER_SNAPSHOT
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const today = now.getDate()
+  const persianMonth = now.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })
+  const firstDay = new Date(year, month, 1).getDay()
+  const persianFirstDay = (firstDay + 1) % 7
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  calendarCache = { persianMonth, persianFirstDay, daysInMonth, today }
+  return calendarCache
+}
+
+function getCalendarServerSnapshot(): CalendarData {
+  return CALENDAR_SERVER_SNAPSHOT
+}
+
+function subscribeToCalendar(callback: () => void): () => void {
+  calendarListeners.push(callback)
+  return () => { calendarListeners = calendarListeners.filter(l => l !== callback) }
+}
+
 function MiniCalendarWidget() {
-  const calendarData = useMemo(() => {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = now.getMonth()
-    const today = now.getDate()
-
-    // Get Persian month name
-    const persianMonth = now.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })
-
-    // First day of month (0=Sun ... 6=Sat)
-    const firstDay = new Date(year, month, 1).getDay()
-    // Convert to Persian week (Saturday=0 ... Friday=6)
-    const persianFirstDay = (firstDay + 1) % 7
-    // Days in month
-    const daysInMonth = new Date(year, month + 1, 0).getDate()
-
-    return { persianMonth, persianFirstDay, daysInMonth, today }
-  }, [])
+  const calendarData = useSyncExternalStore(
+    subscribeToCalendar,
+    getCalendarSnapshot,
+    getCalendarServerSnapshot,
+  )
 
   const { persianMonth, persianFirstDay, daysInMonth, today } = calendarData
 

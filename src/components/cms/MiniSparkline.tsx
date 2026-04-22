@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useEffect, useRef } from 'react'
+import { useMemo, useEffect, useRef, useSyncExternalStore } from 'react'
 
 interface MiniSparklineProps {
   data: number[]
@@ -47,7 +47,12 @@ export function MiniSparkline({
   trend,
 }: MiniSparklineProps) {
   const pathRef = useRef<SVGPathElement>(null)
-  const id = useRef(`sparkline-${Math.random().toString(36).slice(2, 9)}`)
+  let stableId = useRef(0)
+  const gradientId = useSyncExternalStore(
+    (_cb) => () => {},
+    () => { if (!stableId.current) stableId.current = Date.now(); return `sparkline-${stableId.current}` },
+    () => 'sparkline-fallback',
+  )
 
   const { linePath, fillPath, totalLength } = useMemo(() => {
     if (!data || data.length < 2) {
@@ -111,8 +116,6 @@ export function MiniSparkline({
   }, [trend])
 
   if (data.length < 2) return null
-
-  const gradientId = id.current
 
   return (
     <svg

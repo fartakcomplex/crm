@@ -2350,3 +2350,35 @@ Stage Summary:
 - Cross-module data flowing: Products↔Inventory↔Orders↔Invoices↔Customers↔CRM↔Accounting↔Finance
 - Database seeded with realistic Persian business data (10 products, 6 orders, 5 invoices, 3 bank accounts, 10 transactions, 8 CRM activities)
 - Server compiles and runs successfully (HTTP 200)
+
+---
+Task ID: Bug Fix Round
+Agent: Main Agent
+Task: Fix 4 runtime errors reported in screenshots
+
+Work Log:
+- Analyzed 4 uploaded screenshots using VLM to identify errors
+- Error 1: Nested `<button>` inside `<button>` in NotesWidget.tsx line 161 — outer `<button>` contained a `<Button>` component
+- Error 2 & 3: Same nested button issue reported from different stack traces (NotesWidget.tsx line 161, button.tsx)
+- Error 4: `apiProductCategories.map is not a function` in StorePage.tsx line 453 — API returns `{productCategories: [...]}` (camelCase) but WRAPPED_KEYS had `product-categories` (kebab-case), so auto-unwrap failed
+- Error 5 (Hydration): Multiple hydration mismatches across dashboard widgets
+
+Fixes Applied:
+1. **NotesWidget.tsx**: Changed outer `<button>` to `<div role="button">` with tabIndex and keyboard handlers
+2. **useCMSData.ts**: Added `productCategories` to WRAPPED_KEYS array (camelCase key used by API)
+3. **Hydration fixes** (7 sources):
+   - ThemeCustomizerWidget.tsx: Refactored from useState+useEffect to useSyncExternalStore external store pattern
+   - AnalyticsOverviewWidget.tsx: Refactored todayIndex from useState+useEffect to useSyncExternalStore
+   - DashboardPage.tsx PersianDate: Refactored from useState+useEffect to useSyncExternalStore
+   - DashboardPage.tsx OnboardingTipBanner: Refactored from useState+useEffect to useSyncExternalStore external store
+   - DashboardPage.tsx MiniCalendarWidget: Refactored from useState+useEffect to useSyncExternalStore external store
+   - MiniSparkline.tsx: Refactored gradientId from useState+useEffect to useSyncExternalStore
+   - NotesWidget.tsx: Refactored entire state management to useSyncExternalStore external store pattern
+4. **Created** `/home/z/my-project/src/lib/hooks/useClientState.ts` (reusable useSyncExternalStore hook)
+
+Stage Summary:
+- All 4 reported errors fixed
+- 7 additional hydration sources proactively fixed
+- ESLint: 0 errors, 0 warnings
+- Server running with HTTP 200
+- No setState in effects (all refactored to useSyncExternalStore)

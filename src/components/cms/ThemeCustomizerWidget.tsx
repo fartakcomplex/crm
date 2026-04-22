@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useSyncExternalStore, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Palette, RotateCcw, LayoutGrid, Square } from 'lucide-react'
@@ -41,80 +41,89 @@ interface ThemePrefs {
   borderRadius: Radius
 }
 
-function loadPrefs(): ThemePrefs {
-  if (typeof window === 'undefined') {
-    return { accentColor: '#8b5cf6', density: 'default', borderRadius: 'medium' }
-  }
+const DEFAULT_PREFS: ThemePrefs = { accentColor: '#8b5cf6', density: 'default', borderRadius: 'medium' }
+
+// ─── External Store (hydration-safe) ──────────────────────────────────
+
+let prefsListeners: Array<() => void> = []
+let prefsCache: ThemePrefs | null = null
+
+function getPrefsSnapshot(): ThemePrefs {
+  if (prefsCache !== null) return prefsCache
+  if (typeof window === 'undefined') return DEFAULT_PREFS
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) return JSON.parse(stored)
-  } catch { /* ignore */ }
-  return { accentColor: '#8b5cf6', density: 'default', borderRadius: 'medium' }
+    prefsCache = stored ? JSON.parse(stored) : DEFAULT_PREFS
+  } catch {
+    prefsCache = DEFAULT_PREFS
+  }
+  return prefsCache
 }
 
-function savePrefs(prefs: ThemePrefs) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
-  } catch { /* ignore */ }
+function getPrefsServerSnapshot(): ThemePrefs {
+  return DEFAULT_PREFS
 }
+
+function subscribeToPrefs(callback: () => void): () => void {
+  prefsListeners.push(callback)
+  return () => {
+    prefsListeners = prefsListeners.filter(l => l !== callback)
+  }
+}
+
+function emitPrefsChange(): void {
+  prefsCache = null
+  for (const listener of prefsListeners) {
+    listener()
+  }
+}
+
+function persistPrefs(prefs: ThemePrefs): void {
+  prefsCache = prefs
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+  }
+}
+
+function applyPrefsToDOM(prefs: ThemePrefs): void {
+  if (typeof window === 'undefined') return
+  document.documentElement.style.setProperty('--cms-accent', prefs.accentColor)
+  const radiusSize = RADIUS_OPTIONS.find(r => r.value === prefs.borderRadius)?.size ?? '0.625rem'
+  document.documentElement.style.setProperty('--radius', radiusSize)
+  const contentArea = document.querySelector('[data-content-area]') || document.documentElement
+  contentArea.classList.remove('density-compact', 'density-default', 'density-spacious')
+  contentArea.classList.add(`density-${prefs.density}`)
+}
+
+// Apply DOM changes when store changes (called from mutation callbacks)
+function updateAndApplyPrefs(updater: (prev: ThemePrefs) => ThemePrefs): void {
+  const next = updater(getPrefsSnapshot())
+  persistPrefs(next)
+  applyPrefsToDOM(next)
+  emitPrefsChange()
+}
+
+// ─── Component ───────────────────────────────────────────────────────────
 
 export default function ThemeCustomizerWidget() {
-  const [prefs, setPrefs] = useState<ThemePrefs>(loadPrefs)
-
-  // Apply accent color on mount and when changed
-  useEffect(() => {
-    document.documentElement.style.setProperty('--cms-accent', prefs.accentColor)
-  }, [prefs.accentColor])
-
-  // Apply density class
-  useEffect(() => {
-    const contentArea = document.querySelector('[data-content-area]') || document.documentElement
-    // Remove all density classes first
-    contentArea.classList.remove('density-compact', 'density-default', 'density-spacious')
-    contentArea.classList.add(`density-${prefs.density}`)
-  }, [prefs.density])
-
-  // Apply border radius
-  useEffect(() => {
-    const radiusSize = RADIUS_OPTIONS.find(r => r.value === prefs.borderRadius)?.size ?? '0.625rem'
-    document.documentElement.style.setProperty('--radius', radiusSize)
-  }, [prefs.borderRadius])
+  const prefs = useSyncExternalStore(subscribeToPrefs, getPrefsSnapshot, getPrefsServerSnapshot)
 
   const setAccent = useCallback((color: string) => {
-    setPrefs(prev => {
-      const next = { ...prev, accentColor: color }
-      savePrefs(next)
-      return next
-    })
+    updateAndApplyPrefs(prev => ({ ...prev, accentColor: color }))
   }, [])
 
   const setDensity = useCallback((density: Density) => {
-    setPrefs(prev => {
-      const next = { ...prev, density }
-      savePrefs(next)
-      return next
-    })
+    updateAndApplyPrefs(prev => ({ ...prev, density }))
     const labels: Record<Density, string> = { compact: 'فشرده', default: 'پیش‌فرض', spacious: 'جادار' }
     toast.success(`فاصله‌گذاری: ${labels[density]}`)
   }, [])
 
   const setRadius = useCallback((radius: Radius) => {
-    setPrefs(prev => {
-      const next = { ...prev, borderRadius: radius }
-      savePrefs(next)
-      return next
-    })
+    updateAndApplyPrefs(prev => ({ ...prev, borderRadius: radius }))
   }, [])
 
   const handleReset = useCallback(() => {
-    const defaults: ThemePrefs = { accentColor: '#8b5cf6', density: 'default', borderRadius: 'medium' }
-    setPrefs(defaults)
-    savePrefs(defaults)
-    document.documentElement.style.setProperty('--cms-accent', '#8b5cf6')
-    document.documentElement.style.setProperty('--radius', '0.625rem')
-    const contentArea = document.querySelector('[data-content-area]') || document.documentElement
-    contentArea.classList.remove('density-compact', 'density-default', 'density-spacious')
-    contentArea.classList.add('density-default')
+    updateAndApplyPrefs(() => DEFAULT_PREFS)
     toast.success('تنظیمات بازنشانی شد')
   }, [])
 

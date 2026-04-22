@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useSyncExternalStore, useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { BarChart3, PieChart as PieIcon, TrendingUp } from 'lucide-react'
 
@@ -29,7 +29,11 @@ function getTodayDayIndex(): number {
 }
 
 export default function AnalyticsOverviewWidget() {
-  const todayIndex = getTodayDayIndex()
+  const todayIndex = useSyncExternalStore(
+    (_cb) => () => {},
+    getTodayDayIndex,
+    () => -1,
+  )
 
   // Bar chart heights (max height 100%)
   const maxViews = Math.max(...WEEKLY_VIEWS, 1)

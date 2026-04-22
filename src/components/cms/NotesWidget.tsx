@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback, useSyncExternalStore } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -69,22 +69,49 @@ const COLOR_MAP: Record<NoteColor, { border: string; bg: string; dot: string; la
 
 const COLOR_OPTIONS: NoteColor[] = ['yellow', 'blue', 'green', 'pink']
 
-// ─── Helpers ─────────────────────────────────────────────────────────────
+// ─── External Store (hydration-safe) ──────────────────────────────────
 
-function loadNotes(): Note[] {
+let noteStoreListeners: Array<() => void> = []
+let noteStoreCache: Note[] | null = null
+
+function getNoteSnapshot(): Note[] {
+  if (noteStoreCache !== null) return noteStoreCache
   if (typeof window === 'undefined') return []
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : []
+    noteStoreCache = raw ? JSON.parse(raw) : []
   } catch {
-    return []
+    noteStoreCache = []
+  }
+  return noteStoreCache
+}
+
+function getNoteServerSnapshot(): Note[] {
+  return []
+}
+
+function subscribeToNotes(callback: () => void): () => void {
+  noteStoreListeners.push(callback)
+  return () => {
+    noteStoreListeners = noteStoreListeners.filter(l => l !== callback)
   }
 }
 
-function saveNotes(notes: Note[]) {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes))
+function emitNoteChange(): void {
+  noteStoreCache = null // invalidate cache
+  for (const listener of noteStoreListeners) {
+    listener()
+  }
 }
+
+function persistNotes(notes: Note[]): void {
+  noteStoreCache = notes
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes))
+  }
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────
 
 function generateId(): string {
   return `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -106,21 +133,17 @@ function formatRelativeDate(dateStr: string): string {
 // ─── Component ───────────────────────────────────────────────────────────
 
 export function NotesWidget() {
-  const [notes, setNotes] = useState<Note[]>(() => loadNotes())
+  const notes = useSyncExternalStore(subscribeToNotes, getNoteSnapshot, getNoteServerSnapshot)
   const [collapsed, setCollapsed] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedColor, setSelectedColor] = useState<NoteColor>('yellow')
 
-  // Persist whenever notes change
-  useEffect(() => {
-    saveNotes(notes)
-  }, [notes])
-
   const handleAddNote = useCallback(() => {
     if (!title.trim() && !content.trim()) return
-    if (notes.length >= 20) return
+    const current = getNoteSnapshot()
+    if (current.length >= 20) return
 
     const newNote: Note = {
       id: generateId(),
@@ -131,21 +154,26 @@ export function NotesWidget() {
       createdAt: new Date().toISOString(),
     }
 
-    setNotes((prev) => [newNote, ...prev].slice(0, 20))
+    persistNotes([newNote, ...current].slice(0, 20))
+    emitNoteChange()
     setTitle('')
     setContent('')
     setSelectedColor('yellow')
     setDialogOpen(false)
-  }, [title, content, selectedColor, notes.length])
+  }, [title, content, selectedColor])
 
   const handleDelete = useCallback((id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id))
+    const updated = getNoteSnapshot().filter((n) => n.id !== id)
+    persistNotes(updated)
+    emitNoteChange()
   }, [])
 
   const handleTogglePin = useCallback((id: string) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, pinned: !n.pinned } : n)),
+    const updated = getNoteSnapshot().map((n) =>
+      n.id === id ? { ...n, pinned: !n.pinned } : n,
     )
+    persistNotes(updated)
+    emitNoteChange()
   }, [])
 
   // Sort: pinned first, then by createdAt desc
@@ -158,9 +186,12 @@ export function NotesWidget() {
   return (
     <div className="glass-card glass-card-amber rounded-xl overflow-hidden animate-in" dir="rtl">
       {/* ─── Header ─── */}
-      <button
+      <div
         className="w-full flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-amber-500/5 transition-colors"
         onClick={() => setCollapsed((p) => !p)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setCollapsed((p) => !p) }}
       >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
@@ -199,7 +230,7 @@ export function NotesWidget() {
             <ChevronUp className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
-      </button>
+      </div>
 
       {/* ─── Notes List ─── */}
       {!collapsed && (
