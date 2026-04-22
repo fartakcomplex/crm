@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
@@ -14,10 +14,14 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Progress } from '@/components/ui/progress'
 import {
   TrendingUp, TrendingDown, DollarSign, Wallet, PiggyBank,
   Plus, Search, ArrowUpRight, ArrowDownRight, Calendar,
-  BarChart3, PieChart,
+  BarChart3, PieChart, Edit3, Trash2, Filter,
+  Target, AlertTriangle, FileText, Download,
+  Activity, Heart, ArrowLeftRight, Receipt,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -38,14 +42,25 @@ interface MonthlyData {
   expense: number
 }
 
+interface BudgetItem {
+  id: string
+  category: string
+  budgetAmount: number
+  spentAmount: number
+  icon: string
+}
+
 // ─── Labels ─────────────────────────────────────────────────────────────────
 
 const labels = {
   title: 'مالی',
   subtitle: 'داشبورد مالی و مدیریت درآمد و هزینه‌ها',
   addTransaction: 'ثبت تراکنش',
+  editTransaction: 'ویرایش تراکنش',
+  deleteTransaction: 'حذف تراکنش',
   save: 'ذخیره',
   cancel: 'انصراف',
+  delete: 'حذف',
   search: 'جستجو در تراکنش‌ها...',
   noResults: 'تراکنشی یافت نشد',
   date: 'تاریخ',
@@ -65,6 +80,40 @@ const labels = {
   monthlyTrend: 'روند ماهانه',
   recentTransactions: 'تراکنش‌های اخیر',
   budgetOverview: 'خلاصه بودجه',
+  dashboard: 'داشبورد',
+  transactions: 'تراکنش‌ها',
+  budget: 'بودجه',
+  reports: 'گزارش‌ها',
+  cashFlow: 'جریان نقدینگی (۷ روز اخیر)',
+  quickActions: 'عملیات سریع',
+  addIncome: 'ثبت درآمد',
+  addExpense: 'ثبت هزینه',
+  viewReport: 'مشاهده گزارش',
+  savingsGoal: 'هدف پس‌انداز',
+  totalTransactions: 'کل تراکنش‌ها',
+  runningTotal: 'مانده:',
+  budgetPlan: 'برنامه بودجه ماهانه',
+  totalBudget: 'مجموع بودجه',
+  totalSpent: 'مجموع هزینه',
+  remaining: 'باقیمانده',
+  addBudget: 'افزودن بودجه',
+  editBudget: 'ویرایش بودجه',
+  budgetCategory: 'دسته‌بندی',
+  budgetAmount: 'مبلغ بودجه',
+  spent: 'هزینه شده',
+  overBudget: 'بودجه اضافی!',
+  underBudget: 'بودجه عادی',
+  yearlyComparison: 'مقایسه سالانه درآمد و هزینه',
+  topExpenseCategories: '۵ دسته‌بندی پرهزینه',
+  monthlySavingsRate: 'نرخ پس‌انداز ماهانه',
+  financialHealthScore: 'امتیاز سلامت مالی',
+  exportSummary: 'خروجی خلاصه',
+  excellent: 'عالی',
+  good: 'خوب',
+  fair: 'متوسط',
+  poor: 'ضعیف',
+  deleteConfirm: 'آیا از حذف این تراکنش اطمینان دارید؟',
+  confirm: 'تأیید',
 }
 
 const categoryLabels: Record<string, string> = {
@@ -77,6 +126,11 @@ const categoryLabels: Record<string, string> = {
   software: 'نرم‌افزار',
   equipment: 'تجهیزات',
   other: 'سایر',
+  tax: 'مالیات',
+  insurance: 'بیمه',
+  training: 'آموزش',
+  transport: 'حمل و نقل',
+  consulting: 'مشاوره',
 }
 
 const typeConfig: Record<string, { bg: string; text: string; icon: typeof TrendingUp; gradient: string }> = {
@@ -115,10 +169,15 @@ const initialTransactions: Transaction[] = [
   { id: '9', date: '۱۴۰۲/۱۰/۲۸', description: 'درآمد پشتیبانی ماهانه', type: 'income', amount: 15_000_000, category: 'services' },
   { id: '10', date: '۱۴۰۲/۱۰/۲۵', description: 'خرید لایسنس نرم‌افزار', type: 'expense', amount: 4_200_000, category: 'software' },
   { id: '11', date: '۱۴۰۲/۱۰/۲۲', description: 'فروش قالب وب‌سایت', type: 'income', amount: 5_000_000, category: 'sales' },
-  { id: '12', date: '۱۴۰۲/۱۰/۲۰', description: 'هزینه سفر کاری اصفهان', type: 'expense', amount: 2_800_000, category: 'other' },
+  { id: '12', date: '۱۴۰۲/۱۰/۲۰', description: 'هزینه سفر کاری اصفهان', type: 'expense', amount: 2_800_000, category: 'transport' },
   { id: '13', date: '۱۴۰۲/۱۰/۱۸', description: 'درآمد طراحی UI/UX', type: 'income', amount: 22_000_000, category: 'services' },
   { id: '14', date: '۱۴۰۲/۱۰/۱۵', description: 'پرداخت اینترنت و تلفن', type: 'expense', amount: 1_200_000, category: 'utilities' },
   { id: '15', date: '۱۴۰۲/۱۰/۱۲', description: 'فروش دوره آموزشی آنلاین', type: 'income', amount: 35_000_000, category: 'sales' },
+  { id: '16', date: '۱۴۰۲/۱۰/۱۰', description: 'پرداخت مالیات فصلی', type: 'expense', amount: 8_500_000, category: 'tax' },
+  { id: '17', date: '۱۴۰۲/۱۰/۰۸', description: 'حق بیمه تأمین اجتماعی', type: 'expense', amount: 6_200_000, category: 'insurance' },
+  { id: '18', date: '۱۴۰۲/۱۰/۰۵', description: 'درآمد مشاوره استراتژیک', type: 'income', amount: 18_000_000, category: 'consulting' },
+  { id: '19', date: '۱۴۰۲/۱۰/۰۲', description: 'هزینه آموزش تیم', type: 'expense', amount: 3_000_000, category: 'training' },
+  { id: '20', date: '۱۴۰۲/۰۹/۲۸', description: 'فروش بسته پشتیبانی سالانه', type: 'income', amount: 85_000_000, category: 'sales' },
 ]
 
 const monthlyData: MonthlyData[] = [
@@ -131,6 +190,30 @@ const monthlyData: MonthlyData[] = [
   { month: 'مهر', income: 65, expense: 42 },
   { month: 'آبان', income: 58, expense: 36 },
   { month: 'آذر', income: 60, expense: 38 },
+  { month: 'دی', income: 72, expense: 45 },
+  { month: 'بهمن', income: 50, expense: 34 },
+  { month: 'اسفند', income: 68, expense: 40 },
+]
+
+const cashFlowData = [
+  { day: 'شنبه', amount: 5_200_000 },
+  { day: 'یکشنبه', amount: -3_100_000 },
+  { day: 'دوشنبه', amount: 12_500_000 },
+  { day: 'سه‌شنبه', amount: -8_400_000 },
+  { day: 'چهارشنبه', amount: 2_800_000 },
+  { day: 'پنجشنبه', amount: -1_500_000 },
+  { day: 'جمعه', amount: 4_300_000 },
+]
+
+const initialBudgetItems: BudgetItem[] = [
+  { id: 'b1', category: 'salary', budgetAmount: 30_000_000, spentAmount: 25_000_000, icon: '💼' },
+  { id: 'b2', category: 'rent', budgetAmount: 15_000_000, spentAmount: 12_000_000, icon: '🏠' },
+  { id: 'b3', category: 'marketing', budgetAmount: 8_000_000, spentAmount: 9_200_000, icon: '📢' },
+  { id: 'b4', category: 'utilities', budgetAmount: 5_000_000, spentAmount: 2_050_000, icon: '⚡' },
+  { id: 'b5', category: 'software', budgetAmount: 6_000_000, spentAmount: 4_200_000, icon: '💻' },
+  { id: 'b6', category: 'equipment', budgetAmount: 20_000_000, spentAmount: 65_000_000, icon: '🖥️' },
+  { id: 'b7', category: 'transport', budgetAmount: 4_000_000, spentAmount: 2_800_000, icon: '🚗' },
+  { id: 'b8', category: 'training', budgetAmount: 5_000_000, spentAmount: 3_000_000, icon: '📚' },
 ]
 
 const emptyForm = {
@@ -138,41 +221,243 @@ const emptyForm = {
   amount: 0, category: 'sales',
 }
 
+const emptyBudgetForm = {
+  category: 'other',
+  budgetAmount: 0,
+  icon: '📌',
+}
+
+// ─── Gauge Component ────────────────────────────────────────────────────────
+
+function HealthGauge({ score, label }: { score: number; label: string }) {
+  const radius = 60
+  const circumference = 2 * Math.PI * radius
+  const strokeDashoffset = circumference - (score / 100) * circumference
+  const color = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : score >= 40 ? '#f97316' : '#ef4444'
+  const statusLabel = score >= 80 ? labels.excellent : score >= 60 ? labels.good : score >= 40 ? labels.fair : labels.poor
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg width="160" height="100" viewBox="0 0 160 100">
+        <path
+          d="M 20 90 A 60 60 0 0 1 140 90"
+          fill="none"
+          stroke="currentColor"
+          className="text-muted/40"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 20 90 A 60 60 0 0 1 140 90"
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          style={{ transition: 'stroke-dashoffset 1.5s ease-out' }}
+        />
+        <text x="80" y="75" textAnchor="middle" className="fill-foreground" fontSize="28" fontWeight="bold">
+          {toPersianDigits(score)}
+        </text>
+        <text x="80" y="92" textAnchor="middle" className="fill-muted-foreground" fontSize="10">
+          از ۱۰۰
+        </text>
+      </svg>
+      <Badge className="text-xs" style={{ backgroundColor: color, color: '#fff', border: 'none' }}>
+        {statusLabel}
+      </Badge>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
+
 export default function FinancePage() {
+  const [activeTab, setActiveTab] = useState('dashboard')
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(initialBudgetItems)
+  const [budgetDialogOpen, setBudgetDialogOpen] = useState(false)
+  const [editingBudgetId, setEditingBudgetId] = useState<string | null>(null)
+  const [budgetForm, setBudgetForm] = useState(emptyBudgetForm)
 
   const monthlyIncome = 60_000_000
   const monthlyExpense = 38_000_000
   const netProfit = monthlyIncome - monthlyExpense
   const profitMargin = Math.round((netProfit / monthlyIncome) * 100)
 
+  // Transaction filtering
   const filtered = useMemo(() => transactions.filter(t => {
     const matchSearch = t.description.includes(search) || categoryLabels[t.category]?.includes(search)
     const matchType = typeFilter === 'all' || t.type === typeFilter
-    return matchSearch && matchType
-  }), [transactions, search, typeFilter])
+    const matchCategory = categoryFilter === 'all' || t.category === categoryFilter
+    return matchSearch && matchType && matchCategory
+  }), [transactions, search, typeFilter, categoryFilter])
 
   const totalIncome = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
   const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
 
+  // Running total
+  const runningTotals = useMemo(() => {
+    let sum = 0
+    return filtered.map(t => {
+      sum += t.type === 'income' ? t.amount : -t.amount
+      return sum
+    })
+  }, [filtered])
+
   const maxMonthly = Math.max(...monthlyData.map(m => Math.max(m.income, m.expense)))
 
-  const openCreate = () => {
-    setForm(emptyForm)
+  // Budget calculations
+  const totalBudget = budgetItems.reduce((s, b) => s + b.budgetAmount, 0)
+  const totalSpent = budgetItems.reduce((s, b) => s + b.spentAmount, 0)
+  const totalRemaining = totalBudget - totalSpent
+
+  // Cash flow chart
+  const maxCashFlow = Math.max(...cashFlowData.map(d => Math.abs(d.amount)))
+
+  // Reports data
+  const topExpenseCategories = useMemo(() => {
+    const catMap: Record<string, number> = {}
+    transactions.filter(t => t.type === 'expense').forEach(t => {
+      catMap[t.category] = (catMap[t.category] || 0) + t.amount
+    })
+    return Object.entries(catMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+  }, [transactions])
+  const maxTopExpense = topExpenseCategories.length > 0 ? topExpenseCategories[0][1] : 0
+
+  // Savings rate per month
+  const savingsRates = monthlyData.map(m => ({
+    month: m.month,
+    rate: m.income > 0 ? Math.round(((m.income - m.expense) / m.income) * 100) : 0,
+  }))
+
+  // Financial health score (weighted)
+  const healthScore = useMemo(() => {
+    const avgSavingsRate = savingsRates.reduce((s, r) => s + r.rate, 0) / savingsRates.length
+    const budgetAdherence = totalBudget > 0 ? Math.min(100, Math.round((totalSpent / totalBudget) * 100)) : 50
+    const overBudgetCount = budgetItems.filter(b => b.spentAmount > b.budgetAmount).length
+    const budgetPenalty = overBudgetCount * 8
+    const score = Math.round((avgSavingsRate * 0.5) + (budgetAdherence <= 100 ? 25 : Math.max(0, 25 - (budgetAdherence - 100) * 2)) + (overBudgetCount === 0 ? 25 : Math.max(0, 25 - budgetPenalty)))
+    return Math.max(0, Math.min(100, score))
+  }, [savingsRates, totalBudget, totalSpent, budgetItems])
+
+  // ─── Handlers ────────────────────────────────────────────────────────────
+
+  const openCreate = (presetType?: 'income' | 'expense') => {
+    setEditingId(null)
+    setForm({ ...emptyForm, type: presetType || 'income', category: presetType === 'expense' ? 'rent' : 'sales' })
+    setDialogOpen(true)
+  }
+
+  const openEdit = (transaction: Transaction) => {
+    setEditingId(transaction.id)
+    setForm({
+      date: transaction.date,
+      description: transaction.description,
+      type: transaction.type,
+      amount: transaction.amount,
+      category: transaction.category,
+    })
     setDialogOpen(true)
   }
 
   const handleSave = () => {
     if (!form.description || form.amount <= 0) return
-    const newTransaction: Transaction = { ...form, id: Date.now().toString() }
-    setTransactions(prev => [newTransaction, ...prev])
-    toast.success('تراکنش جدید ثبت شد')
+    if (editingId) {
+      setTransactions(prev => prev.map(t => t.id === editingId ? { ...form, id: editingId } : t))
+      toast.success('تراکنش با موفقیت ویرایش شد')
+    } else {
+      const newTransaction: Transaction = { ...form, id: Date.now().toString() }
+      setTransactions(prev => [newTransaction, ...prev])
+      toast.success('تراکنش جدید ثبت شد')
+    }
     setDialogOpen(false)
   }
+
+  const handleDelete = () => {
+    if (!deletingId) return
+    setTransactions(prev => prev.filter(t => t.id !== deletingId))
+    toast.success('تراکنش حذف شد')
+    setDeleteDialogOpen(false)
+    setDeletingId(null)
+  }
+
+  const openBudgetCreate = () => {
+    setEditingBudgetId(null)
+    setBudgetForm(emptyBudgetForm)
+    setBudgetDialogOpen(true)
+  }
+
+  const openBudgetEdit = (item: BudgetItem) => {
+    setEditingBudgetId(item.id)
+    setBudgetForm({ category: item.category, budgetAmount: item.budgetAmount, icon: item.icon })
+    setBudgetDialogOpen(true)
+  }
+
+  const handleBudgetSave = () => {
+    if (budgetForm.budgetAmount <= 0) return
+    if (editingBudgetId) {
+      setBudgetItems(prev => prev.map(b =>
+        b.id === editingBudgetId ? { ...b, category: budgetForm.category, budgetAmount: budgetForm.budgetAmount, icon: budgetForm.icon } : b
+      ))
+      toast.success('بودجه با موفقیت ویرایش شد')
+    } else {
+      const newItem: BudgetItem = {
+        id: 'b' + Date.now().toString(),
+        category: budgetForm.category,
+        budgetAmount: budgetForm.budgetAmount,
+        spentAmount: 0,
+        icon: budgetForm.icon,
+      }
+      setBudgetItems(prev => [...prev, newItem])
+      toast.success('بودجه جدید اضافه شد')
+    }
+    setBudgetDialogOpen(false)
+  }
+
+  const handleExportSummary = () => {
+    const summary = [
+      `خلاصه مالی - اسفند ۱۴۰۲`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `مجموع درآمد: ${formatAmount(totalIncome)} تومان`,
+      `مجموع هزینه: ${formatAmount(totalExpense)} تومان`,
+      `سود خالص: ${formatAmount(totalIncome - totalExpense)} تومان`,
+      `حاشیه سود: ${toPersianDigits(Math.round(((totalIncome - totalExpense) / totalIncome) * 100))}٪`,
+      `امتیاز سلامت مالی: ${toPersianDigits(healthScore)} از ۱۰۰`,
+      `━━━━━━━━━━━━━━━━━━━━`,
+      `بودجه کل: ${formatAmount(totalBudget)} تومان`,
+      `هزینه شده: ${formatAmount(totalSpent)} تومان`,
+    ].join('\n')
+    const blob = new Blob(['\uFEFF' + summary], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'financial-summary.txt'
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('خلاصه مالی دانلود شد')
+  }
+
+  // ─── Available categories for filter ─────────────────────────────────────
+
+  const usedCategories = useMemo(() => {
+    const cats = new Set(transactions.map(t => t.category))
+    return Array.from(cats)
+  }, [transactions])
+
+  // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6 p-4 md:p-6 page-enter">
@@ -184,279 +469,754 @@ export default function FinancePage() {
         </div>
         <Button
           className="gap-2 bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md"
-          onClick={openCreate}
+          onClick={() => openCreate()}
         >
           <Plus className="h-4 w-4" />{labels.addTransaction}
         </Button>
       </div>
 
-      {/* Budget Overview Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
-              <TrendingUp className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">{labels.monthlyIncome}</p>
-              <p className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shortenAmount(monthlyIncome)} <span className="text-xs font-normal">{labels.toman}</span></p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
-              <TrendingDown className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">{labels.monthlyExpense}</p>
-              <p className="text-xl font-bold tabular-nums text-red-600 dark:text-red-400">{shortenAmount(monthlyExpense)} <span className="text-xs font-normal">{labels.toman}</span></p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
-              <PiggyBank className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">{labels.netProfit}</p>
-              <p className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">{shortenAmount(netProfit)} <span className="text-xs font-normal">{labels.toman}</span></p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
-              <Wallet className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-muted-foreground">{labels.profitMargin}</p>
-              <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{toPersianDigits(profitMargin)}٪</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Main Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="bg-muted/60 p-1 rounded-xl h-auto flex-wrap gap-1">
+          {[
+            { value: 'dashboard', label: labels.dashboard, icon: BarChart3 },
+            { value: 'transactions', label: labels.transactions, icon: Receipt },
+            { value: 'budget', label: labels.budget, icon: Wallet },
+            { value: 'reports', label: labels.reports, icon: FileText },
+          ].map(tab => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-500 data-[state=active]:text-white rounded-lg px-4 py-2 text-sm gap-2 transition-all duration-200"
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-      {/* Monthly Trend Chart */}
-      <Card className="glass-card-violet shadow-sm">
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-violet-500" />
-              <h3 className="font-bold text-violet-700 dark:text-violet-300">{labels.monthlyTrend}</h3>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-emerald-400 to-green-500" />
-                <span className="text-muted-foreground">{labels.income}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-red-400 to-rose-500" />
-                <span className="text-muted-foreground">{labels.expense}</span>
-              </div>
-            </div>
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB 1: DASHBOARD
+        ═══════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="dashboard" className="space-y-6">
+          {/* Stat Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
+                  <TrendingUp className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">{labels.monthlyIncome}</p>
+                  <p className="text-xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{shortenAmount(monthlyIncome)} <span className="text-xs font-normal">{labels.toman}</span></p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
+                  <TrendingDown className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">{labels.monthlyExpense}</p>
+                  <p className="text-xl font-bold tabular-nums text-red-600 dark:text-red-400">{shortenAmount(monthlyExpense)} <span className="text-xs font-normal">{labels.toman}</span></p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
+                  <PiggyBank className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">{labels.netProfit}</p>
+                  <p className="text-xl font-bold tabular-nums text-violet-600 dark:text-violet-400">{shortenAmount(netProfit)} <span className="text-xs font-normal">{labels.toman}</span></p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
+                  <Wallet className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">{labels.profitMargin}</p>
+                  <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{toPersianDigits(profitMargin)}٪</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="space-y-3">
-            {monthlyData.map((data, idx) => {
-              const incomeWidth = (data.income / maxMonthly) * 100
-              const expenseWidth = (data.expense / maxMonthly) * 100
-              const profit = data.income - data.expense
-              return (
-                <div key={data.month} className="group animate-in" style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium w-20">{data.month}</span>
-                    <div className="flex items-center gap-2 text-[10px] tabular-nums">
-                      <span className="text-emerald-600 dark:text-emerald-400">{toPersianDigits(data.income)}M</span>
-                      <span className="text-red-600 dark:text-red-400">{toPersianDigits(data.expense)}M</span>
-                      <span className={`font-bold ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {profit >= 0 ? '+' : ''}{toPersianDigits(profit)}M
-                      </span>
-                    </div>
+
+          {/* Cash Flow Mini Chart + Quick Actions + Savings Goal */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Cash Flow */}
+            <Card className="glass-card-violet shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-violet-500" />
+                  <CardTitle className="text-sm font-bold text-violet-700 dark:text-violet-300">{labels.cashFlow}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="px-5 pb-5">
+                <div className="flex items-end justify-between gap-2 h-24">
+                  {cashFlowData.map((d, idx) => {
+                    const height = maxCashFlow > 0 ? (Math.abs(d.amount) / maxCashFlow) * 100 : 0
+                    const isPositive = d.amount >= 0
+                    return (
+                      <div key={d.day} className="flex flex-col items-center gap-1 flex-1 animate-in" style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'both' }}>
+                        <span className="text-[10px] tabular-nums text-muted-foreground">
+                          {shortenAmount(Math.abs(d.amount))}
+                        </span>
+                        <div className="w-full flex justify-center">
+                          <div className="w-2 rounded-full relative">
+                            <div
+                              className={`w-full rounded-full transition-all duration-700 ${isPositive ? 'bg-gradient-to-t from-emerald-500 to-emerald-300' : 'bg-gradient-to-t from-red-500 to-red-300'}`}
+                              style={{ height: `${Math.max(8, height * 0.8)}px` }}
+                            />
+                            <div
+                              className={`absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full ${isPositive ? 'bg-emerald-500' : 'bg-red-500'} shadow-sm`}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">{d.day}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-violet-500" />
+                  <CardTitle className="text-sm font-bold text-violet-700 dark:text-violet-300">{labels.quickActions}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 flex flex-col gap-2">
+                <Button
+                  className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white w-full justify-start hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                  onClick={() => openCreate('income')}
+                >
+                  <ArrowUpRight className="h-4 w-4" />{labels.addIncome}
+                </Button>
+                <Button
+                  className="gap-2 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white w-full justify-start hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                  onClick={() => openCreate('expense')}
+                >
+                  <ArrowDownRight className="h-4 w-4" />{labels.addExpense}
+                </Button>
+                <Button
+                  className="gap-2 bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white w-full justify-start hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                  onClick={() => setActiveTab('reports')}
+                >
+                  <BarChart3 className="h-4 w-4" />{labels.viewReport}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Savings Goal */}
+            <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+              <CardHeader className="pb-2 pt-4 px-5">
+                <div className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-violet-500" />
+                  <CardTitle className="text-sm font-bold text-violet-700 dark:text-violet-300">{labels.savingsGoal}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="px-5 pb-5">
+                <div className="text-center mb-3">
+                  <p className="text-3xl font-bold gradient-text">{toPersianDigits(65)}٪</p>
+                  <p className="text-xs text-muted-foreground mt-1">پس‌انداز: ۶۵ میلیون از ۱۰۰ میلیون</p>
+                </div>
+                <div className="h-3 bg-muted/60 rounded-full overflow-hidden mb-3">
+                  <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-1000" style={{ width: '65%' }} />
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>۳۵ میلیون تومان مانده</span>
+                  <Badge className="bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border-0 text-[10px]">تا پایان سال</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Monthly Trend Chart */}
+          <Card className="glass-card-violet shadow-sm animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-violet-500" />
+                  <h3 className="font-bold text-violet-700 dark:text-violet-300">{labels.monthlyTrend}</h3>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-emerald-400 to-green-500" />
+                    <span className="text-muted-foreground">{labels.income}</span>
                   </div>
-                  {/* Income bar */}
-                  <div className="h-3 bg-muted/50 rounded-full overflow-hidden mb-1">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-1000 ease-out"
-                      style={{ width: `${incomeWidth}%` }}
-                    />
-                  </div>
-                  {/* Expense bar */}
-                  <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000 ease-out"
-                      style={{ width: `${expenseWidth}%` }}
-                    />
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-red-400 to-rose-500" />
+                    <span className="text-muted-foreground">{labels.expense}</span>
                   </div>
                 </div>
-              )
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Income vs Expense visual comparison */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Income breakdown */}
-        <Card className="glass-card shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <ArrowUpRight className="h-4 w-4 text-emerald-500" />
-              <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-300">درآمدها</h3>
-              <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[10px]">
-                {formatAmount(totalIncome)} {labels.toman}
-              </Badge>
-            </div>
-            <div className="space-y-2.5">
-              {['sales', 'services'].map(cat => {
-                const catTotal = transactions.filter(t => t.type === 'income' && t.category === cat).reduce((s, t) => s + t.amount, 0)
-                const pct = totalIncome > 0 ? Math.round((catTotal / totalIncome) * 100) : 0
-                return (
-                  <div key={cat} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span>{categoryLabels[cat]}</span>
-                      <span className="tabular-nums font-medium text-emerald-600 dark:text-emerald-400">{toPersianDigits(pct)}٪</span>
-                    </div>
-                    <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-700" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Expense breakdown */}
-        <Card className="glass-card shadow-sm">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <ArrowDownRight className="h-4 w-4 text-red-500" />
-              <h3 className="text-sm font-bold text-red-700 dark:text-red-300">هزینه‌ها</h3>
-              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-0 text-[10px]">
-                {formatAmount(totalExpense)} {labels.toman}
-              </Badge>
-            </div>
-            <div className="space-y-2.5">
-              {['salary', 'rent', 'marketing', 'equipment', 'software', 'utilities'].map(cat => {
-                const catTotal = transactions.filter(t => t.type === 'expense' && t.category === cat).reduce((s, t) => s + t.amount, 0)
-                const pct = totalExpense > 0 ? Math.round((catTotal / totalExpense) * 100) : 0
-                if (catTotal === 0) return null
-                return (
-                  <div key={cat} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span>{categoryLabels[cat]}</span>
-                      <span className="tabular-nums font-medium text-red-600 dark:text-red-400">{toPersianDigits(pct)}٪</span>
-                    </div>
-                    <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-700" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Transactions */}
-      <Card className="glass-card-violet shadow-sm">
-        <CardContent className="p-5 space-y-4">
-          <div className="flex items-center gap-2">
-            <PieChart className="h-5 w-5 text-violet-500" />
-            <h3 className="font-bold text-violet-700 dark:text-violet-300">{labels.recentTransactions}</h3>
-          </div>
-
-          {/* Search + Filter */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
-            </div>
-            <div className="flex gap-2">
-              {(['all', 'income', 'expense'] as const).map(t => {
-                const isActive = typeFilter === t
-                const label = t === 'all' ? 'همه' : t === 'income' ? 'درآمد' : 'هزینه'
-                const grad = t === 'all'
-                  ? 'from-gray-500 to-gray-600'
-                  : typeConfig[t].gradient
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setTypeFilter(t)}
-                    className={`
-                      px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap
-                      ${isActive
-                        ? `bg-gradient-to-r ${grad} text-white shadow-md hover:scale-[1.03] active:scale-[0.97]`
-                        : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
-                      }
-                    `}
-                  >
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Transaction list */}
-          <div className="space-y-2 max-h-96 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <Wallet className="h-10 w-10 mb-2 opacity-30" />
-                <p className="text-sm">{search ? labels.noResults : 'تراکنشی یافت نشد'}</p>
               </div>
-            ) : (
-              filtered.map((transaction, idx) => {
-                const tc = typeConfig[transaction.type]
-                const TypeIcon = tc.icon
-                return (
-                  <div
-                    key={transaction.id}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/40 transition-all duration-200 animate-in group cursor-pointer hover-lift"
-                    style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
-                  >
-                    {/* Icon */}
-                    <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tc.gradient} flex items-center justify-center shadow-sm shrink-0`}>
-                      <TypeIcon className="h-5 w-5 text-white" />
-                    </div>
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{transaction.description}</p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-2.5 w-2.5" />
-                          {transaction.date}
-                        </span>
-                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-current/20 text-muted-foreground">
-                          {categoryLabels[transaction.category]}
-                        </Badge>
+              <div className="space-y-3">
+                {monthlyData.map((data, idx) => {
+                  const incomeWidth = (data.income / maxMonthly) * 100
+                  const expenseWidth = (data.expense / maxMonthly) * 100
+                  const profit = data.income - data.expense
+                  return (
+                    <div key={data.month} className="group animate-in" style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium w-20">{data.month}</span>
+                        <div className="flex items-center gap-2 text-[10px] tabular-nums">
+                          <span className="text-emerald-600 dark:text-emerald-400">{toPersianDigits(data.income)}M</span>
+                          <span className="text-red-600 dark:text-red-400">{toPersianDigits(data.expense)}M</span>
+                          <span className={`font-bold ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {profit >= 0 ? '+' : ''}{toPersianDigits(profit)}M
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-3 bg-muted/50 rounded-full overflow-hidden mb-1">
+                        <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-1000 ease-out" style={{ width: `${incomeWidth}%` }} />
+                      </div>
+                      <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-1000 ease-out" style={{ width: `${expenseWidth}%` }} />
                       </div>
                     </div>
-                    {/* Amount */}
-                    <div className="text-left shrink-0">
-                      <p className={`font-bold tabular-nums text-sm ${transaction.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground">{labels.toman}</p>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Add Transaction Dialog */}
+          {/* Income vs Expense Breakdown */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <ArrowUpRight className="h-4 w-4 text-emerald-500" />
+                  <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-300">درآمدها</h3>
+                  <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[10px]">
+                    {formatAmount(totalIncome)} {labels.toman}
+                  </Badge>
+                </div>
+                <div className="space-y-2.5">
+                  {['sales', 'services', 'consulting'].map(cat => {
+                    const catTotal = transactions.filter(t => t.type === 'income' && t.category === cat).reduce((s, t) => s + t.amount, 0)
+                    const pct = totalIncome > 0 ? Math.round((catTotal / totalIncome) * 100) : 0
+                    if (catTotal === 0) return null
+                    return (
+                      <div key={cat} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>{categoryLabels[cat]}</span>
+                          <span className="tabular-nums font-medium text-emerald-600 dark:text-emerald-400">{toPersianDigits(pct)}٪</span>
+                        </div>
+                        <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <ArrowDownRight className="h-4 w-4 text-red-500" />
+                  <h3 className="text-sm font-bold text-red-700 dark:text-red-300">هزینه‌ها</h3>
+                  <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-0 text-[10px]">
+                    {formatAmount(totalExpense)} {labels.toman}
+                  </Badge>
+                </div>
+                <div className="space-y-2.5">
+                  {['salary', 'rent', 'marketing', 'equipment', 'software', 'utilities', 'tax', 'insurance', 'transport', 'training'].map(cat => {
+                    const catTotal = transactions.filter(t => t.type === 'expense' && t.category === cat).reduce((s, t) => s + t.amount, 0)
+                    const pct = totalExpense > 0 ? Math.round((catTotal / totalExpense) * 100) : 0
+                    if (catTotal === 0) return null
+                    return (
+                      <div key={cat} className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span>{categoryLabels[cat]}</span>
+                          <span className="tabular-nums font-medium text-red-600 dark:text-red-400">{toPersianDigits(pct)}٪</span>
+                        </div>
+                        <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-red-400 to-rose-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB 2: TRANSACTIONS
+        ═══════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="transactions" className="space-y-4">
+          {/* Search + Filters */}
+          <Card className="glass-card shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Select value={typeFilter} onValueChange={v => setTypeFilter(v as typeof typeFilter)}>
+                    <SelectTrigger className="w-[130px]">
+                      <SelectValue placeholder={labels.type} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{labels.all}</SelectItem>
+                      <SelectItem value="income">{labels.income}</SelectItem>
+                      <SelectItem value="expense">{labels.expense}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[130px]">
+                      <Filter className="h-4 w-4 ml-1 text-muted-foreground" />
+                      <SelectValue placeholder={labels.category} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{labels.all}</SelectItem>
+                      {usedCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{categoryLabels[cat]}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Transaction Count */}
+          <div className="flex items-center justify-between px-1">
+            <p className="text-sm text-muted-foreground">
+              {toPersianDigits(filtered.length)} تراکنش
+            </p>
+            <p className="text-sm font-bold tabular-nums text-violet-600 dark:text-violet-400">
+              {labels.runningTotal} {formatAmount(runningTotals[runningTotals.length - 1] || 0)} {labels.toman}
+            </p>
+          </div>
+
+          {/* Transactions Table */}
+          <Card className="glass-card shadow-sm">
+            <CardContent className="p-0">
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/50">
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.date}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.description}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.type}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.category}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.amount}</th>
+                      <th className="text-right p-3 font-medium text-muted-foreground text-xs">{labels.runningTotal}</th>
+                      <th className="text-center p-3 font-medium text-muted-foreground text-xs">{labels.actions}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((transaction, idx) => {
+                      const tc = typeConfig[transaction.type]
+                      return (
+                        <tr
+                          key={transaction.id}
+                          className="border-b border-border/30 hover:bg-muted/30 transition-colors animate-in"
+                          style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
+                        >
+                          <td className="p-3 text-xs tabular-nums whitespace-nowrap">{transaction.date}</td>
+                          <td className="p-3 font-medium truncate max-w-[200px]">{transaction.description}</td>
+                          <td className="p-3">
+                            <Badge className={`${tc.bg} ${tc.text} border-0 text-[10px] gap-1`}>
+                              <tc.icon className="h-3 w-3" />
+                              {transaction.type === 'income' ? labels.income : labels.expense}
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-xs">{categoryLabels[transaction.category]}</td>
+                          <td className={`p-3 font-bold tabular-nums whitespace-nowrap ${tc.text}`}>
+                            {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
+                          </td>
+                          <td className={`p-3 text-xs tabular-nums whitespace-nowrap ${runningTotals[idx] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                            {runningTotals[idx] >= 0 ? '' : ''}{formatAmount(runningTotals[idx])}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-violet-100 dark:hover:bg-violet-900/30" onClick={() => openEdit(transaction)}>
+                                <Edit3 className="h-3.5 w-3.5 text-violet-500" />
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-red-100 dark:hover:bg-red-900/30" onClick={() => { setDeletingId(transaction.id); setDeleteDialogOpen(true) }}>
+                                <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-2 p-3">
+                {filtered.map((transaction, idx) => {
+                  const tc = typeConfig[transaction.type]
+                  const TypeIcon = tc.icon
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-all duration-200 animate-in"
+                      style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
+                    >
+                      <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tc.gradient} flex items-center justify-center shadow-sm shrink-0`}>
+                        <TypeIcon className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm truncate">{transaction.description}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-2.5 w-2.5" />{transaction.date}
+                          </span>
+                          <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-current/20 text-muted-foreground">
+                            {categoryLabels[transaction.category]}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="text-left shrink-0">
+                        <p className={`font-bold tabular-nums text-sm ${tc.text}`}>
+                          {transaction.type === 'income' ? '+' : '-'}{formatAmount(transaction.amount)}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">{labels.toman}</p>
+                      </div>
+                      <div className="flex flex-col gap-0.5 shrink-0">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(transaction)}>
+                          <Edit3 className="h-3 w-3 text-violet-500" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => { setDeletingId(transaction.id); setDeleteDialogOpen(true) }}>
+                          <Trash2 className="h-3 w-3 text-red-500" />
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Empty State */}
+              {filtered.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <Wallet className="h-10 w-10 mb-2 opacity-30" />
+                  <p className="text-sm">{labels.noResults}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB 3: BUDGET
+        ═══════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="budget" className="space-y-4">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card className="glass-card shadow-sm animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
+                  <Wallet className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{labels.totalBudget}</p>
+                  <p className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400">{shortenAmount(totalBudget)} <span className="text-xs font-normal">{labels.toman}</span></p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card shadow-sm animate-in card-elevated" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-md shadow-red-500/25 shrink-0">
+                  <ArrowDownRight className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{labels.totalSpent}</p>
+                  <p className="text-lg font-bold tabular-nums text-red-600 dark:text-red-400">{shortenAmount(totalSpent)} <span className="text-xs font-normal">{labels.toman}</span></p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="glass-card shadow-sm animate-in card-elevated" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className={`h-12 w-12 rounded-2xl flex items-center justify-center shadow-md shrink-0 ${totalRemaining >= 0 ? 'bg-gradient-to-br from-emerald-400 to-green-500 shadow-emerald-500/25' : 'bg-gradient-to-br from-red-400 to-rose-500 shadow-red-500/25'}`}>
+                  {totalRemaining >= 0 ? <PiggyBank className="h-6 w-6 text-white" /> : <AlertTriangle className="h-6 w-6 text-white" />}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{labels.remaining}</p>
+                  <p className={`text-lg font-bold tabular-nums ${totalRemaining >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {totalRemaining >= 0 ? '' : '-'}{shortenAmount(Math.abs(totalRemaining))} <span className="text-xs font-normal">{labels.toman}</span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Budget Items */}
+          <Card className="glass-card shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 pt-4 px-5">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-violet-500" />
+                <CardTitle className="text-sm font-bold text-violet-700 dark:text-violet-300">{labels.budgetPlan}</CardTitle>
+              </div>
+              <Button
+                size="sm"
+                className="gap-1.5 bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+                onClick={openBudgetCreate}
+              >
+                <Plus className="h-3.5 w-3.5" />{labels.addBudget}
+              </Button>
+            </CardHeader>
+            <CardContent className="px-5 pb-5">
+              <ScrollArea className="max-h-[500px]">
+                <div className="space-y-4 pr-2">
+                  {budgetItems.map((item, idx) => {
+                    const pct = item.budgetAmount > 0 ? Math.round((item.spentAmount / item.budgetAmount) * 100) : 0
+                    const isOverBudget = item.spentAmount > item.budgetAmount
+                    const remaining = item.budgetAmount - item.spentAmount
+                    return (
+                      <div
+                        key={item.id}
+                        className={`p-4 rounded-xl border transition-all duration-300 animate-in hover-lift ${
+                          isOverBudget
+                            ? 'border-red-200 dark:border-red-800/50 bg-red-50/50 dark:bg-red-900/10'
+                            : 'border-border/50 bg-muted/20'
+                        }`}
+                        style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'both' }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{item.icon}</span>
+                            <span className="font-bold text-sm">{categoryLabels[item.category]}</span>
+                            {isOverBudget && (
+                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-0 text-[10px] gap-1 animate-pulse">
+                                <AlertTriangle className="h-3 w-3" />
+                                {labels.overBudget}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-violet-100 dark:hover:bg-violet-900/30" onClick={() => openBudgetEdit(item)}>
+                              <Edit3 className="h-3.5 w-3.5 text-violet-500" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="mb-2">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">
+                              {labels.spent}: <span className="font-medium text-foreground">{formatAmount(item.spentAmount)}</span> از <span className="font-medium text-foreground">{formatAmount(item.budgetAmount)}</span> {labels.toman}
+                            </span>
+                            <span className={`font-bold tabular-nums ${isOverBudget ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                              {toPersianDigits(pct)}٪
+                            </span>
+                          </div>
+                          <div className="h-2.5 bg-muted/60 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-1000 ${
+                                isOverBudget
+                                  ? 'bg-gradient-to-r from-red-500 to-rose-500'
+                                  : pct > 80
+                                    ? 'bg-gradient-to-r from-amber-400 to-orange-500'
+                                    : 'bg-gradient-to-r from-violet-500 to-purple-500'
+                              }`}
+                              style={{ width: `${Math.min(pct, 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span className={`tabular-nums ${isOverBudget ? 'text-red-600 dark:text-red-400 font-bold' : 'text-muted-foreground'}`}>
+                            {isOverBudget
+                              ? `مبلغ اضافی: ${formatAmount(Math.abs(remaining))} ${labels.toman}`
+                              : `باقیمانده: ${formatAmount(remaining)} ${labels.toman}`
+                            }
+                          </span>
+                          <span className="text-muted-foreground">
+                            {shortenAmount(item.spentAmount)} / {shortenAmount(item.budgetAmount)}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* ═══════════════════════════════════════════════════════════════════
+            TAB 4: REPORTS
+        ═══════════════════════════════════════════════════════════════════ */}
+        <TabsContent value="reports" className="space-y-4">
+          {/* Yearly Income vs Expense */}
+          <Card className="glass-card-violet shadow-sm animate-in" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-violet-500" />
+                  <h3 className="font-bold text-violet-700 dark:text-violet-300">{labels.yearlyComparison}</h3>
+                </div>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-emerald-400 to-green-500" />
+                    <span className="text-muted-foreground">{labels.income}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-sm bg-gradient-to-r from-red-400 to-rose-500" />
+                    <span className="text-muted-foreground">{labels.expense}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-end gap-2 h-40">
+                {monthlyData.map((data, idx) => {
+                  const incomeH = (data.income / maxMonthly) * 100
+                  const expenseH = (data.expense / maxMonthly) * 100
+                  return (
+                    <div key={data.month} className="flex-1 flex flex-col items-center gap-0.5 animate-in" style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}>
+                      <div className="flex items-end gap-0.5 w-full h-32">
+                        <div className="flex-1 flex flex-col justify-end h-full">
+                          <div
+                            className="w-full rounded-t bg-gradient-to-t from-emerald-500 to-emerald-300 transition-all duration-1000 ease-out min-h-[4px]"
+                            style={{ height: `${incomeH}%` }}
+                          />
+                        </div>
+                        <div className="flex-1 flex flex-col justify-end h-full">
+                          <div
+                            className="w-full rounded-t bg-gradient-to-t from-red-500 to-red-300 transition-all duration-1000 ease-out min-h-[4px]"
+                            style={{ height: `${expenseH}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[9px] text-muted-foreground text-center leading-tight mt-1">{data.month}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Top 5 Expense Categories */}
+            <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <PieChart className="h-5 w-5 text-red-500" />
+                  <h3 className="font-bold text-red-700 dark:text-red-300 text-sm">{labels.topExpenseCategories}</h3>
+                </div>
+                <div className="space-y-3">
+                  {topExpenseCategories.map(([cat, amount], idx) => {
+                    const width = maxTopExpense > 0 ? (amount / maxTopExpense) * 100 : 0
+                    const colors = ['from-red-500 to-rose-500', 'from-orange-500 to-amber-500', 'from-violet-500 to-purple-500', 'from-cyan-500 to-blue-500', 'from-emerald-500 to-teal-500']
+                    return (
+                      <div key={cat} className="space-y-1 animate-in" style={{ animationDelay: `${idx * 80}ms`, animationFillMode: 'both' }}>
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center justify-center h-5 w-5 rounded-md text-[10px] font-bold text-white bg-gradient-to-r ${colors[idx]}`}>
+                              {toPersianDigits(idx + 1)}
+                            </span>
+                            <span className="font-medium">{categoryLabels[cat] || cat}</span>
+                          </div>
+                          <span className="tabular-nums font-bold text-red-600 dark:text-red-400">{shortenAmount(amount)}</span>
+                        </div>
+                        <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
+                          <div className={`h-full rounded-full bg-gradient-to-r ${colors[idx]} transition-all duration-700`} style={{ width: `${width}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Savings Rate + Health Score */}
+            <div className="space-y-4">
+              {/* Monthly Savings Rate */}
+              <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <PiggyBank className="h-4 w-4 text-violet-500" />
+                    <h3 className="font-bold text-violet-700 dark:text-violet-300 text-sm">{labels.monthlySavingsRate}</h3>
+                  </div>
+                  <div className="space-y-2.5">
+                    {savingsRates.map((s, idx) => (
+                      <div key={s.month} className="flex items-center gap-3 animate-in" style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}>
+                        <span className="text-xs w-16 text-muted-foreground shrink-0">{s.month}</span>
+                        <div className="flex-1 h-2.5 bg-muted/50 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${
+                              s.rate >= 30 ? 'bg-gradient-to-r from-emerald-400 to-green-500' :
+                              s.rate >= 15 ? 'bg-gradient-to-r from-amber-400 to-orange-500' :
+                              'bg-gradient-to-r from-red-400 to-rose-500'
+                            }`}
+                            style={{ width: `${Math.max(s.rate, 2)}%` }}
+                          />
+                        </div>
+                        <span className={`text-xs tabular-nums font-bold w-12 text-left shrink-0 ${
+                          s.rate >= 30 ? 'text-emerald-600 dark:text-emerald-400' :
+                          s.rate >= 15 ? 'text-amber-600 dark:text-amber-400' :
+                          'text-red-600 dark:text-red-400'
+                        }`}>
+                          {toPersianDigits(s.rate)}٪
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Financial Health Score */}
+              <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Heart className="h-4 w-4 text-violet-500" />
+                    <h3 className="font-bold text-violet-700 dark:text-violet-300 text-sm">{labels.financialHealthScore}</h3>
+                  </div>
+                  <div className="flex justify-center py-2">
+                    <HealthGauge score={healthScore} label="بر اساس بودجه و پس‌انداز" />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Export Summary */}
+          <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+            <CardContent className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
+                  <Download className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">{labels.exportSummary}</p>
+                  <p className="text-xs text-muted-foreground">دانلود خلاصه عملکرد مالی شامل درآمد، هزینه و بودجه</p>
+                </div>
+              </div>
+              <Button
+                className="gap-2 bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm"
+                onClick={handleExportSummary}
+              >
+                <Download className="h-4 w-4" />
+                {labels.exportSummary}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* ─── Add/Edit Transaction Dialog ───────────────────────────────────── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md glass-card shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-violet-700 dark:text-violet-300">
-              {labels.addTransaction}
+              {editingId ? labels.editTransaction : labels.addTransaction}
             </DialogTitle>
             <DialogDescription>
-              اطلاعات تراکنش جدید را وارد کنید
+              {editingId ? 'اطلاعات تراکنش را ویرایش کنید' : 'اطلاعات تراکنش جدید را وارد کنید'}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -500,6 +1260,7 @@ export default function FinancePage() {
                       <>
                         <SelectItem value="sales">{categoryLabels.sales}</SelectItem>
                         <SelectItem value="services">{categoryLabels.services}</SelectItem>
+                        <SelectItem value="consulting">{categoryLabels.consulting}</SelectItem>
                       </>
                     ) : (
                       <>
@@ -509,6 +1270,10 @@ export default function FinancePage() {
                         <SelectItem value="utilities">{categoryLabels.utilities}</SelectItem>
                         <SelectItem value="software">{categoryLabels.software}</SelectItem>
                         <SelectItem value="equipment">{categoryLabels.equipment}</SelectItem>
+                        <SelectItem value="tax">{categoryLabels.tax}</SelectItem>
+                        <SelectItem value="insurance">{categoryLabels.insurance}</SelectItem>
+                        <SelectItem value="transport">{categoryLabels.transport}</SelectItem>
+                        <SelectItem value="training">{categoryLabels.training}</SelectItem>
                         <SelectItem value="other">{categoryLabels.other}</SelectItem>
                       </>
                     )}
@@ -520,6 +1285,65 @@ export default function FinancePage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
             <Button className="bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.description || form.amount <= 0}>
+              {labels.save}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Delete Transaction Confirmation Dialog ───────────────────────── */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-sm glass-card shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-red-700 dark:text-red-300">{labels.deleteTransaction}</DialogTitle>
+            <DialogDescription>{labels.deleteConfirm}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeletingId(null) }} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleDelete}>
+              {labels.delete}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── Add/Edit Budget Dialog ────────────────────────────────────────── */}
+      <Dialog open={budgetDialogOpen} onOpenChange={setBudgetDialogOpen}>
+        <DialogContent className="max-w-md glass-card shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-violet-700 dark:text-violet-300">
+              {editingBudgetId ? labels.editBudget : labels.addBudget}
+            </DialogTitle>
+            <DialogDescription>
+              {editingBudgetId ? 'مبلغ بودجه دسته‌بندی را ویرایش کنید' : 'دسته‌بندی و مبلغ بودجه جدید را وارد کنید'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>{labels.budgetCategory}</Label>
+              <Select value={budgetForm.category} onValueChange={v => setBudgetForm({ ...budgetForm, category: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(categoryLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{labels.budgetAmount}</Label>
+              <Input
+                type="number"
+                value={budgetForm.budgetAmount}
+                onChange={e => setBudgetForm({ ...budgetForm, budgetAmount: Number(e.target.value) })}
+                dir="ltr"
+                placeholder="0"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBudgetDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
+            <Button className="bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleBudgetSave} disabled={budgetForm.budgetAmount <= 0}>
               {labels.save}
             </Button>
           </DialogFooter>

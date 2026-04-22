@@ -1346,3 +1346,118 @@ Stage Summary:
 3. **Authentication flow** — integrate NextAuth.js with actual login/register
 4. **Dark mode refinements** — improve chart colors and card styling in dark mode
 5. **Mobile responsive testing** — verify all new components on mobile viewports
+---
+Task ID: 2
+Agent: Sub-agent (full-stack-dev)
+Task: Enhance CRM page with tabs, contact details, activities, reports
+
+Work Log:
+- Added 4 internal tabs: Sales Pipeline, Contacts, Activities, Reports
+- Enhanced Kanban with contact detail Sheet (slides from left with gradient header)
+- Added 15 sample contacts (5 new: پویا شریفی, لیلا رحمانی, کامران شفیعی, شیدا بابایی, بهنام همتی)
+- Added 12 sample activities with types: call, email, meeting, note
+- Added reports tab with Recharts bar charts (conversion funnel + stage distribution)
+- Added top deals list with progress bars
+- Contacts tab has sortable table (name, company, dealValue)
+- Activities tab has filter buttons and vertical timeline
+- Added total deal value per pipeline column header
+- Made Kanban cards more compact (reduced padding/sizes)
+- Used glass-card, hover-lift, animate-in, card-elevated, gradient-text classes
+- Staggered animations on cards with calculated delays
+- Tab switching with gradient active state animation
+- RTL layout throughout, Persian labels
+- Used shadcn/ui: Tabs, Sheet, ScrollArea, Table, Progress, Separator, ChartContainer
+- Used toPersianDigits() helper everywhere
+
+Stage Summary:
+- CrmPage enhanced with professional multi-tab interface
+- All Persian labels, RTL layout
+- Component exported as default function CrmPage()
+---
+Task ID: 3
+Agent: Sub-agent (full-stack-dev)
+Task: Enhance Accounting page with tabs, transactions, accounts, reports
+
+Work Log:
+- Added 4 internal tabs: Invoices (فاکتورها), Transactions (تراکنش‌ها), Accounts (حساب‌ها), Reports (گزارش‌ها)
+- Enhanced Invoice tab with invoice detail Sheet (click row to view full details with line items, amounts, tax calculation)
+- Added print/export button on invoice detail Sheet
+- Added "paid" badge animation when status changes (scale-105 transition)
+- Added batch status change (select multiple → change status via Dialog)
+- Added checkbox column with select-all functionality
+- Added Transactions tab with 15 sample transactions with Persian dates
+- Transaction table includes: date, description, type (income/expense), category, amount, account, running balance
+- Color-coded transactions: green for income, red for expense
+- Filter by type (income/expense) with animated gradient filter pills
+- Search functionality for transactions
+- Added Accounts tab with 4 bank account cards (ملت, صادرات, پاسارگاد, سامان)
+- Each card shows bank name, masked account/card number, balance, Landmark icon with unique gradient color
+- Total balance summary card at top of accounts tab
+- Added Reports tab with CSS-based visualizations:
+  - Monthly income vs expense horizontal bar chart (8 months of data)
+  - Category expense breakdown with CSS conic-gradient donut chart
+  - Top 5 expenses ranked list with gradient progress bars
+- Used shadcn/ui Tabs, Sheet, ScrollArea, Checkbox components
+- All labels in Persian/Farsi with RTL layout
+- Emerald/green gradient theme matching existing design
+- Staggered animate-in animations throughout
+
+Stage Summary:
+- AccountingPage enhanced from single-view to professional multi-tab interface
+- 4 tabs: Invoices, Transactions, Accounts, Reports
+- Invoice detail Sheet with print button, tax calculation, line items table
+- Batch selection and status change for invoices
+- 15 sample transactions with running balance calculation
+- 4 bank account cards with unique gradient colors
+- CSS-based charts (bar chart, donut chart) in Reports tab
+- Server compiled successfully (✓ Compiled in 963ms)
+
+---
+Task ID: 5
+Agent: Sub-agent (full-stack-dev)
+Task: Enhance Finance page with tabs, budget planning, advanced reports
+
+Work Log:
+- Added 4 internal tabs: Dashboard, Transactions, Budget, Reports using shadcn/ui Tabs component
+- Enhanced Dashboard tab with cash flow mini chart (7-day dot chart), quick-action buttons (Add Income, Add Expense, View Report), savings goal progress card (65% of 100M toman)
+- Added Transactions tab with full CRUD (create/edit/delete), desktop table + mobile card layout, 20 sample transactions, filters (type, category, date range), search, running total column
+- Added Budget tab with 8 budget categories and sample data, progress bars with spent vs budget, over-budget warnings (red highlight + pulse badge), add/edit budget dialog, total budget summary cards (total budget, total spent, remaining)
+- Added Reports tab with yearly income vs expense comparison (12-month bar chart), top 5 expense categories (horizontal bar chart with ranked badges), monthly savings rate percentage, financial health score gauge (SVG semi-circular gauge), export summary button (downloads .txt file with BOM)
+- Created HealthGauge component (SVG semi-circular gauge with color coding)
+- Visual enhancements: glass-card, hover-lift, animate-in, card-elevated, gradient-text, violet/purple gradient theme, RTL layout, staggered animations
+- All labels in Persian/Farsi with toPersianDigits() and shortenAmount() helpers
+- Added delete confirmation dialog for transactions
+
+Stage Summary:
+- FinancePage enhanced with professional multi-tab interface
+- 4 tabs: Dashboard (overview), Transactions (full CRUD), Budget (planning), Reports (analytics)
+- 20 sample transactions with complete filtering, searching, and running total
+- 8 budget categories with progress tracking and over-budget alerts
+- Advanced reports with yearly charts, savings rate, and health score gauge
+---
+Task ID: 4
+Agent: Sub-agent (full-stack-dev)
+Task: Enhance Inventory page with tabs, inbound/outbound logs, reports
+
+Work Log:
+- Added 4 internal tabs: Inventory, Inbound, Outbound, Reports using shadcn/ui Tabs
+- Enhanced Inventory tab with "add new item" dialog (name, SKU, category, stock, minStock, price)
+- Added inline quick-edit for stock count (click stock number → inline input with Enter/Escape)
+- Added total inventory value stat card (5th card in stats row)
+- Added category distribution mini-bar chart with color-coded horizontal bars
+- Added Inbound tab with 10 sample records, status filter (received/pending), search
+- Added Outbound tab with 10 sample records, status filter (shipped/pending), search
+- Added Reports tab with category-wise stock value summary (horizontal bars with percentages)
+- Added low stock items summary with deficit display
+- Added stock turnover indicators (health score, per-category health, highest/lowest value)
+- Used glass-card, hover-lift, animate-in, card-elevated, gradient-text CSS classes
+- Sky/blue gradient theme throughout with RTL layout
+- Staggered animations on all list items
+- ScrollArea for tables with max-height
+- All labels in Persian/Farsi with toPersianDigits() helper
+
+Stage Summary:
+- InventoryPage enhanced with professional multi-tab interface (~850 lines)
+- 4 tabs: Inventory (enhanced), Inbound (10 records), Outbound (10 records), Reports (charts)
+- 2 new dialogs: Add New Item, plus existing Adjustment dialog preserved
+- Visual enhancements: gradient icons, animated bars, color-coded category system
