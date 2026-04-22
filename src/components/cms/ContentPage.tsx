@@ -43,6 +43,7 @@ import { exportToCSV } from '@/lib/csv-export'
 import { toast } from 'sonner'
 import PaginationControls from './PaginationControls'
 import RichTextEditor from './RichTextEditor'
+import WordPressPostEditor from './WordPressPostEditor'
 import EmptyState from './EmptyState'
 import QuickViewPanel from './QuickViewPanel'
 
@@ -681,70 +682,18 @@ export default function ContentPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-card shadow-xl">
-          <DialogHeader>
-            <DialogTitle className="text-cyan-700 dark:text-cyan-300">
-              {editingPost ? labels.edit : labels.create}
-            </DialogTitle>
-            <DialogDescription>
-              {editingPost ? 'تغییرات مطلب مورد نظر را اعمال کنید' : 'اطلاعات مطلب جدید را وارد کنید'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>{labels.postTitle}</Label>
-              <Input value={form.title ?? ''} onChange={e => setForm({ ...form, title: e.target.value })} className="transition-all duration-200 focus:shadow-sm" />
-            </div>
-            <div className="space-y-2">
-              <Label>{labels.slug}</Label>
-              <Input value={form.slug ?? ''} onChange={e => setForm({ ...form, slug: e.target.value })} dir="ltr" />
-            </div>
-            <div className="space-y-2">
-              <Label>{labels.excerpt}</Label>
-              <Textarea value={form.excerpt ?? ''} onChange={e => setForm({ ...form, excerpt: e.target.value })} rows={2} />
-            </div>
-            <div className="space-y-2">
-              <Label>{labels.content}</Label>
-              <RichTextEditor
-                value={form.content ?? ''}
-                onChange={(v) => setForm({ ...form, content: v })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label>{labels.status}</Label>
-                <Select value={form.status} onValueChange={v => setForm({ ...form, status: v as Post['status'] })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="draft">{labels.draft}</SelectItem>
-                    <SelectItem value="published">{labels.published}</SelectItem>
-                    <SelectItem value="archived">{labels.archived}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{labels.category}</Label>
-                <Select value={form.categoryId ?? ''} onValueChange={v => setForm({ ...form, categoryId: v })}>
-                  <SelectTrigger><SelectValue placeholder="انتخاب دسته‌بندی" /></SelectTrigger>
-                  <SelectContent>
-                    {categoriesData.map(c => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)} className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">{labels.cancel}</Button>
-            <Button className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm" onClick={handleSave} disabled={!form.title}>
-              {labels.save}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
+      {/* WordPress-Style Post Editor Sheet */}
+      <WordPressPostEditor
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        editingPost={editingPost}
+        form={form}
+        onFormChange={setForm}
+        onSave={handleSave}
+        categories={categoriesData.map(c => ({ id: c.id, name: c.name }))}
+        allTags={['وردپرس', 'سئو', 'طراحی', 'توسعه وب', 'جاوااسکریپت', 'ری‌اکت', 'نکست', 'تیلویند']}
+      />
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>

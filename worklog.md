@@ -2382,3 +2382,30 @@ Stage Summary:
 - ESLint: 0 errors, 0 warnings
 - Server running with HTTP 200
 - No setState in effects (all refactored to useSyncExternalStore)
+
+---
+Task ID: WordPress-Style Forms
+Agent: Main Agent
+Task: Redesign Post and Product add/edit forms to match WordPress/WooCommerce style
+
+Work Log:
+- Analyzed current ContentPage.tsx (63-line dialog) and StorePage.tsx (162-line dialog) form implementations
+- Created WordPressPostEditor.tsx — Full-width Sheet sliding from right with two-column layout:
+  - Left column: Large borderless title input, permalink editor, collapsible excerpt, RichTextEditor content area
+  - Right sidebar (sticky): Publish card (status, visibility RadioGroup, password, date), Categories card (checkbox list), Tags card (badge + input + popular suggestions), Featured Image card (emoji placeholder, set/remove buttons)
+  - All collapsible sections, cyan color scheme, RTL Persian text
+- Created WooCommerceProductEditor.tsx — Full-width Sheet with two-column layout:
+  - Left column: Large borderless title, 5 tabs (General with pricing/sale scheduler, Inventory with stock toggle, Shipping with weight/dimensions, Linked Products, Attributes with dynamic rows), short description, RichTextEditor full description
+  - Right sidebar (sticky): Publish card (status dropdown, catalog visibility RadioGroup), Product Image card, Gallery card, Categories card, Tags card, Product Type RadioGroup (simple/variable/grouped)
+  - Pink/rose color scheme matching StorePage, RTL Persian text
+- Replaced old small Dialog components in ContentPage.tsx with WordPressPostEditor
+- Replaced old Dialog component in StorePage.tsx with WooCommerceProductEditor
+- Fixed hidden Unicode characters (zero-width chars) in ContentPage.tsx comment that caused parse error
+- ESLint: 0 errors, 0 warnings across all files
+
+Stage Summary:
+- WordPress-style post editor: Sheet with sidebar, publish settings, categories, tags, featured image
+- WooCommerce-style product editor: Sheet with tabs (General, Inventory, Shipping, Linked Products, Attributes), sidebar with image gallery and product type
+- Both editors use RichTextEditor for content/full description
+- All text in Persian (Farsi), RTL layout
+- Server compiles and runs successfully (HTTP 200)

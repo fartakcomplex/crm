@@ -53,6 +53,7 @@ import type {
   InventoryItem as ApiInventoryItem, Invoice as ApiInvoice, Customer,
 } from './types'
 import { formatDate } from './types'
+import WooCommerceProductEditor from './WooCommerceProductEditor'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -1778,169 +1779,17 @@ export default function StorePage() {
       {/* DIALOGS                                                              */}
       {/* ════════════════════════════════════════════════════════════════════════ */}
 
-      {/* ─── Product Dialog ─── */}
-      <Dialog open={productDialogOpen} onOpenChange={setProductDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card shadow-xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-pink-700 dark:text-pink-300">
-              {editingProduct ? 'ویرایش محصول' : 'افزودن محصول جدید'}
-            </DialogTitle>
-            <DialogDescription>
-              {editingProduct ? 'اطلاعات محصول را ویرایش کنید' : 'اطلاعات محصول جدید را وارد کنید'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            {/* Basic Info */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">اطلاعات پایه</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">نام محصول *</Label>
-                  <Input value={productForm.name} onChange={e => setProductForm({ ...productForm, name: e.target.value, slug: productForm.slug || generateSlug(e.target.value) })} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">Slug</Label>
-                  <Input value={productForm.slug} onChange={e => setProductForm({ ...productForm, slug: e.target.value })} dir="ltr" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">توضیحات کوتاه</Label>
-                <Textarea value={productForm.shortDesc} onChange={e => setProductForm({ ...productForm, shortDesc: e.target.value })} rows={2} />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">توضیحات کامل</Label>
-                <Textarea value={productForm.fullDesc} onChange={e => setProductForm({ ...productForm, fullDesc: e.target.value })} rows={3} />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Pricing */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">قیمت‌گذاری</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">قیمت (تومان)</Label>
-                  <Input type="number" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: Number(e.target.value) })} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">قیمت تخفیفی (تومان)</Label>
-                  <Input type="number" value={productForm.salePrice} onChange={e => setProductForm({ ...productForm, salePrice: Number(e.target.value) })} dir="ltr" placeholder="۰ = بدون تخفیف" />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Inventory */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">موجودی و SKU</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">SKU</Label>
-                  <Input value={productForm.sku} onChange={e => setProductForm({ ...productForm, sku: e.target.value })} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">موجودی</Label>
-                  <Input type="number" value={productForm.stock} onChange={e => setProductForm({ ...productForm, stock: Number(e.target.value) })} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">حداقل موجودی</Label>
-                  <Input type="number" value={productForm.minStock} onChange={e => setProductForm({ ...productForm, minStock: Number(e.target.value) })} dir="ltr" />
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Categorization */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">دسته‌بندی و برچسب</p>
-              <div className="space-y-2">
-                <Label className="text-xs">دسته‌بندی</Label>
-                <Select value={productForm.category} onValueChange={v => setProductForm({ ...productForm, category: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categoryNames.map(name => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">برچسب‌ها</Label>
-                <div className="flex flex-wrap gap-2 p-3 rounded-lg border min-h-[44px]">
-                  {productForm.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="secondary" className="gap-1 text-xs">
-                      {tag}
-                      <button className="hover:text-red-500" onClick={() => setProductForm({ ...productForm, tags: productForm.tags.filter((_, i) => i !== idx) })}>✕</button>
-                    </Badge>
-                  ))}
-                  <Select onValueChange={v => {
-                    if (!productForm.tags.includes(v)) setProductForm({ ...productForm, tags: [...productForm.tags, v] })
-                  }}>
-                    <SelectTrigger className="w-28 h-7 text-xs"><SelectValue placeholder="+ افزودن" /></SelectTrigger>
-                    <SelectContent>
-                      {initialTags.map(t => (
-                        <SelectItem key={t.id} value={t.name} disabled={productForm.tags.includes(t.name)}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Media & Physical */}
-            <div className="space-y-3">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">رسانه و مشخصات فیزیکی</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label className="text-xs">تصویر شاخص (ایموجی)</Label>
-                  <Input value={productForm.image} onChange={e => setProductForm({ ...productForm, image: e.target.value })} placeholder="📦" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">وزن (کیلوگرم)</Label>
-                  <Input type="number" step="0.01" value={productForm.weight} onChange={e => setProductForm({ ...productForm, weight: Number(e.target.value) })} dir="ltr" />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-xs">ابعاد (ط×ع×ا)</Label>
-                  <Input value={productForm.dimensions} onChange={e => setProductForm({ ...productForm, dimensions: e.target.value })} placeholder="۳۰×۲۰×۱۰" dir="ltr" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs">گالری تصاویر (ایموجی‌ها با کاما)</Label>
-                <Input value={productForm.gallery.join(', ')} onChange={e => setProductForm({ ...productForm, gallery: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} placeholder="💻, 🖥️" dir="ltr" />
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Status */}
-            <div className="space-y-2">
-              <Label className="text-xs">وضعیت</Label>
-              <Select value={productForm.status} onValueChange={v => setProductForm({ ...productForm, status: v as Product['status'] })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">فعال</SelectItem>
-                  <SelectItem value="inactive">غیرفعال</SelectItem>
-                  <SelectItem value="draft">پیش‌نویس</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Cross-Module Product Reference */}
-            {editingProduct && <ProductCrossRef productName={editingProduct.name} sku={editingProduct.sku} currentModule="store" />}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setProductDialogOpen(false)}>انصراف</Button>
-            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleProductSave} disabled={!productForm.name}>
-              {editingProduct ? 'بروزرسانی' : 'ایجاد محصول'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ─── WooCommerce-Style Product Editor Sheet ─── */}
+      <WooCommerceProductEditor
+        open={productDialogOpen}
+        onOpenChange={setProductDialogOpen}
+        editingProduct={editingProduct}
+        form={productForm}
+        onFormChange={setProductForm}
+        onSave={handleProductSave}
+        categories={categoryNames}
+        allTags={initialTags.map(t => t.name)}
+      />
 
       {/* ─── Delete Product Confirmation ─── */}
       <AlertDialog open={deleteProductDialogOpen} onOpenChange={setDeleteProductDialogOpen}>
