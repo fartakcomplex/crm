@@ -260,11 +260,10 @@ export default function AccountingPage() {
   }, [transactions, txnSearch, txnTypeFilter])
 
   const transactionsWithBalance = useMemo(() => {
-    let running = 0
-    return filteredTransactions.map(t => {
-      running += t.type === 'income' ? t.amount : -t.amount
-      return { ...t, balance: running }
-    })
+    return filteredTransactions.reduce<(typeof filteredTransactions[number] & { balance: number })[]>((acc, t) => {
+      const prev = acc.length > 0 ? acc[acc.length - 1].balance : 0
+      return [...acc, { ...t, balance: prev + (t.type === 'income' ? t.amount : -t.amount) }]
+    }, [])
   }, [filteredTransactions])
 
   const totalBalance = initialAccounts.reduce((s, a) => s + a.balance, 0)
