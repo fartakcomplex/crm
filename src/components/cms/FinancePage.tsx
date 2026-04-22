@@ -308,11 +308,10 @@ export default function FinancePage() {
 
   // Running total
   const runningTotals = useMemo(() => {
-    let sum = 0
-    return filtered.map(t => {
-      sum += t.type === 'income' ? t.amount : -t.amount
-      return sum
-    })
+    return filtered.reduce<number[]>((acc, t) => {
+      const prev = acc.length > 0 ? acc[acc.length - 1] : 0
+      return [...acc, prev + (t.type === 'income' ? t.amount : -t.amount)]
+    }, [])
   }, [filtered])
 
   const maxMonthly = Math.max(...monthlyData.map(m => Math.max(m.income, m.expense)))
