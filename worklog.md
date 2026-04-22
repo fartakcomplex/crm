@@ -2509,3 +2509,97 @@ Stage Summary:
 - Two bugs fixed: missing Receipt import (critical crash), nested button in BookmarkManager (hydration warning)
 - Site is now fully operational
 - Landing page, CMS dashboard, all pages working
+
+---
+Task ID: wp-plugin-real-sync
+Agent: Main Agent
+Task: Build comprehensive WordPress plugin + real sync system + auto-sync service
+
+Work Log:
+- **Created WordPress plugin** (`wordpress-plugin/smart-cms-bridge.php`):
+  - Smart CMS Bridge v2.0 — full-featured PHP plugin
+  - Custom REST API with 6 endpoints under `/wp-json/smart-cms/v1/`
+  - Endpoints: posts, posts/{id}, categories, tags, stats, heartbeat
+  - API key authentication (query param, header, or Bearer token)
+  - Incremental sync via `modified_after` parameter
+  - Webhook notifications for: post_created, post_updated, post_deleted, post_status_changed, post_terms_updated
+  - Admin settings page with connection test, API key management, sync log
+  - Includes featured image, categories, tags, author info in post data
+  - Heartbeat endpoint for connection testing
+  - Auto heartbeat via WP-Cron (hourly)
+  - Full Persian API documentation in settings page
+
+- **Updated sync API** (`/api/wordpress/sync/route.ts`):
+  - Replaced mock data with real WordPress REST API calls
+  - Fetches from Smart CMS Bridge plugin endpoint
+  - Falls back to native WP REST API v2 if plugin not installed
+  - Supports incremental sync (only fetches modified posts since lastSync)
+  - Pagination support (fetches all pages)
+  - Creates/updates local Post records in Prisma database
+  - Syncs categories from WordPress to local Category model
+  - Detailed sync results with created/updated/skipped/error counts
+  - Activity log entries for each sync
+
+- **Updated plugin API** (`/api/wordpress/plugin/route.ts`):
+  - Now serves actual plugin file for download (PHP content-type)
+  - Persian installation instructions
+  - Complete API endpoint documentation
+  - Query parameter reference
+
+- **Created test-connection API** (`/api/wordpress/test-connection/route.ts`):
+  - Tests Smart CMS Bridge plugin heartbeat endpoint
+  - Falls back to native WP REST API test
+  - Returns site stats when connected
+  - Persian error messages and recommendations
+
+- **Created WP Sync mini-service** (`mini-services/wp-sync-service/index.ts`):
+  - Runs on port 3005 with Bun.serve
+  - WebSocket server for real-time notifications to frontend
+  - Auto-sync scheduler: checks active configs every 5 minutes
+  - Sync frequency support: every_5min, every_15min, hourly, daily, weekly, manual
+  - Direct SQLite database access via bun:sqlite
+  - REST endpoints: /health, /sync, /sync/config, /logs, /status
+  - Health check endpoint with uptime and sync info
+  - Broadcasts sync results to connected WebSocket clients
+  - Graceful reconnection handling
+
+- **Completely rewrote WordPressPage** (`WordPressPage.tsx`):
+  - Tabbed layout: Settings, Plugin, History, Help
+  - WebSocket connection for real-time sync notifications
+  - Connection test button with detailed results (bridge/native stats)
+  - Download plugin button (generates PHP file download)
+  - Full sync and incremental sync buttons
+  - Auto-sync toggle with frequency selector
+  - Real-time service status indicator (online/offline)
+  - Sync result display with created/updated counts
+  - Synced posts list with status badges
+  - Installation steps guide (7 steps in Persian)
+  - API endpoints documentation table
+  - Webhook URL display with copy button
+  - Troubleshooting guide (4 common issues)
+  - Help tab with sync modes explanation
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings
+- 1 new file: wordpress-plugin/smart-cms-bridge.php (~750 lines)
+- 1 new mini-service: mini-services/wp-sync-service/ (index.ts, package.json)
+- 4 files modified: sync/route.ts, plugin/route.ts, WordPressPage.tsx, test-connection/route.ts (new)
+- Server compiles successfully (HTTP 200)
+- WP Sync service running on port 3005
+
+### What was built:
+1. **WordPress Plugin (PHP)** — Installable on any WordPress site, provides REST API + webhooks
+2. **Real Sync API** — Actually fetches posts from WordPress (no more mock data)
+3. **Test Connection API** — Verifies WordPress site connectivity before sync
+4. **Auto-Sync Service** — Background service that periodically checks for new content
+5. **Enhanced WordPress Page** — Full-featured management UI with 4 tabs
+6. **WebSocket Integration** — Real-time sync notifications in the frontend
+
+### How to use:
+1. Download the plugin from the WordPress page in CMS
+2. Install and activate on WordPress site
+3. Copy API key from WordPress plugin settings
+4. Enter site URL + API key in CMS WordPress settings
+5. Test connection
+6. Set sync frequency (auto or manual)
+7. Click sync to fetch posts
