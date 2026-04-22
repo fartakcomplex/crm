@@ -276,6 +276,13 @@ export const CMS_TABS: CMSTab[] = [
   { id: 'notifications',name: 'اعلان‌ها',         icon: 'Bell',           gradient: 'from-purple-500 to-purple-700', category: 'system' },
   { id: 'wordpress',    name: 'وردپرس',          icon: 'Globe',          gradient: 'from-blue-500 to-blue-700', category: 'system' },
   { id: 'settings',     name: 'تنظیمات',          icon: 'Settings',       gradient: 'from-teal-500 to-teal-700', category: 'system' },
+  // Business
+  { id: 'store',        name: 'فروشگاه',          icon: 'ShoppingBag',    gradient: 'from-rose-500 to-rose-700', category: 'business' },
+  { id: 'crm',          name: 'مدیریت مشتریان',   icon: 'Handshake',      gradient: 'from-cyan-500 to-cyan-700', category: 'business' },
+  // Finance
+  { id: 'accounting',   name: 'حسابداری',         icon: 'Receipt',        gradient: 'from-emerald-500 to-emerald-700', category: 'finance' },
+  { id: 'inventory',    name: 'انبار',            icon: 'Warehouse',      gradient: 'from-sky-500 to-sky-700', category: 'finance' },
+  { id: 'finance',      name: 'مالی',             icon: 'Wallet',         gradient: 'from-violet-500 to-violet-700', category: 'finance' },
 ]
 
 export const SIDEBAR_CATEGORIES: Record<string, string> = {
@@ -285,6 +292,8 @@ export const SIDEBAR_CATEGORIES: Record<string, string> = {
   workspace: 'فضای کار',
   tools: 'ابزارهای هوشمند',
   system: 'سیستم',
+  business: 'کسب‌وکار',
+  finance: 'مالی و حسابداری',
 }
 
 // ---------------------------------------------------------------------------
