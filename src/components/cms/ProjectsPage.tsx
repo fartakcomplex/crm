@@ -23,7 +23,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
-import { FolderKanban, Plus, Pencil, Trash2, Search, Calendar, Flag, Target } from 'lucide-react'
+import { FolderKanban, Plus, Pencil, Trash2, Search, Calendar, Flag, Target, Activity, CheckCircle, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 
 const labels = {
@@ -162,6 +162,88 @@ export default function ProjectsPage() {
           <Plus className="h-4 w-4" />{labels.create}
         </Button>
       </div>
+
+      {/* Stats Overview */}
+      {projectsData.length > 0 && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* کل پروژه‌ها */}
+            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
+                  <FolderKanban className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">کل پروژه‌ها</p>
+                  <p className="text-2xl font-bold tabular-nums text-violet-600 dark:text-violet-400">{projectsData.length}</p>
+                </div>
+                <svg className="h-10 w-10 shrink-0 opacity-40" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#statGradViolet)" strokeWidth="3" strokeDasharray={`${(projectsData.length / Math.max(projectsData.length, 1)) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+                  <defs><linearGradient id="statGradViolet" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#8b5cf6" /><stop offset="100%" stopColor="#a78bfa" /></linearGradient></defs>
+                </svg>
+              </CardContent>
+            </Card>
+
+            {/* فعال */}
+            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/25 shrink-0">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">فعال</p>
+                  <p className="text-2xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{projectsData.filter(p => p.status === 'active').length}</p>
+                </div>
+                <svg className="h-10 w-10 shrink-0 opacity-40" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#statGradEmerald)" strokeWidth="3" strokeDasharray={`${(projectsData.filter(p => p.status === 'active').length / Math.max(projectsData.length, 1)) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+                  <defs><linearGradient id="statGradEmerald" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#10b981" /><stop offset="100%" stopColor="#34d399" /></linearGradient></defs>
+                </svg>
+              </CardContent>
+            </Card>
+
+            {/* تکمیل شده */}
+            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-md shadow-cyan-500/25 shrink-0">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">تکمیل شده</p>
+                  <p className="text-2xl font-bold tabular-nums text-cyan-600 dark:text-cyan-400">{projectsData.filter(p => p.status === 'completed').length}</p>
+                </div>
+                <svg className="h-10 w-10 shrink-0 opacity-40" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#statGradCyan)" strokeWidth="3" strokeDasharray={`${(projectsData.filter(p => p.status === 'completed').length / Math.max(projectsData.length, 1)) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+                  <defs><linearGradient id="statGradCyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#06b6d4" /><stop offset="100%" stopColor="#22d3ee" /></linearGradient></defs>
+                </svg>
+              </CardContent>
+            </Card>
+
+            {/* در انتظار */}
+            <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
+                  <Clock className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-muted-foreground">در انتظار</p>
+                  <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{projectsData.filter(p => p.status === 'on-hold').length}</p>
+                </div>
+                <svg className="h-10 w-10 shrink-0 opacity-40" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-muted/30" />
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="url(#statGradAmber)" strokeWidth="3" strokeDasharray={`${(projectsData.filter(p => p.status === 'on-hold').length / Math.max(projectsData.length, 1)) * 94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" />
+                  <defs><linearGradient id="statGradAmber" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#f59e0b" /><stop offset="100%" stopColor="#fbbf24" /></linearGradient></defs>
+                </svg>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-border/50" />
+        </>
+      )}
 
       {/* Filters */}
       <Card className="glass-card-cyan shadow-sm">

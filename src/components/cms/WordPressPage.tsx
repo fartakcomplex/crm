@@ -14,8 +14,9 @@ import {
 import {
   Globe, Link2, Key, User, RefreshCw, CheckCircle, XCircle,
   Clock, FileText, Settings, Loader2, Wifi, WifiOff, Zap,
+  AlertTriangle, History, Check, X,
 } from 'lucide-react'
-import { formatDateTime } from './types'
+import { formatDateTime, formatRelativeTime } from './types'
 import { toast } from 'sonner'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
@@ -45,7 +46,20 @@ const labels = {
   frequency: 'فرکانس همگام‌سازی',
   freqLabels: { manual: 'دستی', hourly: 'ساعتی', daily: 'روزانه', weekly: 'هفتگی' },
   postTitle: 'عنوان مطلب',
+  syncHistory: 'تاریخچه همگام‌سازی',
+  syncErrors: 'خطاهای همگام‌سازی',
 }
+
+// ─── Mock Sync History Data ───────────────────────────────────────────────────
+
+const MOCK_SYNC_HISTORY = [
+  { id: '1', date: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), type: 'success' as const, description: 'همگام‌سازی ۱۲ مطلب با موفقیت انجام شد' },
+  { id: '2', date: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(), type: 'error' as const, description: 'خطا در دریافت دسته‌بندی‌ها: timeout' },
+  { id: '3', date: new Date(Date.now() - 50 * 60 * 60 * 1000).toISOString(), type: 'success' as const, description: 'همگام‌سازی ۸ مطلب و ۳ تصویر جدید' },
+  { id: '4', date: new Date(Date.now() - 74 * 60 * 60 * 1000).toISOString(), type: 'success' as const, description: 'همگام‌سازی اولیه با ۲۵ مطلب' },
+  { id: '5', date: new Date(Date.now() - 120 * 60 * 60 * 1000).toISOString(), type: 'error' as const, description: 'خطا در احراز هویت: کلید API نامعتبر' },
+  { id: '6', date: new Date(Date.now() - 168 * 60 * 60 * 1000).toISOString(), type: 'success' as const, description: 'همگام‌سازی ۵ مطلب منتشر شده' },
+]
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
@@ -115,27 +129,70 @@ export default function WordPressPage() {
         </Button>
       </div>
 
-      {/* Connection Status Card */}
-      <Card className={`glass-card shadow-sm transition-all duration-500 ${isConnected ? 'hover-lift' : ''}`}>
-        <CardContent className="p-5">
-          <div className="flex items-center justify-between">
+      {/* ───── Connection Status Hero Card ───── */}
+      <Card className={`relative overflow-hidden shadow-sm border-0 animate-in transition-all duration-500 ${isConnected ? 'hover-lift' : ''}`}>
+        {/* Gradient Background */}
+        <div className={`absolute inset-0 ${
+          isConnected
+            ? 'bg-gradient-to-l from-emerald-600/20 via-emerald-500/10 to-teal-500/5 dark:from-emerald-600/30 dark:via-emerald-500/15 dark:to-teal-500/10'
+            : 'bg-gradient-to-l from-red-600/20 via-red-500/10 to-rose-500/5 dark:from-red-600/30 dark:via-red-500/15 dark:to-rose-500/10'
+        }`} />
+        <CardContent className="p-6 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Left: Icon + Status */}
             <div className="flex items-center gap-4">
-              <div className={`rounded-2xl p-3 shadow-md transition-all duration-500 ${isConnected ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                {isConnected
-                  ? <Wifi className="h-6 w-6 text-green-600 dark:text-green-400" />
-                  : <WifiOff className="h-6 w-6 text-red-600 dark:text-red-400" />
-                }
+              <div className={`relative h-14 w-14 rounded-2xl flex items-center justify-center shadow-lg ${
+                isConnected
+                  ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/30'
+                  : 'bg-gradient-to-br from-red-400 to-red-600 shadow-red-500/30'
+              }`}>
+                <Globe className="h-7 w-7 text-white" />
+                {/* Animated pulse ring */}
+                <span className={`absolute inset-0 rounded-2xl ${
+                  isConnected ? 'animate-ping bg-emerald-400/20' : ''
+                }`} />
               </div>
               <div>
-                <p className="font-semibold text-base">{labels.connectionStatus}</p>
+                <h2 className="text-lg font-bold">{labels.connectionStatus}</h2>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  {isConnected ? `${labels.connected} — ${siteUrl || '—'}` : labels.disconnected}
+                  {isConnected
+                    ? <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                        {labels.connected}
+                      </span>
+                    : <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-red-500 shadow-sm shadow-red-500/50" />
+                        {labels.disconnected}
+                      </span>
+                  }
                 </p>
               </div>
             </div>
-            <Badge className={`${isConnected ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'} border-0 shadow-sm`}>
-              {isConnected ? labels.connected : labels.disconnected}
-            </Badge>
+            {/* Right: Badge + URL + Last Sync */}
+            <div className="flex flex-col items-end gap-2">
+              <Badge className={`text-sm px-3 py-1 border-0 shadow-sm ${
+                isConnected
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                  : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+              }`}>
+                {isConnected
+                  ? <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5" />{labels.connected}</span>
+                  : <span className="flex items-center gap-1.5"><X className="h-3.5 w-3.5" />{labels.disconnected}</span>
+                }
+              </Badge>
+              {siteUrl && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5" dir="ltr">
+                  <Link2 className="h-3 w-3" />
+                  {siteUrl}
+                </span>
+              )}
+              {existingConfig?.lastSync && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Clock className="h-3 w-3" />
+                  {formatRelativeTime(existingConfig.lastSync)}
+                </span>
+              )}
+            </div>
           </div>
           {/* Sync progress bar */}
           {syncing && (
@@ -145,12 +202,58 @@ export default function WordPressPage() {
                 <span className="font-semibold text-cyan-600 dark:text-cyan-400 tabular-nums">{Math.round(syncProgress)}%</span>
               </div>
               <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-500" style={{ width: `${syncProgress}%` }} />
+                <div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-full transition-all duration-500" style={{ width: `${syncProgress}%` }} />
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* ───── Sync Stats Cards ───── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* مطالب همگام‌سازی شده */}
+        <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-md shadow-cyan-500/25 shrink-0">
+              <RefreshCw className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">{labels.syncedPosts}</p>
+              <p className="text-2xl font-bold tabular-nums text-cyan-600 dark:text-cyan-400">{syncedPosts.length}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* خطاهای همگام‌سازی */}
+        <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/25 shrink-0">
+              <AlertTriangle className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">{labels.syncErrors}</p>
+              <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                {MOCK_SYNC_HISTORY.filter(h => h.type === 'error').length}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* آخرین همگام‌سازی */}
+        <Card className="glass-card hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center shadow-md shadow-violet-500/25 shrink-0">
+              <Clock className="h-6 w-6 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-muted-foreground">{labels.lastSync}</p>
+              <p className="text-lg font-bold tabular-nums text-violet-600 dark:text-violet-400">
+                {existingConfig?.lastSync ? formatRelativeTime(existingConfig.lastSync) : '—'}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Configuration Form */}
@@ -201,21 +304,6 @@ export default function WordPressPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Stats */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 dark:from-cyan-900/20 dark:to-cyan-800/10 text-center shadow-sm">
-                <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400 tabular-nums">{syncedPosts.length}</p>
-                <p className="text-xs text-muted-foreground mt-1">{labels.syncedPosts}</p>
-              </div>
-              <div className="p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-cyan-100/50 dark:from-cyan-900/20 dark:to-cyan-800/10 text-center shadow-sm">
-                <p className="text-sm font-medium text-cyan-600 dark:text-cyan-400 flex items-center justify-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5" />
-                  {existingConfig?.lastSync ? formatDateTime(existingConfig.lastSync) : '—'}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{labels.lastSync}</p>
-              </div>
-            </div>
-
             {/* Synced Posts List */}
             <div>
               <p className="text-sm font-medium text-cyan-700 dark:text-cyan-300 mb-2">{labels.syncedPosts}</p>
@@ -245,6 +333,61 @@ export default function WordPressPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* ───── Sync History Timeline ───── */}
+      <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+        <CardHeader className="pb-3 pt-4 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base text-cyan-700 dark:text-cyan-300 flex items-center gap-2">
+              <History className="h-5 w-5" />
+              {labels.syncHistory}
+            </CardTitle>
+            <Badge variant="secondary" className="text-xs font-medium bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">
+              {MOCK_SYNC_HISTORY.length} مورد
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="px-4 pb-4">
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute top-3 bottom-3 start-[11px] w-0.5 bg-gradient-to-b from-cyan-300 via-emerald-300 to-amber-300 dark:from-cyan-700 dark:via-emerald-700 dark:to-amber-700" />
+            <div className="space-y-4">
+              {MOCK_SYNC_HISTORY.map((entry, i) => (
+                <div key={entry.id} className="flex items-start gap-3 relative animate-in" style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}>
+                  {/* Colored dot */}
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 border-2 border-background ${
+                    entry.type === 'success'
+                      ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50'
+                      : 'bg-red-500 shadow-sm shadow-red-500/50'
+                  }`}>
+                    {entry.type === 'success'
+                      ? <Check className="h-3 w-3 text-white" />
+                      : <X className="h-3 w-3 text-white" />
+                    }
+                  </div>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 pt-0.5">
+                    <p className="text-sm font-medium">{entry.description}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatRelativeTime(entry.date)}
+                      </span>
+                      <Badge className={`text-[10px] border-0 px-1.5 py-0 ${
+                        entry.type === 'success'
+                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                      }`}>
+                        {entry.type === 'success' ? 'موفق' : 'خطا'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

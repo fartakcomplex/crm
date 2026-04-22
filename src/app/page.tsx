@@ -27,6 +27,7 @@ import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
+import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { formatRelativeTime } from '@/components/cms/types'
 import { toast } from 'sonner'
@@ -863,6 +864,9 @@ function AppContent() {
         onToggleSidebar={() => setSidebarOpen(prev => !prev)}
         sidebarCollapsed={!sidebarOpen}
       />
+
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton />
     </TooltipProvider>
   )
 }

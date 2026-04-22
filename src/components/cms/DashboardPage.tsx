@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useCMS } from './context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,7 +25,8 @@ import {
   Lightbulb, MessageCircle, ChevronDown, Sparkles, Star, Zap,
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
   Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
-  Wifi, MessageSquare, StickyNote, Pin, PinOff,
+  Wifi, MessageSquare, StickyNote, Pin, PinOff, Timer, BarChart2,
+  MousePointerClick,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -1007,6 +1008,158 @@ function QuickNotesWidget({ notes }: { notes: QuickNote[] }) {
   )
 }
 
+// ────────────── Analytics Overview Widget ──────────────
+
+const ANALYTICS_METRICS = [
+  {
+    label: 'بازدید صفحات',
+    value: '۱۲٬۴۵۶',
+    change: '+۱۸.۲٪',
+    trend: 'up' as const,
+    icon: <Eye className="h-4 w-4" />,
+    iconBg: 'bg-violet-100 dark:bg-violet-900/30',
+    iconColor: 'text-violet-600 dark:text-violet-400',
+    sparkData: [65, 72, 68, 80, 75, 88, 82, 95, 90, 100],
+    sparkColor: '#8b5cf6',
+    sparkFill: '#a78bfa',
+    changePositive: true,
+  },
+  {
+    label: 'نرخ بازگشت',
+    value: '۳۲.۵٪',
+    change: '−۵.۱٪',
+    trend: 'down' as const,
+    icon: <MousePointerClick className="h-4 w-4" />,
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    sparkData: [45, 42, 40, 38, 36, 35, 33, 34, 32, 33],
+    sparkColor: '#10b981',
+    sparkFill: '#34d399',
+    changePositive: true, // lower bounce rate is good
+  },
+  {
+    label: 'میانگین ماندگاری',
+    value: '۴:۳۲',
+    change: '+۱۲.۸٪',
+    trend: 'up' as const,
+    icon: <Timer className="h-4 w-4" />,
+    iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    sparkData: [30, 35, 32, 40, 38, 45, 42, 48, 50, 55],
+    sparkColor: '#f59e0b',
+    sparkFill: '#fbbf24',
+    changePositive: true,
+  },
+  {
+    label: 'نرخ تبدیل',
+    value: '۲.۴٪',
+    change: '+۰.۸٪',
+    trend: 'up' as const,
+    icon: <BarChart2 className="h-4 w-4" />,
+    iconBg: 'bg-rose-100 dark:bg-rose-900/30',
+    iconColor: 'text-rose-600 dark:text-rose-400',
+    sparkData: [10, 12, 14, 15, 18, 17, 20, 22, 21, 24],
+    sparkColor: '#f43f5e',
+    sparkFill: '#fb7185',
+    changePositive: true,
+  },
+]
+
+function AnalyticsWidget() {
+  const sparkId = useRef('analytics-spark')
+
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0 lg:col-span-3">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            تحلیل عملکرد
+          </CardTitle>
+          <Badge variant="secondary" className="text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+            این ماه
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ANALYTICS_METRICS.map((metric, i) => (
+            <div
+              key={metric.label}
+              className="group relative rounded-xl border border-border/50 bg-gradient-to-br from-background to-muted/30 p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 animate-in"
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className={`h-9 w-9 rounded-lg ${metric.iconBg} flex items-center justify-center ${metric.iconColor}`}>
+                  {metric.icon}
+                </div>
+                <Badge className={`text-[10px] gap-0.5 border-0 px-1.5 py-0 ${
+                  metric.changePositive
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {metric.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {metric.change}
+                </Badge>
+              </div>
+
+              {/* Value */}
+              <p className="text-2xl font-bold tabular-nums mb-0.5">{metric.value}</p>
+              <p className="text-xs text-muted-foreground mb-3">{metric.label}</p>
+
+              {/* Sparkline */}
+              <svg viewBox="0 0 120 32" className="w-full h-8 overflow-visible opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                <defs>
+                  <linearGradient id={`analytics-fill-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={metric.sparkFill} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={metric.sparkFill} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                {/* Build points */}
+                {(() => {
+                  const data = metric.sparkData
+                  const min = Math.min(...data)
+                  const max = Math.max(...data)
+                  const range = max - min || 1
+                  const points = data.map((v, idx) => ({
+                    x: (idx / (data.length - 1)) * 110 + 5,
+                    y: 28 - ((v - min) / range) * 24,
+                  }))
+                  // Build smooth path
+                  let pathD = `M ${points[0].x},${points[0].y}`
+                  for (let j = 0; j < points.length - 1; j++) {
+                    const p0 = points[Math.max(j - 1, 0)]
+                    const p1 = points[j]
+                    const p2 = points[j + 1]
+                    const p3 = points[Math.min(j + 2, points.length - 1)]
+                    const tension = 0.3
+                    const cp1x = p1.x + (p2.x - p0.x) * tension
+                    const cp1y = p1.y + (p2.y - p0.y) * tension
+                    const cp2x = p2.x - (p3.x - p1.x) * tension
+                    const cp2y = p2.y - (p3.y - p1.y) * tension
+                    pathD += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${p2.x},${p2.y}`
+                  }
+                  // Fill area
+                  const fillD = `${pathD} L ${points[points.length - 1].x},30 L ${points[0].x},30 Z`
+                  return (
+                    <g key={`spark-${i}`}>
+                      <path d={fillD} fill={`url(#analytics-fill-${i})`} />
+                      <path d={pathD} fill="none" stroke={metric.sparkColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      {/* End dot */}
+                      <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3" fill={metric.sparkColor} className="drop-shadow-sm" />
+                    </g>
+                  )
+                })()}
+              </svg>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
@@ -1451,6 +1604,11 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════ New Dashboard Widgets ═══════ */}
+      {/* Analytics Overview Widget — full width */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <AnalyticsWidget />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Quick Actions Widget */}
         <QuickActionsWidget />

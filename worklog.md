@@ -1101,3 +1101,124 @@ Stage Summary:
 - Server compiles successfully (HTTP 200)
 - 7 sample events seeded into database
 - Calendar tab accessible via sidebar navigation and ⌘6 keyboard shortcut
+
+---
+Task ID: round10-styling-features
+Agent: Main Agent + Sub-agents (frontend-styling-expert x1, full-stack-developer x1)
+Task: Styling enhancements (ScrollToTop, CSS utilities, glass morphism variants) and new features (Analytics widget, ProjectsPage stats, WordPressPage hero)
+
+Work Log:
+- **Created ScrollToTopButton component** (`/src/components/cms/ScrollToTopButton.tsx`):
+  - Floating violet gradient circle button appears when scroll > 300px
+  - Positioned fixed bottom-5rem right-1.5rem z-35 (above FAB, right side in RTL)
+  - Animated fade-in/out via CSS classes (.scroll-to-top-btn / .visible)
+  - Uses ArrowUp icon, smooth scroll to top on click
+  - Persian aria-label: "بازگشت به بالا"
+  - Uses requestAnimationFrame for initial scroll check (lint-compliant)
+
+- **Enhanced globals.css** (+~230 lines):
+  - .scroll-to-top-btn + .visible / :hover / :active states
+  - .card-hover-glow — radial gradient glow effect on hover
+  - .gradient-border-card — multi-color gradient border wrapper
+  - .gradient-text-emerald, .gradient-text-amber, .gradient-text-rose, .gradient-text-cyan — text gradient variants
+  - .animated-gradient-bg — rotating gradient background animation (@keyframes gradient-rotate)
+  - .glass-card-emerald-enhanced, .glass-card-amber-enhanced, .glass-card-rose-enhanced — enhanced glass morphism with dark mode
+  - .pulse-dot + @keyframes pulse-dot-ping — pulsing dot indicator
+  - .skeleton-shimmer — enhanced skeleton loading shimmer
+  - .badge-glow-violet, .badge-glow-emerald, .badge-glow-amber, .badge-glow-rose — badge glow effects
+  - Improved dark mode glass card override via @media (prefers-color-scheme: dark)
+
+- **Integrated ScrollToTopButton into page.tsx**:
+  - Added import and component after ProfilePanel in AppContent
+
+- **Enhanced ProjectsPage.tsx with Stats Overview**:
+  - 4 stat cards in responsive grid (1/2/4 cols):
+    1. کل پروژه‌ها (Total) — violet, FolderKanban icon, SVG progress ring
+    2. فعال (Active) — emerald, Activity icon
+    3. تکمیل شده (Completed) — cyan, CheckCircle icon
+    4. در انتظار (On Hold) — amber, Clock icon
+  - Each card: gradient icon circle, title, bold count, SVG progress ring (% of total)
+  - Only shown when projects exist (projectsData.length > 0)
+  - Divider line between stats and filters
+  - Staggered animate-in delays (0ms, 80ms, 160ms, 240ms)
+
+- **Enhanced WordPressPage.tsx with Hero and Timeline**:
+  - Connection Status Hero Card with emerald/red gradient, Globe pulse icon, status badge, URL, last sync time
+  - 3 Sync Stat Cards: Synced Posts (cyan), Sync Errors (amber), Last Sync (violet)
+  - Sync History Timeline with 6 mock entries, color-coded dots, relative times
+
+- **Added AnalyticsWidget to DashboardPage.tsx**:
+  - Full-width widget (lg:col-span-3) with 4 metrics:
+    1. بازدید صفحات (Page Views) — ۱۲,۴۵۶ — +۱۸.۲% — violet sparkline
+    2. نرخ بازگشت (Bounce Rate) — ۳۲.۵% — −۵.۱% — emerald (lower is better)
+    3. میانگین ماندگاری (Avg. Session) — ۴:۳۲ — +۱۲.۸% — amber
+    4. نرخ تبدیل (Conversion Rate) — ۲.۴% — +۰.۸% — rose
+  - Each metric: icon, large bold value, trend badge (green/red), label, SVG sparkline
+  - Sparklines use Catmull-Rom smooth curves with gradient fill and end dot
+  - Added before existing widget row in dashboard grid
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings (fully clean)
+- 1 new file created: ScrollToTopButton.tsx
+- 4 files modified: page.tsx, globals.css, ProjectsPage.tsx, WordPressPage.tsx, DashboardPage.tsx
+- globals.css expanded with ~230 lines of new CSS utilities
+- Server compiles successfully (HTTP 200)
+- All API endpoints returning 200
+
+---
+
+## Current Project Status Assessment (Updated — Round 10)
+
+### Overall Status: Feature-Complete CMS ✅
+- Next.js 16 with Turbopack dev server
+- **17 pages** (14 CMS + Tasks + Calendar + Login) with enhanced visual styling
+- **35+ API routes** (CRUD + AI + WordPress sync + Upload + Tasks + Notes + Events)
+- 9 AI-powered endpoints using GLM-5-turbo (with streaming support)
+- RTL Persian layout with dark/light theme
+- Responsive design with mobile sidebar drawer
+- Global search (Ctrl+K) across all entities
+- Notification system with real-time badge counts + mark-all-as-read
+- Floating action button with quick actions (including Quick Draft)
+- User profile dropdown with logout
+- Rich text editor (Markdown) for content editing
+- CSV export on 5 pages
+- Table sorting on 5 pages
+- Toast notifications on 7+ pages
+- Login/Register UI with animated gradient background
+- **Enhanced CSS**: ~50+ keyframes, ~85+ utilities (globals.css ~2240+ lines)
+- Print styles, high contrast, prefers-reduced-motion accessibility
+- Data table pagination (5 pages)
+- Post preview/reading view (Sheet)
+- Dashboard with 8+ widgets (Quick Actions, Activity Timeline, Popular Posts, System Health, Mini Calendar, Quick Notes, Onboarding Tips, Analytics)
+- **NEW (Round 10)**: ScrollToTop floating button with smooth animation
+- **NEW (Round 10)**: ProjectsPage stats overview with SVG progress rings
+- **NEW (Round 10)**: WordPressPage connection hero card + sync timeline
+- **NEW (Round 10)**: Analytics widget with SVG sparkline charts
+- **NEW (Round 10)**: 15+ new CSS utilities (glass morphism variants, gradient texts, badge glows, card hover glow, animated gradient bg, pulse dots)
+- Task Manager with Kanban board (drag-and-drop)
+- Quick Notes widget on Dashboard (sticky note style)
+- Sidebar categorized navigation (6 groups with Persian headers)
+- Quick Draft dialog from FAB
+
+### Completed in Round 10
+1. ✅ Created ScrollToTopButton with scroll-based visibility
+2. ✅ Integrated ScrollToTopButton into main layout
+3. ✅ Added ~230 lines of new CSS to globals.css
+4. ✅ Enhanced ProjectsPage with 4 stat cards + progress rings
+5. ✅ Enhanced WordPressPage with hero card + stats + sync timeline
+6. ✅ Added AnalyticsWidget to Dashboard with SVG sparklines
+7. ✅ ESLint: 0 errors, 0 warnings
+
+### Known Issues
+1. ⚠️ Sandbox OOM — dev server killed by sandbox between long tool call gaps (not a code issue)
+2. ⚠️ HMR may trigger full reload during hot module replacement (non-critical)
+
+### Next Priority Recommendations
+1. **Real-time updates** — WebSocket integration for live notifications and activity feed
+2. **Authentication flow** — integrate NextAuth.js with actual login/register
+3. **Dashboard drag-and-drop** — configurable widget layout with @dnd-kit (already installed)
+4. **Image optimization** — actual image resize/thumbnail generation with Sharp
+5. **Email notifications** — email sending for comment notifications, user invites
+6. **Data import** — CSV/JSON import for bulk data migration
+7. **Mobile responsive testing** — verify all 17 pages on mobile viewports
+8. **Performance optimization** — lazy loading for images and heavy components
