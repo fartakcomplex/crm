@@ -117,13 +117,13 @@ function SidebarNav({
   return (
     <>
       {/* Logo */}
-      <div className="h-14 flex items-center justify-between px-3 border-b border-border/50 shrink-0">
+      <div className="h-14 flex items-center justify-between px-3 border-b border-border/50 shrink-0" dir="rtl">
         {collapsed ? null : (
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-shadow">
               <Bot className="h-4.5 w-4.5 text-white" />
             </div>
-            <div>
+            <div className="text-right">
               <span className="font-bold text-sm tracking-tight">Smart CMS</span>
               <span className="block text-[10px] text-muted-foreground -mt-0.5">مدیریت هوشمند</span>
             </div>
@@ -131,8 +131,8 @@ function SidebarNav({
         )}
       </div>
 
-      {/* Nav Items */}
-      <ScrollArea className="flex-1 py-2">
+      {/* Nav Items — scrollable area */}
+      <ScrollArea className="flex-1 py-2 overflow-hidden">
         <nav className="space-y-0.5 px-2" dir="rtl">
           {CMS_TABS.map((tab, i) => {
             // Show category header before first item in each category (skip 'main')
@@ -143,7 +143,7 @@ function SidebarNav({
             return (
               <div key={tab.id}>
                 {showCategoryHeader && (
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 px-3 pt-3 pb-1">
+                  <div className="text-[10px] font-semibold text-muted-foreground/60 px-3 pt-3 pb-1 text-right">
                     {SIDEBAR_CATEGORIES[category] ?? category}
                   </div>
                 )}
@@ -154,7 +154,7 @@ function SidebarNav({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer ${
+                          className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer text-right ${
                             isActive
                               ? `bg-gradient-to-l ${tab.gradient} text-white shadow-md`
                               : `hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
@@ -167,7 +167,7 @@ function SidebarNav({
                           </span>
                           {!collapsed && (
                             <>
-                              <span className="text-sm truncate flex-1">{tab.name}</span>
+                              <span className="text-sm truncate flex-1 text-right" dir="rtl">{tab.name}</span>
                               {showBadge && (
                                 <Badge className="h-5 min-w-[20px] px-1.5 text-[10px] bg-red-500 text-white border-0 animate-pulse">
                                   {unreadCount}
@@ -192,10 +192,10 @@ function SidebarNav({
       </ScrollArea>
 
       {/* Bottom Section */}
-      <div className="border-t border-border/50 p-2 space-y-1 shrink-0">
+      <div className="border-t border-border/50 p-2 space-y-1 shrink-0" dir="rtl">
         {/* Quick Create FAB hint */}
         {!collapsed && (
-          <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 border border-violet-200/20 dark:border-violet-800/20 mb-1">
+          <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 border border-violet-200/20 dark:border-violet-800/20 mb-1 text-right">
             <p className="text-[11px] text-muted-foreground">
               <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd>
               {' '}جستجوی سریع
@@ -216,7 +216,7 @@ function SidebarNav({
             <Moon className="h-4 w-4 text-indigo-400" />
           )}
           {!collapsed && (
-            <span className="text-sm">
+            <span className="text-sm text-right">
               {theme === 'dark' ? 'حالت روشن' : 'حالت تاریک'}
             </span>
           )}
@@ -705,6 +705,7 @@ function AppContent() {
             className={`sticky top-0 h-screen border-l border-border/60 bg-card/40 backdrop-blur-xl transition-all duration-300 flex flex-col z-30 ${
               sidebarOpen ? 'w-[240px]' : 'w-[60px]'
             }`}
+            dir="rtl"
           >
             <SidebarNav
               activeTab={activeTab}

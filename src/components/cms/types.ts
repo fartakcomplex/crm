@@ -255,27 +255,27 @@ export interface CMSTab {
 
 export const CMS_TABS: CMSTab[] = [
   // Main
-  { id: 'dashboard',    name: 'Dashboard',    icon: 'LayoutDashboard', gradient: 'from-slate-500 to-slate-700', category: 'main' },
+  { id: 'dashboard',    name: 'داشبورد',         icon: 'LayoutDashboard', gradient: 'from-slate-500 to-slate-700', category: 'main' },
   // Content Management
-  { id: 'content',      name: 'Content',      icon: 'FileText',        gradient: 'from-cyan-500 to-cyan-700', category: 'content' },
-  { id: 'media',        name: 'Media',        icon: 'Image',          gradient: 'from-rose-500 to-rose-700', category: 'content' },
-  { id: 'comments',     name: 'Comments',     icon: 'MessageCircle',  gradient: 'from-orange-500 to-orange-700', category: 'content' },
+  { id: 'content',      name: 'محتوا',           icon: 'FileText',        gradient: 'from-cyan-500 to-cyan-700', category: 'content' },
+  { id: 'media',        name: 'رسانه',           icon: 'Image',          gradient: 'from-rose-500 to-rose-700', category: 'content' },
+  { id: 'comments',     name: 'نظرات',           icon: 'MessageCircle',  gradient: 'from-orange-500 to-orange-700', category: 'content' },
   // People
-  { id: 'users',        name: 'Users',        icon: 'Users',          gradient: 'from-emerald-500 to-emerald-700', category: 'people' },
-  { id: 'team',         name: 'Team',         icon: 'UserCog',        gradient: 'from-indigo-500 to-indigo-700', category: 'people' },
-  { id: 'customers',    name: 'Customers',    icon: 'UserCircle',     gradient: 'from-amber-500 to-amber-700', category: 'people' },
+  { id: 'users',        name: 'کاربران',          icon: 'Users',          gradient: 'from-emerald-500 to-emerald-700', category: 'people' },
+  { id: 'team',         name: 'تیم',             icon: 'UserCog',        gradient: 'from-indigo-500 to-indigo-700', category: 'people' },
+  { id: 'customers',    name: 'مشتریان',          icon: 'UserCircle',     gradient: 'from-amber-500 to-amber-700', category: 'people' },
   // Workspace
-  { id: 'projects',     name: 'Projects',     icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700', category: 'workspace' },
-  { id: 'tasks',        name: 'Tasks',        icon: 'CheckSquare',    gradient: 'from-green-500 to-green-700', category: 'workspace' },
-  { id: 'calendar',     name: 'Calendar',     icon: 'CalendarDays',   gradient: 'from-indigo-500 to-indigo-700', category: 'workspace' },
+  { id: 'projects',     name: 'پروژه‌ها',         icon: 'FolderKanban',   gradient: 'from-sky-500 to-sky-700', category: 'workspace' },
+  { id: 'tasks',        name: 'وظایف',           icon: 'CheckSquare',    gradient: 'from-green-500 to-green-700', category: 'workspace' },
+  { id: 'calendar',     name: 'تقویم',           icon: 'CalendarDays',   gradient: 'from-indigo-500 to-indigo-700', category: 'workspace' },
   // Intelligence
-  { id: 'ai-assistant', name: 'AI Assistant', icon: 'Bot',            gradient: 'from-violet-500 to-violet-700', category: 'tools' },
-  { id: 'reports',      name: 'Reports',      icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700', category: 'tools' },
+  { id: 'ai-assistant', name: 'دستیار هوشمند',   icon: 'Bot',            gradient: 'from-violet-500 to-violet-700', category: 'tools' },
+  { id: 'reports',      name: 'گزارش‌ها',         icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700', category: 'tools' },
   // System
-  { id: 'activities',   name: 'Activities',   icon: 'Activity',       gradient: 'from-lime-500 to-lime-700', category: 'system' },
-  { id: 'notifications',name: 'Notifications',icon: 'Bell',           gradient: 'from-purple-500 to-purple-700', category: 'system' },
-  { id: 'wordpress',    name: 'WordPress',    icon: 'Globe',          gradient: 'from-blue-500 to-blue-700', category: 'system' },
-  { id: 'settings',     name: 'Settings',     icon: 'Settings',       gradient: 'from-teal-500 to-teal-700', category: 'system' },
+  { id: 'activities',   name: 'فعالیت‌ها',        icon: 'Activity',       gradient: 'from-lime-500 to-lime-700', category: 'system' },
+  { id: 'notifications',name: 'اعلان‌ها',         icon: 'Bell',           gradient: 'from-purple-500 to-purple-700', category: 'system' },
+  { id: 'wordpress',    name: 'وردپرس',          icon: 'Globe',          gradient: 'from-blue-500 to-blue-700', category: 'system' },
+  { id: 'settings',     name: 'تنظیمات',          icon: 'Settings',       gradient: 'from-teal-500 to-teal-700', category: 'system' },
 ]
 
 export const SIDEBAR_CATEGORIES: Record<string, string> = {
