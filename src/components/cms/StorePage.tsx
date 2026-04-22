@@ -54,6 +54,8 @@ import type {
 } from './types'
 import { formatDate } from './types'
 import WooCommerceProductEditor from './WooCommerceProductEditor'
+import CategoryEditor from './CategoryEditor'
+import TagEditor from './TagEditor'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -1977,52 +1979,16 @@ export default function StorePage() {
         </DialogContent>
       </Dialog>
 
-      {/* ─── Category Dialog ─── */}
-      <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-        <DialogContent className="max-w-md glass-card shadow-xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-pink-700 dark:text-pink-300">
-              {editingCategory ? 'ویرایش دسته‌بندی' : 'افزودن دسته‌بندی جدید'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs">نام دسته‌بندی *</Label>
-              <Input value={categoryForm.name} onChange={e => setCategoryForm({ ...categoryForm, name: e.target.value, slug: categoryForm.slug || generateSlug(e.target.value) })} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Slug (خودکار از نام)</Label>
-              <Input value={categoryForm.slug} onChange={e => setCategoryForm({ ...categoryForm, slug: e.target.value })} dir="ltr" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">توضیحات</Label>
-              <Textarea value={categoryForm.description} onChange={e => setCategoryForm({ ...categoryForm, description: e.target.value })} rows={2} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">تصویر (ایموجی)</Label>
-              <Input value={categoryForm.image} onChange={e => setCategoryForm({ ...categoryForm, image: e.target.value })} placeholder="📁" />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">دسته والد</Label>
-              <Select value={categoryForm.parentId || 'none'} onValueChange={v => setCategoryForm({ ...categoryForm, parentId: v === 'none' ? null : v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">بدون والد (دسته اصلی)</SelectItem>
-                  {categories.filter(c => c.parentId === null).map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCategoryDialogOpen(false)}>انصراف</Button>
-            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleCategorySave} disabled={!categoryForm.name}>
-              {editingCategory ? 'بروزرسانی' : 'ایجاد'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ─── Category Full-Page Editor ─── */}
+      <CategoryEditor
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        editingCategory={editingCategory}
+        form={categoryForm}
+        onFormChange={setCategoryForm}
+        onSave={handleCategorySave}
+        allCategories={categories.map(c => ({ id: c.id, name: c.name, parentId: c.parentId }))}
+      />
 
       {/* ─── Delete Category Confirmation ─── */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
@@ -2038,32 +2004,15 @@ export default function StorePage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* ─── Tag Dialog ─── */}
-      <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
-        <DialogContent className="max-w-sm glass-card shadow-xl" dir="rtl">
-          <DialogHeader>
-            <DialogTitle className="text-pink-700 dark:text-pink-300">
-              {editingTag ? 'ویرایش برچسب' : 'افزودن برچسب جدید'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-xs">نام برچسب *</Label>
-              <Input value={tagForm.name} onChange={e => setTagForm({ ...tagForm, name: e.target.value, slug: tagForm.slug || generateSlug(e.target.value) })} />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs">Slug</Label>
-              <Input value={tagForm.slug} onChange={e => setTagForm({ ...tagForm, slug: e.target.value })} dir="ltr" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTagDialogOpen(false)}>انصراف</Button>
-            <Button className="bg-gradient-to-r from-pink-600 to-rose-500 hover:from-pink-700 hover:to-rose-600 text-white shadow-sm" onClick={handleTagSave} disabled={!tagForm.name}>
-              {editingTag ? 'بروزرسانی' : 'ایجاد'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* ─── Tag Full-Page Editor ─── */}
+      <TagEditor
+        open={tagDialogOpen}
+        onOpenChange={setTagDialogOpen}
+        editingTag={editingTag}
+        form={tagForm}
+        onFormChange={setTagForm}
+        onSave={handleTagSave}
+      />
 
       {/* ─── Coupon Dialog ─── */}
       <Dialog open={couponDialogOpen} onOpenChange={setCouponDialogOpen}>

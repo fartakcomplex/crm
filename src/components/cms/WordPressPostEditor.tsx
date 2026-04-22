@@ -1,12 +1,6 @@
 'use client'
 
 import { useState, useCallback, type KeyboardEvent } from 'react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -36,6 +30,9 @@ import {
   FolderOpen,
   Check,
   Edit3,
+  ArrowRight,
+  Save,
+  Send,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -106,9 +103,9 @@ function SidebarCard({
   const [open, setOpen] = useState(defaultOpen)
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="glass-card rounded-lg overflow-hidden">
-        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer">
-          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+      <div className="glass-card rounded-xl overflow-hidden shadow-sm">
+        <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3.5 hover:bg-muted/40 transition-colors cursor-pointer">
+          <div className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
             {icon}
             <span>{title}</span>
           </div>
@@ -266,396 +263,427 @@ export default function WordPressPostEditor({
   const suggestedTags = allTags.filter((t) => !currentTags.includes(t)).slice(0, 8)
 
   // -----------------------------------------------------------------------
-  // Render
+  // Render — don't render anything if not open
   // -----------------------------------------------------------------------
 
+  if (!open) return null
+
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        dir="rtl"
-        className="sm:max-w-4xl w-full p-0 overflow-hidden"
-      >
-        {/* ── Header ── */}
-        <SheetHeader className="flex-row items-center justify-between px-6 py-4 border-b shrink-0">
-          <SheetTitle className="text-lg font-bold text-foreground">
-            {pageTitle}
-          </SheetTitle>
+    <div
+      className="fixed inset-0 z-50 bg-background animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+      dir="rtl"
+    >
+      {/* ══════════════════════════════════════════════════════════════════
+          Top Bar
+          ══════════════════════════════════════════════════════════════════ */}
+      <header className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-8 h-16 border-b bg-background/80 backdrop-blur-md shrink-0">
+        {/* Right side (visually right in RTL): Back button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="gap-2 text-muted-foreground hover:text-foreground"
+          onClick={() => onOpenChange(false)}
+        >
+          <ArrowRight className="size-4" />
+          <span className="hidden sm:inline text-sm">بازگشت</span>
+        </Button>
+
+        {/* Center: Page title */}
+        <h1 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-base md:text-lg font-bold text-foreground">
+          {pageTitle}
+        </h1>
+
+        {/* Left side (visually left in RTL): Save buttons */}
+        <div className="flex items-center gap-2 mr-auto">
           <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground hover:text-foreground"
-            onClick={() => onOpenChange(false)}
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-sm"
+            onClick={handleSaveDraft}
           >
-            <X className="size-4" />
-            <span className="sr-only">بستن</span>
+            <Save className="size-3.5" />
+            <span className="hidden sm:inline">ذخیره پیش‌نویس</span>
+            <span className="sm:hidden">پیش‌نویس</span>
           </Button>
-        </SheetHeader>
+          <Button
+            size="sm"
+            className="gap-1.5 text-sm bg-gradient-to-l from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-md shadow-cyan-500/20"
+            onClick={handlePublish}
+          >
+            <Send className="size-3.5" />
+            <span>انتشار</span>
+          </Button>
+        </div>
+      </header>
 
-        {/* ── Body: Two-Column Layout ── */}
-        <div className="flex flex-1 min-h-0">
-          {/* ─── Left (Main Content Area) ~70% ─── */}
-          <ScrollArea className="flex-[7] border-l">
-            <div className="p-6 space-y-5 max-w-none">
-              {/* Title */}
-              <div>
-                <input
-                  type="text"
-                  value={form.title ?? ''}
-                  onChange={handleTitleChange}
-                  placeholder="عنوان مطلب را وارد کنید"
-                  className="w-full text-2xl font-bold bg-transparent outline-none placeholder:text-muted-foreground/40 py-2 leading-relaxed"
-                />
-              </div>
+      {/* ══════════════════════════════════════════════════════════════════
+          Body: Two-Column Layout
+          ══════════════════════════════════════════════════════════════════ */}
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* ─── Main Content Area (~70%) — visually on the right in RTL ─── */}
+        <ScrollArea className="flex-[7] border-l">
+          <div className="max-w-3xl mx-auto px-6 md:px-10 py-8 space-y-6">
+            {/* Title */}
+            <div>
+              <input
+                type="text"
+                value={form.title ?? ''}
+                onChange={handleTitleChange}
+                placeholder="عنوان مطلب را وارد کنید…"
+                className="w-full text-3xl font-bold bg-transparent outline-none placeholder:text-muted-foreground/40 py-3 leading-relaxed tracking-tight"
+              />
+            </div>
 
-              {/* Permalink */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground whitespace-nowrap">
-                  پیوند یکتا:
-                </span>
-                {editingSlug ? (
-                  <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <span className="text-muted-foreground text-xs" dir="ltr">
-                      https://example.com/
-                    </span>
-                    <Input
-                      value={tempSlug}
-                      onChange={(e) => setTempSlug(e.target.value)}
-                      className="h-7 text-xs flex-1 min-w-0"
-                      dir="ltr"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSlugSave()
-                        if (e.key === 'Escape') {
-                          setTempSlug(form.slug ?? '')
-                          setEditingSlug(false)
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 dark:hover:bg-cyan-950/30"
-                      onClick={handleSlugSave}
-                    >
-                      <Check className="size-3.5" />
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <span
-                      className="text-sm text-muted-foreground truncate"
-                      dir="ltr"
-                    >
-                      https://example.com/{form.slug || '...'}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground shrink-0"
-                      onClick={() => {
+            {/* Permalink / Slug */}
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-muted-foreground whitespace-nowrap text-sm">
+                پیوند یکتا:
+              </span>
+              {editingSlug ? (
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span className="text-muted-foreground text-xs" dir="ltr">
+                    https://example.com/
+                  </span>
+                  <Input
+                    value={tempSlug}
+                    onChange={(e) => setTempSlug(e.target.value)}
+                    className="h-8 text-xs flex-1 min-w-0"
+                    dir="ltr"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleSlugSave()
+                      if (e.key === 'Escape') {
                         setTempSlug(form.slug ?? '')
-                        setEditingSlug(true)
-                      }}
-                    >
-                      <Edit3 className="size-3.5 ml-1" />
-                      ویرایش
-                    </Button>
+                        setEditingSlug(false)
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-xs text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 dark:hover:bg-cyan-950/30 shrink-0"
+                    onClick={handleSlugSave}
+                  >
+                    <Check className="size-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                  <span
+                    className="text-sm text-muted-foreground truncate"
+                    dir="ltr"
+                  >
+                    https://example.com/{form.slug || '...'}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground shrink-0 gap-1"
+                    onClick={() => {
+                      setTempSlug(form.slug ?? '')
+                      setEditingSlug(true)
+                    }}
+                  >
+                    <Edit3 className="size-3" />
+                    ویرایش
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Excerpt — Collapsible */}
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer w-full py-1 group">
+                <ChevronDown className="size-4 transition-transform duration-200" />
+                <span>چکیده</span>
+                {excerptLength > 0 && (
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 mr-1">
+                    {excerptLength}
+                  </Badge>
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pt-3 space-y-2">
+                  <Textarea
+                    value={form.excerpt ?? ''}
+                    onChange={(e) => updateField('excerpt', e.target.value)}
+                    placeholder="چکیده‌ای کوتاه از مطلب خود بنویسید…"
+                    className="resize-none min-h-[80px] text-sm leading-relaxed"
+                    rows={3}
+                    maxLength={EXCERPT_MAX_LENGTH}
+                  />
+                  <div className="text-xs text-muted-foreground text-left" dir="ltr">
+                    {excerptLength}/{EXCERPT_MAX_LENGTH}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Separator />
+
+            {/* Content Editor */}
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-foreground block">
+                محتوا
+              </Label>
+              <RichTextEditor
+                value={form.content ?? ''}
+                onChange={(val) => updateField('content', val)}
+                placeholder="محتوای خود را بنویسید…"
+                className="min-h-[400px]"
+              />
+            </div>
+          </div>
+        </ScrollArea>
+
+        {/* ─── Sidebar (~30%) — visually on the left in RTL ─── */}
+        <aside className="flex-[3] shrink-0 border-r bg-muted/20">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+              {/* ── Publish Card ── */}
+              <SidebarCard
+                title="برنامه‌ریزی انتشار"
+                icon={<Calendar className="size-4 text-cyan-500" />}
+              >
+                {/* Status */}
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">
+                    وضعیت
+                  </Label>
+                  <Badge variant={statusInfo.variant} className="text-xs">
+                    {statusInfo.label}
+                  </Badge>
+                </div>
+
+                {/* Visibility */}
+                <div className="space-y-2.5">
+                  <Label className="text-xs text-muted-foreground font-medium">
+                    دیدگاه
+                  </Label>
+                  <RadioGroup
+                    value={visibility}
+                    onValueChange={(val) =>
+                      setVisibility(val as 'public' | 'private' | 'password')
+                    }
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <RadioGroupItem value="public" id="vis-public" />
+                      <Label
+                        htmlFor="vis-public"
+                        className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
+                      >
+                        <Globe className="size-3.5 text-muted-foreground" />
+                        عمومی
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <RadioGroupItem value="private" id="vis-private" />
+                      <Label
+                        htmlFor="vis-private"
+                        className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
+                      >
+                        <EyeOff className="size-3.5 text-muted-foreground" />
+                        خصوصی
+                      </Label>
+                    </div>
+                    <div className="flex items-center gap-2.5">
+                      <RadioGroupItem value="password" id="vis-password" />
+                      <Label
+                        htmlFor="vis-password"
+                        className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
+                      >
+                        <Lock className="size-3.5 text-muted-foreground" />
+                        رمزدار
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+
+                {/* Password field — conditional */}
+                {visibility === 'password' && (
+                  <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
+                    <Input
+                      type="password"
+                      placeholder="رمز عبور مطلب…"
+                      className="h-8 text-sm"
+                      value={(form as Record<string, unknown>).password as string ?? ''}
+                      onChange={(e) =>
+                        onFormChange({
+                          ...form,
+                          password: e.target.value,
+                        } as unknown as Partial<Post>)
+                      }
+                    />
                   </div>
                 )}
-              </div>
 
-              <Separator />
-
-              {/* Excerpt — Collapsible */}
-              <Collapsible>
-                <CollapsibleTrigger className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer w-full py-1">
-                  <ChevronDown className="size-4" />
-                  چکیده
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <div className="pt-2 space-y-2">
-                    <Textarea
-                      value={form.excerpt ?? ''}
-                      onChange={(e) => updateField('excerpt', e.target.value)}
-                      placeholder="چکیده‌ای کوتاه از مطلب خود بنویسید…"
-                      className="resize-none min-h-[60px] text-sm"
-                      rows={2}
-                      maxLength={EXCERPT_MAX_LENGTH}
-                    />
-                    <div className="text-xs text-muted-foreground text-left" dir="ltr">
-                      {excerptLength}/{EXCERPT_MAX_LENGTH}
-                    </div>
+                {/* Published date */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground font-medium">
+                    تاریخ انتشار
+                  </Label>
+                  <div className="text-sm text-foreground flex items-center gap-1.5">
+                    <Calendar className="size-3.5 text-muted-foreground" />
+                    {toPersianDate(form.publishedAt ?? null)}
                   </div>
-                </CollapsibleContent>
-              </Collapsible>
+                </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Content Editor */}
-              <div>
-                <Label className="text-sm font-medium text-foreground mb-2 block">
-                  محتوا
-                </Label>
-                <RichTextEditor
-                  value={form.content ?? ''}
-                  onChange={(val) => updateField('content', val)}
-                  placeholder="محتوای خود را بنویسید…"
-                  className="min-h-[300px]"
-                />
-              </div>
-            </div>
-          </ScrollArea>
+                {/* Action buttons */}
+                <div className="space-y-2 pt-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-sm"
+                    onClick={handleSaveDraft}
+                  >
+                    ذخیره پیش‌نویس
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="w-full text-sm bg-gradient-to-l from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-sm shadow-cyan-500/20"
+                    onClick={handlePublish}
+                  >
+                    انتشار
+                  </Button>
+                </div>
+              </SidebarCard>
 
-          {/* ─── Right (Sidebar) ~30% ─── */}
-          <aside className="flex-[3] shrink-0">
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-4 sticky top-0">
-                {/* ── Publish Card ── */}
-                <SidebarCard
-                  title="برنامه‌ریزی انتشار"
-                  icon={<Calendar className="size-4 text-cyan-500" />}
-                >
-                  {/* Status */}
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs text-muted-foreground">
-                      وضعیت
-                    </Label>
-                    <Badge variant={statusInfo.variant} className="text-xs">
-                      {statusInfo.label}
-                    </Badge>
-                  </div>
-
-                  {/* Visibility */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
-                      دیدگاه
-                    </Label>
-                    <RadioGroup
-                      value={visibility}
-                      onValueChange={(val) =>
-                        setVisibility(val as 'public' | 'private' | 'password')
-                      }
-                      className="space-y-2"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="public" id="vis-public" />
-                        <Label
-                          htmlFor="vis-public"
-                          className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
-                        >
-                          <Globe className="size-3.5 text-muted-foreground" />
-                          عمومی
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="private" id="vis-private" />
-                        <Label
-                          htmlFor="vis-private"
-                          className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
-                        >
-                          <EyeOff className="size-3.5 text-muted-foreground" />
-                          خصوصی
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="password" id="vis-password" />
-                        <Label
-                          htmlFor="vis-password"
-                          className="flex items-center gap-1.5 text-sm cursor-pointer font-normal"
-                        >
-                          <Lock className="size-3.5 text-muted-foreground" />
-                          رمزدار
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {/* Password field — conditional */}
-                  {visibility === 'password' && (
-                    <div className="animate-in fade-in-0 slide-in-from-top-1 duration-200">
-                      <Input
-                        type="password"
-                        placeholder="رمز عبور مطلب…"
-                        className="h-8 text-sm"
-                        value={(form as Record<string, unknown>).password as string ?? ''}
-                        onChange={(e) =>
-                          onFormChange({
-                            ...form,
-                            password: e.target.value,
-                          } as unknown as Partial<Post>)
-                        }
-                      />
-                    </div>
+              {/* ── Categories Card ── */}
+              <SidebarCard
+                title="دسته‌بندی"
+                icon={<FolderOpen className="size-4 text-cyan-500" />}
+              >
+                <div className="space-y-1 max-h-52 overflow-y-auto custom-scrollbar">
+                  {categories.length === 0 && (
+                    <p className="text-xs text-muted-foreground py-3 text-center">
+                      هیچ دسته‌بندی وجود ندارد
+                    </p>
                   )}
-
-                  {/* Published date */}
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      تاریخ انتشار
-                    </Label>
-                    <div className="text-sm text-foreground flex items-center gap-1.5">
-                      <Calendar className="size-3.5 text-muted-foreground" />
-                      {toPersianDate(form.publishedAt ?? null)}
-                    </div>
-                  </div>
-
-                  <Separator />
-
-                  {/* Action buttons */}
-                  <div className="space-y-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full text-sm"
-                      onClick={handleSaveDraft}
+                  {categories.map((cat) => (
+                    <label
+                      key={cat.id}
+                      className="flex items-center gap-2.5 cursor-pointer rounded-lg px-2.5 py-2 hover:bg-muted/50 transition-colors group"
                     >
-                      ذخیره پیش‌نویس
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="w-full text-sm bg-gradient-to-l from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-sm"
-                      onClick={handlePublish}
-                    >
-                      انتشار
-                    </Button>
-                  </div>
-                </SidebarCard>
-
-                {/* ── Categories Card ── */}
-                <SidebarCard
-                  title="دسته‌بندی"
-                  icon={<FolderOpen className="size-4 text-cyan-500" />}
-                >
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {categories.length === 0 && (
-                      <p className="text-xs text-muted-foreground py-2 text-center">
-                        هیچ دسته‌بندی وجود ندارد
-                      </p>
-                    )}
-                    {categories.map((cat) => (
-                      <label
-                        key={cat.id}
-                        className="flex items-center gap-2.5 cursor-pointer rounded-md px-2 py-1.5 hover:bg-muted/50 transition-colors group"
+                      <Checkbox
+                        checked={form.categoryId === cat.id}
+                        onCheckedChange={(checked) =>
+                          handleCategoryChange(cat.id, !!checked)
+                        }
+                        className="data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
+                      />
+                      <span
+                        className={`text-sm transition-colors ${
+                          form.categoryId === cat.id
+                            ? 'text-cyan-600 dark:text-cyan-400 font-medium'
+                            : 'text-foreground'
+                        }`}
                       >
-                        <Checkbox
-                          checked={form.categoryId === cat.id}
-                          onCheckedChange={(checked) =>
-                            handleCategoryChange(cat.id, !!checked)
-                          }
-                          className="data-[state=checked]:bg-cyan-500 data-[state=checked]:border-cyan-500"
-                        />
-                        <span
-                          className={`text-sm transition-colors ${
-                            form.categoryId === cat.id
-                              ? 'text-cyan-600 dark:text-cyan-400 font-medium'
-                              : 'text-foreground'
-                          }`}
+                        {cat.name}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors pt-1 font-medium"
+                >
+                  + افزودن دسته‌بندی جدید
+                </button>
+              </SidebarCard>
+
+              {/* ── Tags Card ── */}
+              <SidebarCard
+                title="برچسب‌ها"
+                icon={<Tag className="size-4 text-cyan-500" />}
+              >
+                {/* Current tags as badges */}
+                {currentTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentTags.map((tagName) => (
+                      <Badge
+                        key={tagName}
+                        variant="secondary"
+                        className="text-xs gap-1 pr-1 pl-2 py-0.5 hover:bg-secondary/80 transition-colors"
+                      >
+                        {tagName}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tagName)}
+                          className="hover:text-destructive transition-colors"
+                          aria-label={`حذف برچسب ${tagName}`}
                         >
-                          {cat.name}
-                        </span>
-                      </label>
+                          <X className="size-3" />
+                        </button>
+                      </Badge>
                     ))}
                   </div>
-                  <button
-                    type="button"
-                    className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors pt-1"
-                  >
-                    + افزودن دسته‌بندی جدید
-                  </button>
-                </SidebarCard>
+                )}
 
-                {/* ── Tags Card ── */}
-                <SidebarCard
-                  title="برچسب‌ها"
-                  icon={<Tag className="size-4 text-cyan-500" />}
-                >
-                  {/* Current tags as badges */}
-                  {currentTags.length > 0 && (
+                {/* Add tag input */}
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  placeholder="افزودن برچسب جدید…"
+                  className="h-8 text-sm"
+                />
+
+                {/* Most used tags */}
+                {suggestedTags.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground font-medium">
+                      محبوب‌ترین برچسب‌ها
+                    </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {currentTags.map((tagName) => (
-                        <Badge
+                      {suggestedTags.map((tagName) => (
+                        <button
                           key={tagName}
-                          variant="secondary"
-                          className="text-xs gap-1 pr-1 pl-2 py-0.5 hover:bg-secondary/80 transition-colors"
+                          type="button"
+                          onClick={() => handleAddTag(tagName)}
+                          className="text-xs px-2.5 py-1 rounded-full border border-border text-muted-foreground hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-cyan-300 dark:hover:border-cyan-700 transition-colors"
                         >
                           {tagName}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tagName)}
-                            className="hover:text-destructive transition-colors"
-                            aria-label={`حذف برچسب ${tagName}`}
-                          >
-                            <X className="size-3" />
-                          </button>
-                        </Badge>
+                        </button>
                       ))}
                     </div>
-                  )}
-
-                  {/* Add tag input */}
-                  <Input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder="افزودن برچسب جدید…"
-                    className="h-8 text-sm"
-                  />
-
-                  {/* Most used tags */}
-                  {suggestedTags.length > 0 && (
-                    <div className="space-y-1.5">
-                      <p className="text-xs text-muted-foreground font-medium">
-                        محبوب‌ترین برچسب‌ها
-                      </p>
-                      <div className="flex flex-wrap gap-1">
-                        {suggestedTags.map((tagName) => (
-                          <button
-                            key={tagName}
-                            type="button"
-                            onClick={() => handleAddTag(tagName)}
-                            className="text-xs px-2 py-0.5 rounded-full border border-border text-muted-foreground hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-cyan-300 dark:hover:border-cyan-700 transition-colors"
-                          >
-                            {tagName}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </SidebarCard>
-
-                {/* ── Featured Image Card ── */}
-                <SidebarCard
-                  title="تصویر شاخص"
-                  icon={<ImagePlus className="size-4 text-cyan-500" />}
-                >
-                  <div className="rounded-lg border border-dashed border-border bg-muted/30 p-6 flex flex-col items-center justify-center gap-3 min-h-[120px]">
-                    <span className="text-4xl" role="img" aria-label="تصویر">
-                      🖼️
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs gap-1.5"
-                      onClick={handleSetFeaturedImage}
-                    >
-                      <ImagePlus className="size-3.5" />
-                      تنظیم تصویر شاخص
-                    </Button>
                   </div>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:text-destructive transition-colors pt-1 text-center w-full"
-                    onClick={handleRemoveFeaturedImage}
+                )}
+              </SidebarCard>
+
+              {/* ── Featured Image Card ── */}
+              <SidebarCard
+                title="تصویر شاخص"
+                icon={<ImagePlus className="size-4 text-cyan-500" />}
+              >
+                <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 flex flex-col items-center justify-center gap-3 min-h-[140px] hover:bg-muted/40 transition-colors">
+                  <ImagePlus className="size-10 text-muted-foreground/50" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs gap-1.5"
+                    onClick={handleSetFeaturedImage}
                   >
-                    حذف تصویر شاخص
-                  </button>
-                </SidebarCard>
-              </div>
-            </ScrollArea>
-          </aside>
-        </div>
-      </SheetContent>
-    </Sheet>
+                    <ImagePlus className="size-3.5" />
+                    تنظیم تصویر شاخص
+                  </Button>
+                </div>
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors pt-1 text-center w-full"
+                  onClick={handleRemoveFeaturedImage}
+                >
+                  حذف تصویر شاخص
+                </button>
+              </SidebarCard>
+            </div>
+          </ScrollArea>
+        </aside>
+      </div>
+    </div>
   )
 }

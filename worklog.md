@@ -2409,3 +2409,47 @@ Stage Summary:
 - Both editors use RichTextEditor for content/full description
 - All text in Persian (Farsi), RTL layout
 - Server compiles and runs successfully (HTTP 200)
+---
+Task ID: round-fullpage-editors
+Agent: Main Agent + Sub-agents (full-stack-developer x3)
+Task: Convert post, product, category, and tag edit forms from Sheet/Dialog to full-page editors (WordPress-style)
+
+Work Log:
+- Rewrote WordPressPostEditor.tsx — replaced Sheet with full-screen overlay (fixed inset-0 z-50)
+  - Two-column layout: main content (~70%) + sidebar (~30%) in RTL
+  - Top bar with back button (ArrowRight), title, save/publish action buttons
+  - Main: large title input, permalink/slug editor, collapsible excerpt, RichTextEditor (min-h-400px)
+  - Sidebar: Publish card (status, visibility radio, date), Categories (checkboxes), Tags (input + popular), Featured image
+  - Animation: animate-in fade-in-0 slide-in-from-bottom-2 duration-300
+- Rewrote WooCommerceProductEditor.tsx — replaced Sheet with full-screen overlay
+  - Two-column layout with rose/pink theme for WooCommerce feel
+  - Top bar with back button, Package icon badge, status badge, save buttons
+  - Main: title input, 5-tab product data (General/Inventory/Shipping/Linked/Attributes), short/full description
+  - Sidebar: Image card, Gallery card, Categories, Tags, Publish/Settings
+  - All existing functionality preserved (form state, dimensions, attributes, linked products, gallery)
+- Created CategoryEditor.tsx — full-page editor for product categories
+  - Two-column layout: main (name, slug, description, display name, image) + sidebar (parent category, info, quick actions)
+  - Auto-slug generation from Persian name
+  - WordPress-style slug editing with confirm/cancel
+- Created TagEditor.tsx — full-page editor for product tags
+  - Centered single-column layout (max-w-2xl)
+  - Name input, auto-generated slug, "About Tags" info section with 3 use-case cards
+  - Sample tag badges for inspiration
+- Updated StorePage.tsx:
+  - Added imports for CategoryEditor and TagEditor
+  - Replaced category Dialog with CategoryEditor full-page component
+  - Replaced tag Dialog with TagEditor full-page component
+  - Product editor (WooCommerceProductEditor) already uses same props interface
+- ContentPage.tsx: No changes needed — WordPressPostEditor props interface unchanged
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings (fully clean)
+- 4 files modified: WordPressPostEditor.tsx, WooCommerceProductEditor.tsx (rewritten), StorePage.tsx (imports + replacements)
+- 2 new files created: CategoryEditor.tsx, TagEditor.tsx
+- All 4 editors verified working via agent-browser:
+  - Post editor: full page with title, content, categories, tags, publish sidebar
+  - Product editor: full page with title, 5 data tabs, gallery, categories, tags
+  - Category editor: full page with name, slug, description, parent selector
+  - Tag editor: full page with name, slug, info section
+- Server HTTP 200, dev server healthy
+- Pre-existing nested button warning in BookmarkManager (not from our changes)

@@ -1,12 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -31,7 +25,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import {
-  X,
+  ArrowRight,
   ChevronDown,
   Package,
   DollarSign,
@@ -48,6 +42,8 @@ import {
   Check,
   TrendingUp,
   FileText,
+  Save,
+  X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import RichTextEditor from './RichTextEditor'
@@ -140,30 +136,32 @@ function SidebarCard({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center justify-between w-full px-4 py-2.5 rounded-t-lg border border-b-0 bg-gradient-to-l from-rose-50/60 to-transparent dark:from-rose-950/20 dark:to-transparent hover:from-rose-50/80 dark:hover:from-rose-950/30 transition-colors"
-        >
-          <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Icon className="h-4 w-4 text-rose-500" />
-            {title}
-          </span>
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 text-muted-foreground transition-transform duration-200',
-              isOpen && 'rotate-180'
-            )}
-          />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="p-4 border rounded-b-lg space-y-3 bg-background">
-          {children}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+    <div className="rounded-xl border border-border/60 bg-background/80 backdrop-blur-sm shadow-sm overflow-hidden">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex items-center justify-between w-full px-4 py-3 bg-gradient-to-l from-rose-50/80 to-transparent dark:from-rose-950/20 dark:to-transparent hover:from-rose-100/80 dark:hover:from-rose-950/30 transition-colors"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Icon className="h-4 w-4 text-rose-500" />
+              {title}
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                isOpen && 'rotate-180'
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-4 pt-2 space-y-3">
+            {children}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   )
 }
 
@@ -350,93 +348,437 @@ export default function WooCommerceProductEditor({
 
   const currentDim = parseDimensions(form.dimensions)
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="sm:max-w-5xl w-full p-0 overflow-hidden"
-        dir="rtl"
-      >
-        {/* ── Header ── */}
-        <SheetHeader className="px-6 py-4 border-b bg-gradient-to-l from-rose-50/60 to-transparent dark:from-rose-950/20 dark:to-transparent">
-          <SheetTitle className="flex items-center justify-between">
-            <span className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Package className="h-5 w-5 text-rose-500" />
-              {editingProduct ? 'ویرایش محصول' : 'افزودن محصول جدید'}
-            </span>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant="outline"
-                className={
-                  form.status === 'active'
-                    ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                    : form.status === 'draft'
-                      ? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
-                      : 'border-gray-300 bg-gray-50 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300'
-                }
-              >
-                {form.status === 'active'
-                  ? 'فعال'
-                  : form.status === 'draft'
-                    ? 'پیش‌نویس'
-                    : 'غیرفعال'}
-              </Badge>
-            </div>
-          </SheetTitle>
-        </SheetHeader>
+  if (!open) return null
 
-        {/* ── Body: Two Column Layout ── */}
-        <div className="flex h-[calc(100vh-65px)] overflow-hidden">
-          {/* ── Left Column (Main Content) ── */}
-          <ScrollArea className="flex-1 p-6" dir="rtl">
-            <div className="space-y-6 max-w-3xl mx-auto">
-              {/* Product Title */}
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-background animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+      dir="rtl"
+    >
+      {/* ══════════════════════════════════════════════════════════════════════
+          TOP BAR — Fixed Header
+         ══════════════════════════════════════════════════════════════════════ */}
+      <header className="sticky top-0 z-10 flex items-center justify-between px-6 h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        {/* Right side: Back + Title */}
+        <div className="flex items-center gap-4">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground"
+            onClick={() => onOpenChange(false)}
+          >
+            <ArrowRight className="h-5 w-5" />
+          </Button>
+
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gradient-to-bl from-rose-500 to-pink-600 text-white shadow-sm">
+              <Package className="h-4 w-4" />
+            </div>
+            <h1 className="text-lg font-bold text-foreground">
+              {editingProduct ? 'ویرایش محصول' : 'افزودن محصول جدید'}
+            </h1>
+          </div>
+        </div>
+
+        {/* Center: Status Badge */}
+        <div className="hidden sm:block">
+          <Badge
+            variant="outline"
+            className={cn(
+              'text-xs font-medium px-3 py-1',
+              form.status === 'active'
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                : form.status === 'draft'
+                  ? 'border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                  : 'border-gray-300 bg-gray-50 text-gray-700 dark:bg-gray-800/30 dark:text-gray-300'
+            )}
+          >
+            {form.status === 'active'
+              ? 'فعال'
+              : form.status === 'draft'
+                ? 'پیش‌نویس'
+                : 'غیرفعال'}
+          </Badge>
+        </div>
+
+        {/* Left side: Save Buttons */}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-9 text-xs border-border/80 hover:border-rose-300 dark:hover:border-rose-700 transition-colors"
+            onClick={handleDraftSave}
+          >
+            <Save className="h-3.5 w-3.5 ml-1.5" />
+            ذخیره پیش‌نویس
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9 text-xs bg-gradient-to-l from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-sm transition-all hover:shadow-md hover:shadow-rose-500/25"
+            onClick={handleSave}
+          >
+            <Check className="h-3.5 w-3.5 ml-1.5" />
+            ذخیره محصول
+          </Button>
+        </div>
+      </header>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          BODY — Two-column layout: Sidebar (left ~30%) | Main (right ~70%)
+         ══════════════════════════════════════════════════════════════════════ */}
+      <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+
+        {/* ── Left Column: Sidebar (~30%) ── */}
+        <aside className="w-[340px] shrink-0 border-l bg-muted/30 hidden lg:block" dir="rtl">
+          <ScrollArea className="h-full">
+            <div className="p-4 space-y-4">
+
+              {/* ── Product Image Card ── */}
+              <SidebarCard title="تصویر محصول" icon={ImagePlus}>
+                <div className="space-y-3">
+                  <div
+                    className={cn(
+                      'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors',
+                      form.image
+                        ? 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-950/10'
+                        : 'border-muted-foreground/25 hover:border-muted-foreground/40 bg-muted/20'
+                    )}
+                  >
+                    {form.image ? (
+                      <div className="text-center">
+                        <span className="text-5xl block mb-2">{form.image}</span>
+                        <p className="text-xs text-muted-foreground">تصویر شاخص محصول</p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <span className="text-4xl block mb-2 opacity-40">📷</span>
+                        <p className="text-xs text-muted-foreground">تصویری انتخاب نشده است</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => toast.info('انتخاب تصویر محصول - در نسخه بعدی فعال می‌شود')}
+                    >
+                      <ImagePlus className="h-3.5 w-3.5 ml-1" />
+                      تنظیم تصویر محصول
+                    </Button>
+                    {form.image && (
+                      <button
+                        type="button"
+                        onClick={() => updateField('image', '')}
+                        className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
+                      >
+                        حذف تصویر
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </SidebarCard>
+
+              {/* ── Product Gallery Card ── */}
+              <SidebarCard title="گالری محصول" icon={Layers}>
+                <div className="space-y-3">
+                  {form.gallery.length > 0 ? (
+                    <div className="grid grid-cols-4 gap-2">
+                      {form.gallery.map((item, index) => (
+                        <div
+                          key={index}
+                          className="relative group aspect-square rounded-lg border bg-muted/30 flex items-center justify-center"
+                        >
+                          <span className="text-2xl">{item}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryItem(index)}
+                            className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                            aria-label="حذف تصویر"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      تصویری در گالری نیست
+                    </p>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-8 text-xs border-dashed"
+                    onClick={addGalleryItem}
+                  >
+                    <Plus className="h-3.5 w-3.5 ml-1" />
+                    افزودن تصاویر گالری
+                  </Button>
+                </div>
+              </SidebarCard>
+
+              {/* ── Categories Card ── */}
+              <SidebarCard title="دسته‌بندی" icon={FolderOpen}>
+                <div className="space-y-1 max-h-52 overflow-y-auto">
+                  {categories.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-2">
+                      دسته‌بندی موجود نیست
+                    </p>
+                  ) : (
+                    categories.map((cat) => (
+                      <label
+                        key={cat}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm',
+                          form.category === cat
+                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            : 'hover:bg-muted/50 text-foreground'
+                        )}
+                      >
+                        <Checkbox
+                          checked={form.category === cat}
+                          onCheckedChange={(checked) => {
+                            if (checked) updateField('category', cat)
+                          }}
+                          className={cn(
+                            'scale-90',
+                            form.category === cat && 'data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500'
+                          )}
+                        />
+                        <span className="text-xs">{cat}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </SidebarCard>
+
+              {/* ── Tags Card ── */}
+              <SidebarCard title="برچسب‌ها" icon={Tag}>
+                <div className="space-y-3">
+                  {form.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {form.tags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-[11px] px-2 py-0.5 gap-1 hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer group"
+                          onClick={() => removeTag(tag)}
+                        >
+                          {tag}
+                          <X className="h-2.5 w-2.5 opacity-50 group-hover:opacity-100 transition-opacity" />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          addTag()
+                        }
+                      }}
+                      placeholder="برچسب جدید…"
+                      className="flex-1 text-xs h-8"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 px-2 shrink-0"
+                      onClick={addTag}
+                      disabled={!tagInput.trim()}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  {allTags.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-[10px] text-muted-foreground">برچسب‌های پرکاربرد:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {allTags.slice(0, 6).map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              if (!form.tags.includes(tag)) {
+                                updateField('tags', [...form.tags, tag])
+                              }
+                            }}
+                            className="text-[10px] text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 transition-colors px-1.5 py-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                          >
+                            + {tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </SidebarCard>
+
+              {/* ── Publish Card ── */}
+              <SidebarCard title="انتشار" icon={Package}>
+                <div className="space-y-3">
+                  {/* Status Dropdown */}
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">وضعیت محصول</Label>
+                    <Select
+                      value={form.status}
+                      onValueChange={(val) =>
+                        updateField('status', val as 'active' | 'inactive' | 'draft')
+                      }
+                    >
+                      <SelectTrigger className="w-full text-sm h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">فعال (انتشار یافته)</SelectItem>
+                        <SelectItem value="draft">پیش‌نویس</SelectItem>
+                        <SelectItem value="inactive">غیرفعال (خصوصی)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Catalog Visibility */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">نمایش در کاتالوگ</Label>
+                    <RadioGroup
+                      defaultValue="search"
+                      className="space-y-2"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="search" id="vis-search" className="scale-90" />
+                        <Label htmlFor="vis-search" className="text-xs font-normal cursor-pointer">
+                          جستجو و نتایج
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="catalog" id="vis-catalog" className="scale-90" />
+                        <Label htmlFor="vis-catalog" className="text-xs font-normal cursor-pointer">
+                          فقط کاتالوگ
+                        </Label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="hidden" id="vis-hidden" className="scale-90" />
+                        <Label htmlFor="vis-hidden" className="text-xs font-normal cursor-pointer">
+                          مخفی
+                        </Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <Separator />
+
+                  {/* Product Type */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">نوع محصول</Label>
+                    <RadioGroup
+                      defaultValue="simple"
+                      className="space-y-2"
+                      dir="rtl"
+                    >
+                      <div className="flex items-center gap-2">
+                        <RadioGroupItem value="simple" id="type-simple" className="scale-90" />
+                        <Label htmlFor="type-simple" className="text-xs font-normal cursor-pointer flex-1">
+                          محصول ساده
+                        </Label>
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                          فعال
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-50">
+                        <RadioGroupItem value="variable" id="type-variable" className="scale-90" disabled />
+                        <Label htmlFor="type-variable" className="text-xs font-normal cursor-not-allowed flex-1">
+                          متغیر
+                        </Label>
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                          به زودی
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2 opacity-50">
+                        <RadioGroupItem value="grouped" id="type-grouped" className="scale-90" disabled />
+                        <Label htmlFor="type-grouped" className="text-xs font-normal cursor-not-allowed flex-1">
+                          گروهی
+                        </Label>
+                        <Badge variant="outline" className="text-[9px] px-1.5 py-0">
+                          به زودی
+                        </Badge>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </div>
+              </SidebarCard>
+
+              {/* Bottom spacing */}
+              <div className="h-4" />
+            </div>
+          </ScrollArea>
+        </aside>
+
+        {/* ── Right Column: Main Content (~70%) ── */}
+        <main className="flex-1 overflow-hidden" dir="rtl">
+          <ScrollArea className="h-full">
+            <div className="max-w-4xl mx-auto px-6 py-8 space-y-8">
+
+              {/* ── Product Title ── */}
               <div>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
                   placeholder="نام محصول را وارد کنید"
-                  className="w-full text-2xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/40 focus:ring-0 p-0"
+                  className="w-full text-3xl font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground/30 focus:ring-0 p-0 text-foreground"
                   dir="rtl"
                 />
-                <Separator className="mt-2" />
+                <Separator className="mt-4 bg-gradient-to-l from-rose-200/60 via-border to-transparent dark:from-rose-800/30" />
               </div>
 
-              {/* Product Data Tabs */}
+              {/* ══════════════════════════════════════════════════════════════
+                  Product Data Tabs
+                 ══════════════════════════════════════════════════════════════ */}
               <Tabs defaultValue="general" dir="rtl" className="w-full">
-                <TabsList className="w-full grid grid-cols-5 mb-4 h-auto p-1 bg-muted/50 rounded-lg">
+                <TabsList className="w-full grid grid-cols-5 mb-6 h-auto p-1.5 bg-muted/40 rounded-xl border border-border/50">
                   <TabsTrigger
                     value="general"
-                    className="flex items-center gap-1.5 text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                    className="flex items-center justify-center gap-1.5 text-xs py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 rounded-lg transition-all"
                   >
                     <DollarSign className="h-3.5 w-3.5" />
                     عمومی
                   </TabsTrigger>
                   <TabsTrigger
                     value="inventory"
-                    className="flex items-center gap-1.5 text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                    className="flex items-center justify-center gap-1.5 text-xs py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 rounded-lg transition-all"
                   >
                     <Package className="h-3.5 w-3.5" />
                     موجودی
                   </TabsTrigger>
                   <TabsTrigger
                     value="shipping"
-                    className="flex items-center gap-1.5 text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                    className="flex items-center justify-center gap-1.5 text-xs py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 rounded-lg transition-all"
                   >
                     <Truck className="h-3.5 w-3.5" />
                     ارسال
                   </TabsTrigger>
                   <TabsTrigger
                     value="linked"
-                    className="flex items-center gap-1.5 text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                    className="flex items-center justify-center gap-1.5 text-xs py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 rounded-lg transition-all"
                   >
                     <Link2 className="h-3.5 w-3.5" />
                     پیوندها
                   </TabsTrigger>
                   <TabsTrigger
                     value="attributes"
-                    className="flex items-center gap-1.5 text-xs py-2 data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md transition-all"
+                    className="flex items-center justify-center gap-1.5 text-xs py-2.5 data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 rounded-lg transition-all"
                   >
                     <Layers className="h-3.5 w-3.5" />
                     ویژگی‌ها
@@ -444,7 +786,7 @@ export default function WooCommerceProductEditor({
                 </TabsList>
 
                 {/* ── Tab: General ── */}
-                <TabsContent value="general" className="glass-card rounded-lg p-5 space-y-5">
+                <TabsContent value="general" className="glass-card rounded-xl p-6 space-y-6">
                   {/* Regular Price */}
                   <div className="space-y-2">
                     <Label htmlFor="regular-price" className="text-sm font-medium">
@@ -544,9 +886,9 @@ export default function WooCommerceProductEditor({
                 </TabsContent>
 
                 {/* ── Tab: Inventory ── */}
-                <TabsContent value="inventory" className="glass-card rounded-lg p-5 space-y-5">
+                <TabsContent value="inventory" className="glass-card rounded-xl p-6 space-y-6">
                   {/* Manage Stock Toggle */}
-                  <div className="flex items-center justify-between p-3 rounded-lg border bg-muted/30">
+                  <div className="flex items-center justify-between p-4 rounded-xl border bg-muted/30">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">مدیریت موجودی</Label>
                       <p className="text-xs text-muted-foreground">موجودی را به صورت دستی مدیریت کنید</p>
@@ -647,7 +989,7 @@ export default function WooCommerceProductEditor({
                 </TabsContent>
 
                 {/* ── Tab: Shipping ── */}
-                <TabsContent value="shipping" className="glass-card rounded-lg p-5 space-y-5">
+                <TabsContent value="shipping" className="glass-card rounded-xl p-6 space-y-6">
                   {/* Weight */}
                   <div className="space-y-2">
                     <Label htmlFor="weight" className="text-sm font-medium">
@@ -737,12 +1079,12 @@ export default function WooCommerceProductEditor({
                 {/* ── Tab: Linked Products ── */}
                 <TabsContent value="linked" className="space-y-4">
                   {/* Up-sells */}
-                  <div className="glass-card rounded-lg overflow-hidden">
+                  <div className="glass-card rounded-xl overflow-hidden">
                     <Collapsible open={upsellsOpen} onOpenChange={setUpsellsOpen}>
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
-                          className="flex items-center justify-between w-full px-4 py-3 bg-gradient-to-l from-violet-50/60 to-transparent dark:from-violet-950/20 dark:to-transparent hover:from-violet-50/80 dark:hover:from-violet-950/30 transition-colors"
+                          className="flex items-center justify-between w-full px-5 py-4 bg-gradient-to-l from-violet-50/60 to-transparent dark:from-violet-950/20 dark:to-transparent hover:from-violet-50/80 dark:hover:from-violet-950/30 transition-colors"
                         >
                           <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                             <TrendingUp className="h-4 w-4 text-violet-500" />
@@ -762,7 +1104,7 @@ export default function WooCommerceProductEditor({
                         </button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="p-4 space-y-2">
+                        <div className="px-5 pb-5 space-y-2">
                           <p className="text-xs text-muted-foreground mb-3">
                             محصولاتی که می‌خواهید به جای محصول فعلی به مشتری پیشنهاد دهید
                           </p>
@@ -793,12 +1135,12 @@ export default function WooCommerceProductEditor({
                   </div>
 
                   {/* Cross-sells */}
-                  <div className="glass-card rounded-lg overflow-hidden">
+                  <div className="glass-card rounded-xl overflow-hidden">
                     <Collapsible open={crossSellsOpen} onOpenChange={setCrossSellsOpen}>
                       <CollapsibleTrigger asChild>
                         <button
                           type="button"
-                          className="flex items-center justify-between w-full px-4 py-3 bg-gradient-to-l from-cyan-50/60 to-transparent dark:from-cyan-950/20 dark:to-transparent hover:from-cyan-50/80 dark:hover:from-cyan-950/30 transition-colors"
+                          className="flex items-center justify-between w-full px-5 py-4 bg-gradient-to-l from-cyan-50/60 to-transparent dark:from-cyan-950/20 dark:to-transparent hover:from-cyan-50/80 dark:hover:from-cyan-950/30 transition-colors"
                         >
                           <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
                             <Package className="h-4 w-4 text-cyan-500" />
@@ -818,7 +1160,7 @@ export default function WooCommerceProductEditor({
                         </button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="p-4 space-y-2">
+                        <div className="px-5 pb-5 space-y-2">
                           <p className="text-xs text-muted-foreground mb-3">
                             محصولاتی که همراه با محصول فعلی به مشتری پیشنهاد داده می‌شوند
                           </p>
@@ -850,14 +1192,14 @@ export default function WooCommerceProductEditor({
                 </TabsContent>
 
                 {/* ── Tab: Attributes ── */}
-                <TabsContent value="attributes" className="glass-card rounded-lg p-5 space-y-4">
+                <TabsContent value="attributes" className="glass-card rounded-xl p-6 space-y-4">
                   <div className="space-y-3">
                     {attributes.map((attr, index) => (
                       <div
                         key={index}
-                        className="flex items-start gap-2 p-3 rounded-lg border bg-muted/20 group"
+                        className="flex items-start gap-2 p-4 rounded-xl border bg-muted/20 group"
                       >
-                        <GripVertical className="h-4 w-4 mt-2.5 text-muted-foreground/50 cursor-grab shrink-0" />
+                        <GripVertical className="h-4 w-4 mt-3 text-muted-foreground/50 cursor-grab shrink-0" />
                         <div className="flex-1 grid grid-cols-2 gap-3">
                           <div className="space-y-1">
                             <span className="text-[10px] text-muted-foreground">نام ویژگی</span>
@@ -880,7 +1222,7 @@ export default function WooCommerceProductEditor({
                             />
                           </div>
                         </div>
-                        <div className="flex flex-col items-center gap-1 mt-2">
+                        <div className="flex flex-col items-center gap-1 mt-2.5">
                           <Checkbox
                             checked={attr.visible}
                             onCheckedChange={(checked) =>
@@ -894,7 +1236,7 @@ export default function WooCommerceProductEditor({
                         <button
                           type="button"
                           onClick={() => removeAttribute(index)}
-                          className="mt-2 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-500 transition-colors shrink-0"
+                          className="mt-2.5 p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-muted-foreground hover:text-red-500 transition-colors shrink-0"
                           aria-label="حذف ویژگی"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -907,7 +1249,7 @@ export default function WooCommerceProductEditor({
                     variant="outline"
                     size="sm"
                     onClick={addAttribute}
-                    className="w-full border-dashed text-xs text-muted-foreground hover:text-foreground hover:border-rose-300 dark:hover:border-rose-700"
+                    className="w-full border-dashed text-xs text-muted-foreground hover:text-foreground hover:border-rose-300 dark:hover:border-rose-700 rounded-lg"
                   >
                     <Plus className="h-3.5 w-3.5 ml-1.5" />
                     افزودن ویژگی
@@ -944,324 +1286,12 @@ export default function WooCommerceProductEditor({
               </div>
 
               {/* Bottom padding for scroll */}
-              <div className="h-8" />
+              <div className="h-12" />
             </div>
           </ScrollArea>
-
-          {/* ── Right Column (Sidebar) ── */}
-          <div className="w-[340px] shrink-0 border-r bg-muted/20 overflow-y-auto" dir="rtl">
-            <div className="p-4 space-y-4">
-              {/* ── Publish Card ── */}
-              <SidebarCard title="انتشار" icon={Package}>
-                <div className="space-y-3">
-                  {/* Status Dropdown */}
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">وضعیت محصول</Label>
-                    <Select
-                      value={form.status}
-                      onValueChange={(val) =>
-                        updateField('status', val as 'active' | 'inactive' | 'draft')
-                      }
-                    >
-                      <SelectTrigger className="w-full text-sm h-9">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">فعال (انتشار یافته)</SelectItem>
-                        <SelectItem value="draft">پیش‌نویس</SelectItem>
-                        <SelectItem value="inactive">غیرفعال (خصوصی)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Catalog Visibility */}
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">نمایش در کاتالوگ</Label>
-                    <RadioGroup
-                      defaultValue="search"
-                      className="space-y-2"
-                      dir="rtl"
-                    >
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="search" id="vis-search" className="scale-90" />
-                        <Label htmlFor="vis-search" className="text-xs font-normal cursor-pointer">
-                          جستجو و نتایج
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="catalog" id="vis-catalog" className="scale-90" />
-                        <Label htmlFor="vis-catalog" className="text-xs font-normal cursor-pointer">
-                          فقط کاتالوگ
-                        </Label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <RadioGroupItem value="hidden" id="vis-hidden" className="scale-90" />
-                        <Label htmlFor="vis-hidden" className="text-xs font-normal cursor-pointer">
-                          مخفی
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  <Separator />
-
-                  {/* Action Buttons */}
-                  <div className="space-y-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full h-9 text-xs"
-                      onClick={handleDraftSave}
-                    >
-                      ذخیره پیش‌نویس
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="w-full h-9 text-xs bg-gradient-to-l from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-sm transition-all hover:shadow-md"
-                      onClick={handleSave}
-                    >
-                      <Check className="h-3.5 w-3.5 ml-1.5" />
-                      انتشار
-                    </Button>
-                  </div>
-                </div>
-              </SidebarCard>
-
-              {/* ── Product Image Card ── */}
-              <SidebarCard title="تصویر محصول" icon={ImagePlus}>
-                <div className="space-y-3">
-                  <div
-                    className={cn(
-                      'flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 transition-colors',
-                      form.image
-                        ? 'border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-950/10'
-                        : 'border-muted-foreground/25 hover:border-muted-foreground/40 bg-muted/20'
-                    )}
-                  >
-                    {form.image ? (
-                      <div className="text-center">
-                        <span className="text-5xl block mb-2">{form.image}</span>
-                        <p className="text-xs text-muted-foreground">تصویر شاخص محصول</p>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <span className="text-4xl block mb-2 opacity-40">📷</span>
-                        <p className="text-xs text-muted-foreground">تصویری انتخاب نشده است</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 h-8 text-xs"
-                      onClick={() => toast.info('انتخاب تصویر محصول - در نسخه بعدی فعال می‌شود')}
-                    >
-                      <ImagePlus className="h-3.5 w-3.5 ml-1" />
-                      تنظیم تصویر محصول
-                    </Button>
-                    {form.image && (
-                      <button
-                        type="button"
-                        onClick={() => updateField('image', '')}
-                        className="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 transition-colors"
-                      >
-                        حذف تصویر
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </SidebarCard>
-
-              {/* ── Product Gallery Card ── */}
-              <SidebarCard title="گالری محصول" icon={Layers}>
-                <div className="space-y-3">
-                  {form.gallery.length > 0 ? (
-                    <div className="grid grid-cols-4 gap-2">
-                      {form.gallery.map((item, index) => (
-                        <div
-                          key={index}
-                          className="relative group aspect-square rounded-lg border bg-muted/30 flex items-center justify-center"
-                        >
-                          <span className="text-2xl">{item}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeGalleryItem(index)}
-                            className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
-                            aria-label="حذف تصویر"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center py-4">
-                      تصویری در گالری نیست
-                    </p>
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full h-8 text-xs border-dashed"
-                    onClick={addGalleryItem}
-                  >
-                    <Plus className="h-3.5 w-3.5 ml-1" />
-                    افزودن تصاویر گالری
-                  </Button>
-                </div>
-              </SidebarCard>
-
-              {/* ── Categories Card ── */}
-              <SidebarCard title="دسته‌بندی" icon={FolderOpen}>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {categories.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-2">
-                      دسته‌بندی موجود نیست
-                    </p>
-                  ) : (
-                    categories.map((cat) => (
-                      <label
-                        key={cat}
-                        className={cn(
-                          'flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer transition-colors text-sm',
-                          form.category === cat
-                            ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
-                            : 'hover:bg-muted/50 text-foreground'
-                        )}
-                      >
-                        <Checkbox
-                          checked={form.category === cat}
-                          onCheckedChange={(checked) => {
-                            if (checked) updateField('category', cat)
-                          }}
-                          className={cn(
-                            'scale-90',
-                            form.category === cat && 'data-[state=checked]:bg-rose-500 data-[state=checked]:border-rose-500'
-                          )}
-                        />
-                        <span className="text-xs">{cat}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-              </SidebarCard>
-
-              {/* ── Tags Card ── */}
-              <SidebarCard title="برچسب‌ها" icon={Tag}>
-                <div className="space-y-3">
-                  {form.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {form.tags.map((tag) => (
-                        <Badge
-                          key={tag}
-                          variant="secondary"
-                          className="text-[11px] px-2 py-0.5 gap-1 hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer group"
-                          onClick={() => removeTag(tag)}
-                        >
-                          {tag}
-                          <X className="h-2.5 w-2.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex gap-2">
-                    <Input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          addTag()
-                        }
-                      }}
-                      placeholder="برچسب جدید…"
-                      className="flex-1 text-xs h-8"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 px-2 shrink-0"
-                      onClick={addTag}
-                      disabled={!tagInput.trim()}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                  {allTags.length > 0 && (
-                    <div className="space-y-1">
-                      <p className="text-[10px] text-muted-foreground">برچسب‌های پرکاربرد:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {allTags.slice(0, 6).map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => {
-                              if (!form.tags.includes(tag)) {
-                                updateField('tags', [...form.tags, tag])
-                              }
-                            }}
-                            className="text-[10px] text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400 transition-colors px-1.5 py-0.5 rounded hover:bg-rose-50 dark:hover:bg-rose-950/20"
-                          >
-                            + {tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </SidebarCard>
-
-              {/* ── Product Type Card ── */}
-              <SidebarCard title="نوع محصول" icon={Package}>
-                <RadioGroup
-                  defaultValue="simple"
-                  className="space-y-2"
-                  dir="rtl"
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem value="simple" id="type-simple" className="scale-90" />
-                    <Label htmlFor="type-simple" className="text-xs font-normal cursor-pointer flex-1">
-                      محصول ساده
-                    </Label>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                      فعال
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-50">
-                    <RadioGroupItem value="variable" id="type-variable" className="scale-90" disabled />
-                    <Label htmlFor="type-variable" className="text-xs font-normal cursor-not-allowed flex-1">
-                      متغیر
-                    </Label>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                      به زودی
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2 opacity-50">
-                    <RadioGroupItem value="grouped" id="type-grouped" className="scale-90" disabled />
-                    <Label htmlFor="type-grouped" className="text-xs font-normal cursor-not-allowed flex-1">
-                      گروهی
-                    </Label>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0">
-                      به زودی
-                    </Badge>
-                  </div>
-                </RadioGroup>
-              </SidebarCard>
-
-              {/* Bottom spacing */}
-              <div className="h-4" />
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+        </main>
+      </div>
+    </div>
   )
 }
 
