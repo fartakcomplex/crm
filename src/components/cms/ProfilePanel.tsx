@@ -14,7 +14,8 @@ import { Separator } from '@/components/ui/separator'
 import {
   Sun, Moon, Volume2, VolumeX, Languages, PanelLeftClose, PanelLeft,
   FileText, MessageCircle, FolderKanban, Clock, Edit3, Save, X,
-  Shield, Eye, Star, UserPlus, LogIn,
+  Shield, Eye, Star, UserPlus, LogIn, Github, Twitter, Globe,
+  Sparkles, TrendingUp, Award, Coffee, Zap, Palette,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { formatRelativeTime } from './types'
@@ -44,6 +45,22 @@ function getActivityIcon(action: string) {
   return <Shield className="h-3.5 w-3.5 text-gray-500" />
 }
 
+// ─── Mini Sparkline Data ─────────────────────────────────────────────────
+
+const activityData = [3, 5, 2, 8, 6, 4, 9, 7, 5, 3, 6, 8]
+const maxActivity = Math.max(...activityData)
+
+// ─── Skill Tags ──────────────────────────────────────────────────────────
+
+const skillTags = [
+  { label: 'React', color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300 border-cyan-200/50 dark:border-cyan-800/30' },
+  { label: 'Next.js', color: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 border-violet-200/50 dark:border-violet-800/30' },
+  { label: 'TypeScript', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200/50 dark:border-blue-800/30' },
+  { label: 'Tailwind', color: 'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300 border-teal-200/50 dark:border-teal-800/30' },
+  { label: 'Node.js', color: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300 border-green-200/50 dark:border-green-800/30' },
+  { label: 'WordPress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200/50 dark:border-amber-800/30' },
+]
+
 // ─── Main Component ──────────────────────────────────────────────────────
 
 export default function ProfilePanel({
@@ -67,7 +84,7 @@ export default function ProfilePanel({
   const [language, setLanguage] = useState('fa')
 
   // Ensure activities data
-  const activityData = activities.data ?? []
+  const activityList = activities.data ?? []
 
   const handleSaveProfile = () => {
     setUserName(editName)
@@ -90,15 +107,15 @@ export default function ProfilePanel({
   // Theme card styling helper
   const themeCard = (value: string, label: string, icon: React.ReactNode, active: boolean) => (
     <button
-      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer hover:scale-[1.03] ${
+      className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer hover:scale-[1.05] ${
         active
-          ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 shadow-md shadow-violet-500/10'
-          : 'border-border hover:border-violet-300 dark:hover:border-violet-700'
+          ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30 shadow-lg shadow-violet-500/15'
+          : 'border-border hover:border-violet-300 dark:hover:border-violet-700 hover:shadow-md'
       }`}
       onClick={() => setTheme(value)}
     >
-      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-        active ? 'bg-violet-500 text-white' : 'bg-muted text-muted-foreground'
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 ${
+        active ? 'bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md' : 'bg-muted text-muted-foreground'
       }`}>
         {icon}
       </div>
@@ -115,40 +132,52 @@ export default function ProfilePanel({
         className="w-[380px] p-0 bg-background border-r border-border/60 sm:max-w-[380px]"
         dir="rtl"
       >
-        {/* ─── Gradient Header ─── */}
-        <div className="relative h-44 bg-gradient-to-bl from-violet-500 via-purple-500 to-fuchsia-500 overflow-hidden shrink-0">
-          {/* Decorative circles */}
-          <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-white/10" />
-          <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-white/10" />
-          <div className="absolute top-8 left-1/2 w-16 h-16 rounded-full bg-white/5" />
+        {/* ─── Animated Gradient Header Banner ─── */}
+        <div className="relative h-52 bg-gradient-to-bl from-violet-500 via-purple-500 to-fuchsia-500 overflow-hidden shrink-0">
+          {/* Animated decorative elements */}
+          <div className="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/10 float-animation" />
+          <div className="absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-white/10 float-animation" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-10 left-1/3 w-20 h-20 rounded-full bg-white/5 float-animation" style={{ animationDelay: '2s' }} />
+          <div className="absolute bottom-4 right-1/4 w-10 h-10 rounded-full bg-white/5 float-animation" style={{ animationDelay: '0.5s' }} />
 
-          {/* Close button positioned in header */}
+          {/* Gradient mesh overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/5 pointer-events-none" />
+
+          {/* Close button */}
           <button
-            className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors cursor-pointer text-white"
+            className="absolute top-3 left-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all duration-200 cursor-pointer text-white hover:scale-110"
             onClick={() => onOpenChange(false)}
           >
             <X className="h-4 w-4" />
           </button>
 
-          <SheetHeader className="relative z-10 pt-10 pb-2 px-5 text-white">
-            <div className="flex items-center gap-4">
-              {/* Avatar */}
-              <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
-                {userName.charAt(0)}
+          <SheetHeader className="relative z-10 pt-12 pb-2 px-5 text-white">
+            <div className="flex items-end gap-4">
+              {/* Avatar with gradient ring */}
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-white/40 to-white/10 blur-sm animate-pulse" />
+                <div className="relative w-22 h-22 rounded-full bg-white/20 backdrop-blur-md border-2 border-white/50 flex items-center justify-center text-white text-3xl font-bold shadow-2xl" style={{ width: '88px', height: '88px' }}>
+                  {userName.charAt(0)}
+                </div>
+                {/* Online status dot */}
+                <div className="absolute bottom-1 left-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white shadow-md">
+                  <div className="w-full h-full rounded-full bg-emerald-400 badge-pulse" />
+                </div>
               </div>
-              <div className="flex-1">
-                <SheetTitle className="text-lg font-bold text-white">{userName}</SheetTitle>
-                <SheetDescription className="text-white/80 text-xs mt-0.5 flex items-center gap-1.5">
-                  <Badge className="h-5 text-[10px] bg-white/20 text-white border-0 backdrop-blur-sm">
+              <div className="flex-1 pb-1">
+                <SheetTitle className="text-xl font-bold text-white">{userName}</SheetTitle>
+                <SheetDescription className="text-white/80 text-xs mt-1 flex items-center gap-1.5">
+                  <Badge className="h-5 text-[10px] bg-white/20 text-white border-0 backdrop-blur-sm hover:bg-white/30 transition-colors">
+                    <Sparkles className="h-2.5 w-2.5 ml-1" />
                     مدیر سیستم
                   </Badge>
                 </SheetDescription>
-                <p className="text-white/70 text-xs mt-1.5">{userEmail}</p>
+                <p className="text-white/60 text-xs mt-1.5">{userEmail}</p>
               </div>
             </div>
           </SheetHeader>
 
-          {/* Online status indicator */}
+          {/* Online status */}
           <div className="absolute bottom-3 right-5 flex items-center gap-1.5 text-white/80">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -159,13 +188,13 @@ export default function ProfilePanel({
         </div>
 
         {/* ─── Scrollable Content ─── */}
-        <ScrollArea className="flex-1 h-[calc(100vh-180px)]">
+        <ScrollArea className="flex-1 h-[calc(100vh-210px)]">
           <div className="px-5 py-4 space-y-5">
 
             {/* ═══════════════════════════════════════════════════════════════ */}
             {/* Section 1: Personal Info                                       */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section>
+            <section className="animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-violet-500 to-fuchsia-500" />
@@ -175,7 +204,7 @@ export default function ProfilePanel({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 gap-1.5 text-xs text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 cursor-pointer"
+                    className="h-7 gap-1.5 text-xs text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950/30 cursor-pointer hover:scale-[1.03] active:scale-[0.97] transition-all duration-200"
                     onClick={() => setIsEditing(true)}
                   >
                     <Edit3 className="h-3 w-3" />
@@ -184,7 +213,7 @@ export default function ProfilePanel({
                 )}
               </div>
 
-              <div className="rounded-xl bg-card border border-border/60 p-4 space-y-3">
+              <div className="rounded-xl bg-card border border-border/60 p-4 space-y-3 glass-card card-inner-glow transition-all duration-300 hover:shadow-sm">
                 {isEditing ? (
                   <>
                     <div className="space-y-1.5">
@@ -192,7 +221,7 @@ export default function ProfilePanel({
                       <Input
                         value={editName}
                         onChange={e => setEditName(e.target.value)}
-                        className="h-8 text-sm"
+                        className="h-8 text-sm hover:border-violet-400 transition-colors"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -201,13 +230,13 @@ export default function ProfilePanel({
                         value={editEmail}
                         onChange={e => setEditEmail(e.target.value)}
                         dir="ltr"
-                        className="h-8 text-sm"
+                        className="h-8 text-sm hover:border-violet-400 transition-colors"
                       />
                     </div>
                     <div className="flex gap-2 pt-1">
                       <Button
                         size="sm"
-                        className="h-8 gap-1.5 text-xs bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-600 hover:to-fuchsia-600 cursor-pointer"
+                        className="h-8 gap-1.5 text-xs bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-600 hover:to-fuchsia-600 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-md shadow-violet-500/20 cursor-pointer"
                         onClick={handleSaveProfile}
                       >
                         <Save className="h-3 w-3" />
@@ -216,7 +245,7 @@ export default function ProfilePanel({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="h-8 gap-1.5 text-xs cursor-pointer"
+                        className="h-8 gap-1.5 text-xs cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
                         onClick={handleCancelEdit}
                       >
                         <X className="h-3 w-3" />
@@ -238,62 +267,141 @@ export default function ProfilePanel({
             <Separator className="bg-border/40" />
 
             {/* ═══════════════════════════════════════════════════════════════ */}
-            {/* Section 2: Activity Stats                                      */}
+            {/* Section 2: Profile Stats + Activity Graph                      */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section>
+            <section className="animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500" />
                 آمار فعالیت
               </h3>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 mb-3">
                 <StatCard
-                  icon={<FileText className="h-4 w-4 text-cyan-500" />}
+                  icon={<FileText className="h-4 w-4 text-white" />}
                   label="مطالب منتشر شده"
                   value="۶"
-                  gradient="from-cyan-500/10 to-cyan-500/5"
+                  gradient="from-cyan-500 to-cyan-600"
                 />
                 <StatCard
-                  icon={<MessageCircle className="h-4 w-4 text-orange-500" />}
+                  icon={<MessageCircle className="h-4 w-4 text-white" />}
                   label="نظرات داده شده"
                   value="۳"
-                  gradient="from-orange-500/10 to-orange-500/5"
+                  gradient="from-orange-500 to-amber-500"
                 />
                 <StatCard
-                  icon={<FolderKanban className="h-4 w-4 text-violet-500" />}
+                  icon={<FolderKanban className="h-4 w-4 text-white" />}
                   label="پروژه‌های فعال"
                   value="۲"
-                  gradient="from-violet-500/10 to-violet-500/5"
+                  gradient="from-violet-500 to-purple-600"
                 />
                 <StatCard
-                  icon={<Clock className="h-4 w-4 text-emerald-500" />}
+                  icon={<Clock className="h-4 w-4 text-white" />}
                   label="آخرین ورود"
                   value="امروز"
-                  gradient="from-emerald-500/10 to-emerald-500/5"
+                  gradient="from-emerald-500 to-teal-600"
                 />
+              </div>
+
+              {/* Mini Activity Graph */}
+              <div className="rounded-xl bg-card border border-border/60 p-4 glass-card card-inner-glow">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5 text-violet-500" />
+                    نمودار فعالیت
+                  </p>
+                  <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 border-0">
+                    ۱۲ هفته
+                  </Badge>
+                </div>
+                <div className="flex items-end gap-1.5 h-16">
+                  {activityData.map((val, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-1 rounded-t-sm transition-all duration-500 hover:opacity-80 animate-in"
+                      style={{
+                        animationDelay: `${idx * 60}ms`,
+                        animationFillMode: 'both',
+                        height: `${Math.max(8, (val / maxActivity) * 100)}%`,
+                        background: `linear-gradient(to top, ${idx >= 8 ? '#8b5cf6' : '#a78bfa'}, ${idx >= 8 ? '#d946ef' : '#c4b5fd'})`,
+                        opacity: idx >= 8 ? 1 : 0.5,
+                      }}
+                    />
+                  ))}
+                </div>
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[9px] text-muted-foreground">۱۲ هفته پیش</span>
+                  <span className="text-[9px] text-muted-foreground">امروز</span>
+                </div>
               </div>
             </section>
 
             <Separator className="bg-border/40" />
 
             {/* ═══════════════════════════════════════════════════════════════ */}
-            {/* Section 3: Recent Activity                                     */}
+            {/* Section 3: Skill Tags                                          */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section>
+            <section className="animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-amber-500 to-orange-500" />
+                مهارت‌ها
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {skillTags.map((skill, idx) => (
+                  <Badge
+                    key={skill.label}
+                    variant="outline"
+                    className={`text-xs px-3 py-1.5 border transition-all duration-300 hover:scale-[1.05] active:scale-[0.97] animate-in ${skill.color}`}
+                    style={{ animationDelay: `${idx * 70}ms`, animationFillMode: 'both' }}
+                  >
+                    {skill.label}
+                  </Badge>
+                ))}
+              </div>
+            </section>
+
+            <Separator className="bg-border/40" />
+
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            {/* Section 4: Social Links                                        */}
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            <section className="animate-in" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+              <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-sky-500 to-blue-500" />
+                لینک‌ها
+              </h3>
+              <div className="flex gap-2">
+                <SocialButton icon={<Globe className="h-4 w-4" />} label="وب‌سایت" gradient="from-cyan-500 to-teal-500" />
+                <SocialButton icon={<Github className="h-4 w-4" />} label="گیت‌هاب" gradient="from-violet-500 to-purple-600" />
+                <SocialButton icon={<Twitter className="h-4 w-4" />} label="توییتر" gradient="from-sky-400 to-blue-500" />
+                <SocialButton icon={<Coffee className="h-4 w-4" />} label="قهوه" gradient="from-amber-500 to-orange-500" />
+              </div>
+            </section>
+
+            <Separator className="bg-border/40" />
+
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            {/* Section 5: Recent Activity                                     */}
+            {/* ═══════════════════════════════════════════════════════════════ */}
+            <section className="animate-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-amber-500 to-orange-500" />
                 فعالیت اخیر
               </h3>
 
-              <div className="rounded-xl bg-card border border-border/60 divide-y divide-border/40 max-h-64 overflow-y-auto">
-                {activityData.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-muted-foreground">
+              <div className="rounded-xl bg-card border border-border/60 divide-y divide-border/40 max-h-64 overflow-y-auto glass-card card-inner-glow">
+                {activityList.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-muted-foreground">
+                    <Clock className="h-8 w-8 mx-auto mb-2 opacity-20" />
                     فعالیتی ثبت نشده است
                   </div>
                 ) : (
-                  activityData.slice(0, 5).map(activity => (
-                    <div key={activity.id} className="flex items-center gap-3 px-3 py-2.5 hover:bg-accent/30 transition-colors">
-                      <div className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center shrink-0">
+                  activityList.slice(0, 5).map((activity, idx) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-accent/30 transition-all duration-200 animate-in"
+                      style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center shrink-0 transition-transform duration-200 hover:scale-110">
                         {getActivityIcon(activity.action)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -311,19 +419,23 @@ export default function ProfilePanel({
             <Separator className="bg-border/40" />
 
             {/* ═══════════════════════════════════════════════════════════════ */}
-            {/* Section 4: Quick Settings                                      */}
+            {/* Section 6: Theme Preview / Quick Settings                      */}
             {/* ═══════════════════════════════════════════════════════════════ */}
-            <section>
+            <section className="animate-in" style={{ animationDelay: '450ms', animationFillMode: 'both' }}>
               <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
                 <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-violet-500 to-purple-500" />
+                <Palette className="h-4 w-4 text-violet-500" />
                 تنظیمات سریع
               </h3>
 
-              <div className="rounded-xl bg-card border border-border/60 divide-y divide-border/40">
+              <div className="rounded-xl bg-card border border-border/60 divide-y divide-border/40 glass-card card-inner-glow">
 
                 {/* Theme toggle */}
                 <div className="p-3">
-                  <p className="text-xs font-medium mb-2.5">پوسته</p>
+                  <p className="text-xs font-medium mb-2.5 flex items-center gap-1.5">
+                    <Sun className="h-3.5 w-3.5 text-amber-500" />
+                    پوسته
+                  </p>
                   <div className="grid grid-cols-3 gap-2">
                     {themeCard('light', 'روشن', <Sun className="h-4 w-4" />, theme === 'light')}
                     {themeCard('dark', 'تاریک', <Moon className="h-4 w-4" />, theme === 'dark')}
@@ -346,7 +458,7 @@ export default function ProfilePanel({
                     <button
                       className={`px-2.5 py-1 text-[10px] font-medium transition-all duration-200 cursor-pointer ${
                         language === 'fa'
-                          ? 'bg-violet-500 text-white'
+                          ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-sm'
                           : 'bg-transparent text-muted-foreground hover:bg-muted'
                       }`}
                       onClick={() => setLanguage('fa')}
@@ -356,7 +468,7 @@ export default function ProfilePanel({
                     <button
                       className={`px-2.5 py-1 text-[10px] font-medium transition-all duration-200 cursor-pointer ${
                         language === 'en'
-                          ? 'bg-violet-500 text-white'
+                          ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-sm'
                           : 'bg-transparent text-muted-foreground hover:bg-muted'
                       }`}
                       onClick={() => setLanguage('en')}
@@ -367,11 +479,11 @@ export default function ProfilePanel({
                 </div>
 
                 {/* Notification sound */}
-                <div className="flex items-center justify-between px-3 py-3">
+                <div className="flex items-center justify-between px-3 py-3 hover:bg-accent/20 transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${soundEnabled ? 'bg-violet-100 dark:bg-violet-900/30' : 'bg-muted/80'}`}>
                       {soundEnabled
-                        ? <Volume2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        ? <Volume2 className="h-3.5 w-3.5 text-violet-500" />
                         : <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
                       }
                     </div>
@@ -390,11 +502,11 @@ export default function ProfilePanel({
                 </div>
 
                 {/* Compact mode / Sidebar toggle */}
-                <div className="flex items-center justify-between px-3 py-3">
+                <div className="flex items-center justify-between px-3 py-3 hover:bg-accent/20 transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-muted/80 flex items-center justify-center">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all duration-300 ${compactMode ? 'bg-violet-100 dark:bg-violet-900/30' : 'bg-muted/80'}`}>
                       {compactMode
-                        ? <PanelLeftClose className="h-3.5 w-3.5 text-muted-foreground" />
+                        ? <PanelLeftClose className="h-3.5 w-3.5 text-violet-500" />
                         : <PanelLeft className="h-3.5 w-3.5 text-muted-foreground" />
                       }
                     </div>
@@ -417,7 +529,8 @@ export default function ProfilePanel({
             {/* Navigate to Settings link */}
             <Button
               variant="outline"
-              className="w-full gap-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer transition-all duration-200"
+              className="w-full gap-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] glass-card animate-in"
+              style={{ animationDelay: '500ms', animationFillMode: 'both' }}
               onClick={() => {
                 onOpenChange(false)
                 onNavigate?.('settings')
@@ -440,9 +553,9 @@ export default function ProfilePanel({
 
 function InfoRow({ label, value, dir }: { label: string; value: string; dir?: string }) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between group">
       <span className="text-xs text-muted-foreground">{label}</span>
-      <span className="text-xs font-medium" dir={dir}>{value}</span>
+      <span className="text-xs font-medium transition-colors group-hover:text-violet-600 dark:group-hover:text-violet-400" dir={dir}>{value}</span>
     </div>
   )
 }
@@ -453,10 +566,27 @@ function StatCard({
   icon: React.ReactNode; label: string; value: string; gradient: string
 }) {
   return (
-    <div className={`rounded-xl bg-gradient-to-br ${gradient} border border-border/40 p-3 flex flex-col items-center text-center gap-1.5 transition-all duration-200 hover:scale-[1.02]`}>
-      {icon}
-      <span className="text-lg font-bold tabular-nums">{value}</span>
-      <span className="text-[10px] text-muted-foreground leading-tight">{label}</span>
+    <div className={`rounded-xl bg-gradient-to-br ${gradient} p-3 flex flex-col items-center text-center gap-1.5 transition-all duration-300 hover:scale-[1.04] hover:shadow-lg cursor-default glass-card hover-lift card-inner-glow`}>
+      <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
+        {icon}
+      </div>
+      <span className="text-lg font-bold text-white tabular-nums drop-shadow-sm">{value}</span>
+      <span className="text-[10px] text-white/80 leading-tight">{label}</span>
     </div>
+  )
+}
+
+function SocialButton({
+  icon, label, gradient,
+}: {
+  icon: React.ReactNode; label: string; gradient: string
+}) {
+  return (
+    <button
+      className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-md transition-all duration-300 hover:scale-[1.1] hover:shadow-lg active:scale-[0.95] cursor-pointer`}
+      title={label}
+    >
+      {icon}
+    </button>
   )
 }

@@ -44,6 +44,11 @@ import {
 import { formatRelativeTime } from './types'
 import type { QuickNote } from './types'
 import { MiniSparkline } from './MiniSparkline'
+import { NotesWidget } from './NotesWidget'
+import { PerformanceMonitor } from './PerformanceMonitor'
+import { BookmarkManager } from './BookmarkManager'
+import { NotificationSoundToggle } from './NotificationSoundToggle'
+import { ColorThemeCustomizer } from './ColorThemeCustomizer'
 
 // Persian labels
 const labels = {
@@ -1627,6 +1632,26 @@ export default function DashboardPage() {
 
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
+      </div>
+
+      {/* ═══════ New Feature Widgets ═══════ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Quick Notes (localStorage) Widget */}
+        <NotesWidget />
+
+        {/* Bookmark Manager Widget */}
+        <BookmarkManager />
+
+        {/* Performance Monitor Widget */}
+        <PerformanceMonitor />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Notification Sound Toggle */}
+        <NotificationSoundToggle />
+
+        {/* Color Theme Customizer */}
+        <ColorThemeCustomizer />
       </div>
     </div>
   )
