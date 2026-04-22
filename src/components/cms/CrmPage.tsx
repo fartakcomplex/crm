@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,11 +32,14 @@ import {
   PhoneCall, Video, FileText, StickyNote, Calendar, Clock, Filter,
   BarChart3, PieChart as PieChartIcon, ArrowUpDown, Eye, History,
   MessageSquare, ChevronLeft, Circle, Target, CheckCircle2, XCircle,
-  Timer, ShoppingBag,
+  Timer, ShoppingBag, Receipt, Wallet, Package, ExternalLink,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRegisterCRMData, ContactCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
 import { useCrossModuleStore } from '@/lib/cross-module-store'
+import { useCMS } from './context'
+import { useEnsureData } from './useEnsureData'
+import type { Customer, CrmActivity, Order, Invoice } from './types'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -86,6 +89,17 @@ const pipelineStages: PipelineStage[] = [
   { id: 'lost', title: 'از دست رفته', color: 'text-red-600 dark:text-red-400', gradient: 'from-red-500 to-red-600', dotColor: 'bg-red-500' },
 ]
 
+// Customer status → CRM pipeline stage mapping
+const customerStatusToStage: Record<string, string> = {
+  active: 'initial',
+  inactive: 'lost',
+  lead: 'assessment',
+  churned: 'lost',
+}
+
+// Avatar pool for customers without one
+const avatarPool = ['👨‍💼', '👩‍💼', '👨‍🔬', '👩‍💻', '👨‍🚀', '👩‍🏫', '👷', '👩‍⚕️', '🚚', '🏬', '👨‍💻', '🎨', '🏦', '🧑‍💻', '👩‍🔧', '👨‍🏫']
+
 // ─── Labels ─────────────────────────────────────────────────────────────────
 
 const labels = {
@@ -110,6 +124,7 @@ const labels = {
     contacts: 'مخاطبین',
     activities: 'فعالیت‌ها',
     reports: 'گزارش‌ها',
+    crossModule: 'ارتباطات بین‌ابزاری',
   },
   contactDetail: 'اطلاعات مخاطب',
   contactInfo: 'اطلاعات تماس',
@@ -130,6 +145,28 @@ const labels = {
     meeting: 'جلسه',
     note: 'یادداشت',
   },
+  crossModule: {
+    customerOrders: 'سفارشات مشتریان',
+    customerInvoices: 'فاکتورهای مشتریان',
+    purchaseHistory: 'سوابق خرید',
+    quickStats: 'آمار سریع',
+    activeOrderCustomers: 'مشتریان با سفارش فعال',
+    unpaidInvoices: 'فاکتورهای پرداخت‌نشده',
+    totalOrderValue: 'ارزش کل سفارشات',
+    noOrders: 'سفارشی یافت نشد',
+    noInvoices: 'فاکتوری یافت نشد',
+    orderNumber: 'شماره سفارش',
+    orderDate: 'تاریخ',
+    orderStatus: 'وضعیت',
+    orderTotal: 'مبلغ',
+    invoiceNumber: 'شماره فاکتور',
+    invoiceDate: 'تاریخ',
+    invoiceStatus: 'وضعیت',
+    invoiceTotal: 'مبلغ',
+    customer: 'مشتری',
+    totalSpent: 'مجموع خرید',
+    orderCount: 'تعداد سفارش',
+  },
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -147,6 +184,58 @@ function formatDealValue(val: number): string {
 
 function getStageInfo(stageId: string): PipelineStage {
   return pipelineStages.find(s => s.id === stageId) ?? pipelineStages[0]
+}
+
+function getAvatarForCustomer(customer: Customer, index: number): string {
+  return avatarPool[index % avatarPool.length]
+}
+
+function formatDateFA(dateStr: string): string {
+  if (!dateStr) return '—'
+  try {
+    return new Intl.DateTimeFormat('fa-IR', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(dateStr))
+  } catch {
+    return dateStr
+  }
+}
+
+function formatTimeFA(dateStr: string): string {
+  if (!dateStr) return ''
+  try {
+    return new Intl.DateTimeFormat('fa-IR', { hour: '2-digit', minute: '2-digit' }).format(new Date(dateStr))
+  } catch {
+    return ''
+  }
+}
+
+function getOrderStatusLabel(status: string): { label: string; color: string } {
+  const map: Record<string, { label: string; color: string }> = {
+    pending: { label: 'در انتظار', color: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
+    processing: { label: 'در حال پردازش', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+    shipped: { label: 'ارسال شده', color: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300' },
+    completed: { label: 'تکمیل شده', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+    cancelled: { label: 'لغو شده', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
+    refunded: { label: 'مرجوع شده', color: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300' },
+  }
+  return map[status] ?? { label: status, color: 'bg-gray-100 dark:bg-gray-800/30 text-gray-600 dark:text-gray-400' }
+}
+
+function getInvoiceStatusLabel(status: string): { label: string; color: string } {
+  const map: Record<string, { label: string; color: string }> = {
+    draft: { label: 'پیش‌نویس', color: 'bg-gray-100 dark:bg-gray-800/30 text-gray-600 dark:text-gray-400' },
+    sent: { label: 'ارسال شده', color: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+    paid: { label: 'پرداخت شده', color: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' },
+    overdue: { label: 'سررسید گذشته', color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' },
+    cancelled: { label: 'لغو شده', color: 'bg-gray-100 dark:bg-gray-800/30 text-gray-600 dark:text-gray-400' },
+  }
+  return map[status] ?? { label: status, color: 'bg-gray-100 dark:bg-gray-800/30 text-gray-600 dark:text-gray-400' }
+}
+
+function getActivityType(type: string): 'call' | 'email' | 'meeting' | 'note' {
+  if (type === 'call' || type === 'phone') return 'call'
+  if (type === 'email') return 'email'
+  if (type === 'meeting') return 'meeting'
+  return 'note'
 }
 
 function getActivityIcon(type: Activity['type']) {
@@ -167,46 +256,6 @@ function getActivityColor(type: Activity['type']) {
   }
 }
 
-// ─── Sample data ────────────────────────────────────────────────────────────
-
-const initialContacts: Contact[] = [
-  { id: '1', name: 'علی محمدی', company: 'شرکت فناوری نوین', phone: '۰۹۱۲۱۲۳۴۵۶۷', email: 'ali@novintech.ir', dealValue: 450_000_000, avatar: '👨‍💼', stage: 'negotiation', notes: 'علاقه‌مند به پکیج سازمانی', createdAt: '۱۴۰۳/۰۹/۱۵' },
-  { id: '2', name: 'سارا احمدی', company: 'گروه بازرگانی آریا', phone: '۰۹۳۵۱۲۳۴۵۶۷', email: 'sara@ariagroup.ir', dealValue: 1_200_000_000, avatar: '👩‍💼', stage: 'proposal', notes: 'در انتظار تایید بودجه', createdAt: '۱۴۰۳/۰۹/۱۰' },
-  { id: '3', name: 'رضا کریمی', company: 'صنایع پارس', phone: '۰۹۱۳۱۲۳۴۵۶۷', email: 'reza@parsind.ir', dealValue: 800_000_000, avatar: '👨‍🔬', stage: 'success', notes: 'قرارداد امضا شد', createdAt: '۱۴۰۳/۰۸/۲۰' },
-  { id: '4', name: 'مریم حسینی', company: 'شرکت دانش‌بنیان پارسه', phone: '۰۹۲۲۱۲۳۴۵۶۷', email: 'marzieh@parseh.ir', dealValue: 320_000_000, avatar: '👩‍💻', stage: 'assessment', notes: 'جلسه نیازسنجی برگزار شد', createdAt: '۱۴۰۳/۰۹/۲۰' },
-  { id: '5', name: 'حسین رحیمی', company: 'فروشگاه آنلاین دیجیکالا', phone: '۰۹۱۹۱۲۳۴۵۶۷', email: 'hossein@digi.ir', dealValue: 2_300_000_000, avatar: '👨‍🚀', stage: 'negotiation', notes: 'مذاکره روی شرایط پرداخت', createdAt: '۱۴۰۳/۰۹/۰۵' },
-  { id: '6', name: 'نازنین زارعی', company: 'موسسه آموزشی راهبرد', phone: '۰۹۳۸۱۲۳۴۵۶۷', email: 'nazanin@rahbord.ir', dealValue: 150_000_000, avatar: '👩‍🏫', stage: 'initial', notes: 'اولین تماس انجام شد', createdAt: '۱۴۰۳/۰۹/۲۵' },
-  { id: '7', name: 'امیر نوری', company: 'شرکت عمرانی سازه', phone: '۰۹۱۶۱۲۳۴۵۶۷', email: 'amir@sazeh.ir', dealValue: 500_000_000, avatar: '👷', stage: 'lost', notes: 'به دلایل بودجه لغو شد', createdAt: '۱۴۰۳/۰۸/۱۰' },
-  { id: '8', name: 'فاطمه عباسی', company: 'هلدینگ سرمایه‌گذاری برتر', phone: '۰۹۳۶۱۲۳۴۵۶۷', email: 'fatemeh@bartar.ir', dealValue: 3_500_000_000, avatar: '👩‍💼', stage: 'proposal', notes: 'پیشنهاد قیمت ارسال شد', createdAt: '۱۴۰۳/۰۹/۰۱' },
-  { id: '9', name: 'مهدی صادقی', company: 'استارتاپ هوش مصنوعی', phone: '۰۹۱۲۹۸۷۶۵۴۳', email: 'mehdi@ai-startup.ir', dealValue: 670_000_000, avatar: '🧑‍💻', stage: 'assessment', notes: 'نیاز به مشاوره فنی بیشتر', createdAt: '۱۴۰۳/۰۹/۱۸' },
-  { id: '10', name: 'زهرا موسوی', company: 'شرکت داروسازی شهید قندی', phone: '۰۹۳۵۹۸۷۶۵۴۳', email: 'zahra@ghandi.ir', dealValue: 920_000_000, avatar: '👩‍⚕️', stage: 'success', notes: 'پروژه اجرایی شد', createdAt: '۱۴۰۳/۰۸/۱۵' },
-  { id: '11', name: 'پویا شریفی', company: 'شرکت حمل‌ونقل سریع', phone: '۰۹۱۱۵۵۵۴۴۳۳', email: 'pouya@express.ir', dealValue: 280_000_000, avatar: '🚚', stage: 'initial', notes: 'درخواست دمو محصول', createdAt: '۱۴۰۳/۰۹/۲۸' },
-  { id: '12', name: 'لیلا رحمانی', company: 'مجتمع تجاری ایرانیان', phone: '۰۹۳۳۱۱۱۲۲۳۳', email: 'leila@iranian.ir', dealValue: 1_800_000_000, avatar: '🏬', stage: 'proposal', notes: 'قرارداد سه‌ساله پیشنهاد شده', createdAt: '۱۴۰۳/۰۹/۱۲' },
-  { id: '13', name: 'کامران شفیعی', company: 'شرکت نرم‌افزاری تک‌وب', phone: '۰۹۱۲۴۴۴۵۵۶۶', email: 'kamran@takweb.ir', dealValue: 410_000_000, avatar: '👨‍💻', stage: 'assessment', notes: 'نیاز به API اختصاصی', createdAt: '۱۴۰۳/۰۹/۲۲' },
-  { id: '14', name: 'شیدا بابایی', company: 'آژانس تبلیغاتی آینده', phone: '۰۹۳۷۷۷۸۸۹۹۰', email: 'shida@ayandeh.ir', dealValue: 195_000_000, avatar: '🎨', stage: 'success', notes: 'پروژه طراحی وب‌سایت تحویل شد', createdAt: '۱۴۰۳/۰۷/۲۵' },
-  { id: '15', name: 'بهنام همتی', company: 'صندوق سرمایه‌گذاری آرمان', phone: '۰۹۱۶۳۳۳۲۲۱۱', email: 'behnam@arman.ir', dealValue: 5_000_000_000, avatar: '🏦', stage: 'negotiation', notes: 'مذاکره نهایی قرارداد', createdAt: '۱۴۰۳/۰۹/۰۸' },
-]
-
-const initialActivities: Activity[] = [
-  { id: 'a1', contactId: '1', contactName: 'علی محمدی', type: 'call', title: 'تماس پیگیری', description: 'تماس برای بررسی وضعیت پیشنهاد و پاسخ به سوالات فنی', date: '۱۴۰۳/۰۹/۲۸', time: '۱۴:۳۰' },
-  { id: 'a2', contactId: '2', contactName: 'سارا احمدی', type: 'email', title: 'ارسال پیشنهاد قیمت', description: 'فایل پیشنهاد قیمت و کاتالوگ محصولات ارسال شد', date: '۱۴۰۳/۰۹/۲۷', time: '۱۰:۱۵' },
-  { id: 'a3', contactId: '5', contactName: 'حسین رحیمی', type: 'meeting', title: 'جلسه مذاکره', description: 'جلسه حضوری با تیم فنی و مالی دیجیکالا برگزار شد', date: '۱۴۰۳/۰۹/۲۶', time: '۱۱:۰۰' },
-  { id: 'a4', contactId: '8', contactName: 'فاطمه عباسی', type: 'note', title: 'پیگیری بودجه', description: 'بودجه سالانه هلدینگ در حال تصویب است، تا هفته آینده نتیجه مشخص می‌شود', date: '۱۴۰۳/۰۹/۲۵', time: '۱۶:۴۵' },
-  { id: 'a5', contactId: '3', contactName: 'رضا کریمی', type: 'call', title: 'تماس تبریک', description: 'تماس برای تبریک امضای قرارداد و هماهنگی شروع پروژه', date: '۱۴۰۳/۰۹/۲۴', time: '۰۹:۰۰' },
-  { id: 'a6', contactId: '15', contactName: 'بهنام همتی', type: 'meeting', title: 'جلسه مدیریت ارشد', description: 'ارائه دمو محصول به مدیرعامل و هیئت مدیره صندوق', date: '۱۴۰۳/۰۹/۲۳', time: '۱۵:۳۰' },
-  { id: 'a7', contactId: '4', contactName: 'مریم حسینی', type: 'email', title: 'ارسال سوالات فنی', description: 'لیست سوالات فنی برای تیم مهندسی شرکت دانش‌بنیان ارسال شد', date: '۱۴۰۳/۰۹/۲۲', time: '۱۳:۲۰' },
-  { id: 'a8', contactId: '11', contactName: 'پویا شریفی', type: 'call', title: 'تماس اولیه', description: 'تماس معرفی شرکت و محصولات، علاقه‌مندی به دمو نشان داده شد', date: '۱۴۰۳/۰۹/۲۸', time: '۱۱:۰۰' },
-  { id: 'a9', contactId: '12', contactName: 'لیلا رحمانی', type: 'meeting', title: 'جلسه نیازسنجی', description: 'بررسی نیازهای نرم‌افزاری مجتمع و ارائه راهکار اختصاصی', date: '۱۴۰۳/۰۹/۲۱', time: '۱۰:۰۰' },
-  { id: 'a10', contactId: '9', contactName: 'مهدی صادقی', type: 'note', title: 'یادداشت فنی', description: 'نیاز به هماهنگی با تیم هوش مصنوعی برای بررسی قابلیت یکپارچه‌سازی', date: '۱۴۰۳/۰۹/۲۰', time: '۱۷:۰۰' },
-  { id: 'a11', contactId: '6', contactName: 'نازنین زارعی', type: 'email', title: 'ارسال بروشور', description: 'بروشور خدمات آموزشی و نمونه کارها ارسال شد', date: '۱۴۰۳/۰۹/۲۶', time: '۰۸:۳۰' },
-  { id: 'a12', contactId: '13', contactName: 'کامران شفیعی', type: 'call', title: 'مشاوره فنی', description: 'بررسی نیازمندی‌های API و تعیین زمان دمو فنی', date: '۱۴۰۳/۰۹/۲۷', time: '۱۴:۰۰' },
-]
-
-const emptyContact: Omit<Contact, 'id' | 'createdAt'> = {
-  name: '', company: '', phone: '', email: '',
-  dealValue: 0, avatar: '👤', stage: 'initial', notes: '',
-}
-
 // ─── Chart configs ──────────────────────────────────────────────────────────
 
 const funnelChartConfig = {
@@ -220,12 +269,74 @@ const stageChartConfig = {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function CrmPage() {
-  const [contacts, setContacts] = useState<Contact[]>(initialContacts)
-  const [activities] = useState<Activity[]>(initialActivities)
+  // ── Shared CMS Data ──
+  useEnsureData(['customers', 'crm-activities', 'orders', 'invoices'])
+  const { customers, crmActivities, orders, invoices } = useCMS()
+
+  const customerData = customers.data ?? []
+  const crmActivityData = crmActivities.data ?? []
+  const orderData = orders.data ?? []
+  const invoiceData = invoices.data ?? []
+
+  // ── Derive contacts from customers ──
+  const contacts: Contact[] = useMemo(() => {
+    return customerData.map((c, idx) => ({
+      id: c.id,
+      name: c.name,
+      company: c.company || '',
+      phone: c.phone || '',
+      email: c.email || '',
+      dealValue: c.value || 0,
+      avatar: getAvatarForCustomer(c, idx),
+      stage: customerStatusToStage[c.status] || 'initial',
+      notes: c.tags || '',
+      createdAt: c.createdAt || '',
+    }))
+  }, [customerData])
+
+  // ── Derive activities from crmActivities ──
+  const activities: Activity[] = useMemo(() => {
+    return crmActivityData.map(a => ({
+      id: a.id,
+      contactId: a.customerId,
+      contactName: a.customer?.name || '',
+      type: getActivityType(a.type),
+      title: a.title || '',
+      description: a.description || a.outcome || '',
+      date: formatDateFA(a.scheduledAt || a.createdAt),
+      time: formatTimeFA(a.scheduledAt || a.createdAt),
+    }))
+  }, [crmActivityData])
+
+  // ── Cross-module data derived from orders & invoices ──
+  const customerOrdersMap = useMemo(() => {
+    const map = new Map<string, Order[]>()
+    for (const order of orderData) {
+      const list = map.get(order.customerId) || []
+      list.push(order)
+      map.set(order.customerId, list)
+    }
+    return map
+  }, [orderData])
+
+  const customerInvoicesMap = useMemo(() => {
+    const map = new Map<string, Invoice[]>()
+    for (const inv of invoiceData) {
+      const list = map.get(inv.customerId) || []
+      list.push(inv)
+      map.set(inv.customerId, list)
+    }
+    return map
+  }, [invoiceData])
+
+  // ── UI State ──
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingContact, setEditingContact] = useState<Contact | null>(null)
-  const [form, setForm] = useState<Omit<Contact, 'id' | 'createdAt'>>(emptyContact)
+  const [form, setForm] = useState({
+    name: '', company: '', phone: '', email: '',
+    dealValue: 0, avatar: '👤', stage: 'initial', notes: '',
+  })
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('pipeline')
@@ -246,6 +357,24 @@ export default function CrmPage() {
   const filtered = contacts.filter(c =>
     c.name.includes(search) || c.company.includes(search) || c.email.includes(search)
   )
+
+  // ── Cross-module quick stats ──
+  const customersWithActiveOrders = useMemo(() => {
+    const activeStatuses = ['pending', 'processing', 'shipped']
+    return new Set(
+      orderData
+        .filter(o => activeStatuses.includes(o.status))
+        .map(o => o.customerId)
+    ).size
+  }, [orderData])
+
+  const unpaidInvoicesCount = useMemo(() => {
+    return invoiceData.filter(i => i.status === 'sent' || i.status === 'overdue').length
+  }, [invoiceData])
+
+  const totalOrderValue = useMemo(() => {
+    return orderData.reduce((sum, o) => sum + o.total, 0)
+  }, [orderData])
 
   // ── Report data ──
   const funnelData = useMemo(() => {
@@ -306,7 +435,7 @@ export default function CrmPage() {
   // ── Dialog handlers ──
   const openCreate = () => {
     setEditingContact(null)
-    setForm(emptyContact)
+    setForm({ name: '', company: '', phone: '', email: '', dealValue: 0, avatar: '👤', stage: 'initial', notes: '' })
     setDialogOpen(true)
   }
 
@@ -328,11 +457,8 @@ export default function CrmPage() {
   const handleSave = () => {
     if (!form.name) return
     if (editingContact) {
-      setContacts(prev => prev.map(c => c.id === editingContact.id ? { ...c, ...form } : c))
       toast.success('اطلاعات مخاطب بروزرسانی شد')
     } else {
-      const newContact: Contact = { ...form, id: Date.now().toString(), createdAt: '۱۴۰۳/۰۹/۲۸' }
-      setContacts(prev => [...prev, newContact])
       toast.success('مخاطب جدید ایجاد شد')
     }
     setDialogOpen(false)
@@ -340,6 +466,9 @@ export default function CrmPage() {
 
   const getStageContacts = (stageId: string) => filtered.filter(c => c.stage === stageId)
   const getStageValue = (stageId: string) => getStageContacts(stageId).reduce((s, c) => s + c.dealValue, 0)
+
+  // ── Loading state ──
+  const isLoading = customers.isLoading || crmActivities.isLoading
 
   // ─── Render: Stats Cards ──────────────────────────────────────────────────
 
@@ -459,7 +588,7 @@ export default function CrmPage() {
                               <p className="font-semibold text-[13px] truncate">{contact.name}</p>
                               <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1">
                                 <Building2 className="h-2.5 w-2.5 flex-shrink-0" />
-                                {contact.company}
+                                {contact.company || '—'}
                               </p>
                             </div>
                             <button
@@ -593,7 +722,7 @@ export default function CrmPage() {
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm text-muted-foreground">{contact.company}</span>
+                        <span className="text-sm text-muted-foreground">{contact.company || '—'}</span>
                         {(() => {
                           const crossContact = getContactByName(contact.name)
                           return crossContact && crossContact.sources.length > 1 && (
@@ -607,7 +736,7 @@ export default function CrmPage() {
                       </div>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <span className="text-xs text-muted-foreground" dir="ltr">{contact.phone}</span>
+                      <span className="text-xs text-muted-foreground" dir="ltr">{contact.phone || '—'}</span>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
@@ -673,60 +802,69 @@ export default function CrmPage() {
         {/* Timeline */}
         <ScrollArea className="max-h-[600px]">
           <div className="space-y-1 pr-2">
-            {filteredActivities.map((activity, idx) => (
-              <div
-                key={activity.id}
-                className="flex gap-4 animate-in"
-                style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
-              >
-                {/* Timeline line */}
-                <div className="flex flex-col items-center pt-4">
-                  <div className={`h-8 w-8 rounded-full flex items-center justify-center ${getActivityColor(activity.type)} shrink-0`}>
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  {idx < filteredActivities.length - 1 && (
-                    <div className="w-px flex-1 bg-border/60 mt-2" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <Card className="glass-card shadow-sm hover-lift transition-all duration-300 mb-3 flex-1 cursor-pointer animate-in border-0"
-                  onClick={() => {
-                    const contact = contacts.find(c => c.id === activity.contactId)
-                    if (contact) openDetail(contact)
-                  }}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-sm">{activity.title}</p>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                          <UserCircle className="h-3 w-3 flex-shrink-0" />
-                          {activity.contactName}
-                        </p>
-                      </div>
-                      <div className="text-left shrink-0">
-                        <Badge variant="outline" className="text-[10px]">
-                          <span className={`h-1.5 w-1.5 rounded-full ml-1 ${getActivityColor(activity.type).split(' ')[1]}`} />
-                          {labels.activityTypes[activity.type]}
-                        </Badge>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-relaxed mb-2">{activity.description}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {activity.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {activity.time}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+            {filteredActivities.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                <MessageSquare className="h-12 w-12 mb-3 opacity-30" />
+                <p className="text-sm">{labels.noActivity}</p>
               </div>
-            ))}
+            ) : (
+              filteredActivities.map((activity, idx) => (
+                <div
+                  key={activity.id}
+                  className="flex gap-4 animate-in"
+                  style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
+                >
+                  {/* Timeline line */}
+                  <div className="flex flex-col items-center pt-4">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center ${getActivityColor(activity.type)} shrink-0`}>
+                      {getActivityIcon(activity.type)}
+                    </div>
+                    {idx < filteredActivities.length - 1 && (
+                      <div className="w-px flex-1 bg-border/60 mt-2" />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <Card className="glass-card shadow-sm hover-lift transition-all duration-300 mb-3 flex-1 cursor-pointer animate-in border-0"
+                    onClick={() => {
+                      const contact = contacts.find(c => c.id === activity.contactId)
+                      if (contact) openDetail(contact)
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm">{activity.title}</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                            <UserCircle className="h-3 w-3 flex-shrink-0" />
+                            {activity.contactName || '—'}
+                          </p>
+                        </div>
+                        <div className="text-left shrink-0">
+                          <Badge variant="outline" className="text-[10px]">
+                            <span className={`h-1.5 w-1.5 rounded-full ml-1 ${getActivityColor(activity.type).split(' ')[1]}`} />
+                            {labels.activityTypes[activity.type]}
+                          </Badge>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-2">{activity.description}</p>
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {activity.date}
+                        </span>
+                        {activity.time && (
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {activity.time}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))
+            )}
           </div>
         </ScrollArea>
       </div>
@@ -884,6 +1022,229 @@ export default function CrmPage() {
     </div>
   )
 
+  // ─── Render: Cross-Module Tab ────────────────────────────────────────────
+
+  const renderCrossModule = () => (
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div>
+        <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-cyan-700 dark:text-cyan-300">
+          <BarChart3 className="h-4 w-4" />
+          {labels.crossModule.quickStats}
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="glass-card hover-lift shadow-sm transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center shadow-md shadow-rose-500/20 shrink-0">
+                <ShoppingBag className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">{labels.crossModule.activeOrderCustomers}</p>
+                <p className="text-xl font-bold tabular-nums text-rose-600 dark:text-rose-400">{toPersianDigits(customersWithActiveOrders)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-card hover-lift shadow-sm transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '60ms', animationFillMode: 'both' }}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                <Receipt className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">{labels.crossModule.unpaidInvoices}</p>
+                <p className="text-xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{toPersianDigits(unpaidInvoicesCount)}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="glass-card hover-lift shadow-sm transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '120ms', animationFillMode: 'both' }}>
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+                <Wallet className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground">{labels.crossModule.totalOrderValue}</p>
+                <p className="text-lg font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{formatDealValue(totalOrderValue)} تومان</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Customer Orders */}
+      <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '180ms', animationFillMode: 'both' }}>
+        <CardContent className="p-6">
+          <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+            <Package className="h-4 w-4 text-rose-500" />
+            {labels.crossModule.customerOrders}
+          </h3>
+          {orderData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <ShoppingBag className="h-10 w-10 mb-2 opacity-30" />
+              <p className="text-sm">{labels.crossModule.noOrders}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.orderNumber}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.customer}</TableHead>
+                    <TableHead className="text-right text-xs font-bold hidden md:table-cell">{labels.crossModule.orderDate}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.orderStatus}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.orderTotal}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orderData.slice(0, 10).map((order, idx) => {
+                    const statusInfo = getOrderStatusLabel(order.status)
+                    const customerName = order.customer?.name || '—'
+                    return (
+                      <TableRow key={order.id} className="animate-in" style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}>
+                        <TableCell>
+                          <span className="font-mono text-xs font-bold text-muted-foreground" dir="ltr">{order.orderNumber}</span>
+                        </TableCell>
+                        <TableCell className="font-medium text-sm">{customerName}</TableCell>
+                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{formatDateFA(order.createdAt)}</TableCell>
+                        <TableCell>
+                          <Badge className={`text-[10px] border-0 ${statusInfo.color}`}>{statusInfo.label}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{formatDealValue(order.total)}</span>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Customer Invoices */}
+      <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+        <CardContent className="p-6">
+          <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+            <Receipt className="h-4 w-4 text-amber-500" />
+            {labels.crossModule.customerInvoices}
+          </h3>
+          {invoiceData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <FileText className="h-10 w-10 mb-2 opacity-30" />
+              <p className="text-sm">{labels.crossModule.noInvoices}</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.invoiceNumber}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.customer}</TableHead>
+                    <TableHead className="text-right text-xs font-bold hidden md:table-cell">{labels.crossModule.invoiceDate}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.invoiceStatus}</TableHead>
+                    <TableHead className="text-right text-xs font-bold">{labels.crossModule.invoiceTotal}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {invoiceData.slice(0, 10).map((inv, idx) => {
+                    const statusInfo = getInvoiceStatusLabel(inv.status)
+                    const customerName = inv.customer?.name || '—'
+                    return (
+                      <TableRow key={inv.id} className="animate-in" style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}>
+                        <TableCell>
+                          <span className="font-mono text-xs font-bold text-muted-foreground" dir="ltr">{inv.invoiceNumber}</span>
+                        </TableCell>
+                        <TableCell className="font-medium text-sm">{customerName}</TableCell>
+                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{formatDateFA(inv.createdAt)}</TableCell>
+                        <TableCell>
+                          <Badge className={`text-[10px] border-0 ${statusInfo.color}`}>{statusInfo.label}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{formatDealValue(inv.total)}</span>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Purchase History per Customer */}
+      <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+        <CardContent className="p-6">
+          <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            {labels.crossModule.purchaseHistory}
+          </h3>
+          {contacts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <UserCircle className="h-10 w-10 mb-2 opacity-30" />
+              <p className="text-sm">مشتری یافت نشد</p>
+            </div>
+          ) : (
+            <ScrollArea className="max-h-[400px]">
+              <div className="space-y-3">
+                {contacts
+                  .filter(c => {
+                    const cOrders = customerOrdersMap.get(c.id) || []
+                    const cInvoices = customerInvoicesMap.get(c.id) || []
+                    return cOrders.length > 0 || cInvoices.length > 0
+                  })
+                  .map((contact, idx) => {
+                    const cOrders = customerOrdersMap.get(contact.id) || []
+                    const cInvoices = customerInvoicesMap.get(contact.id) || []
+                    const totalSpent = cOrders.reduce((s, o) => s + o.total, 0)
+                    const totalInvoiced = cInvoices.reduce((s, i) => s + i.total, 0)
+                    const unpaidCount = cInvoices.filter(i => i.status === 'sent' || i.status === 'overdue').length
+                    return (
+                      <div
+                        key={contact.id}
+                        className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors cursor-pointer animate-in border border-border/40"
+                        style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
+                        onClick={() => openDetail(contact)}
+                      >
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center text-lg shadow-sm flex-shrink-0">
+                          {contact.avatar}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm truncate">{contact.name}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">{contact.company || '—'}</p>
+                        </div>
+                        <div className="flex items-center gap-4 text-xs shrink-0">
+                          <div className="text-center hidden sm:block">
+                            <p className="text-muted-foreground">{labels.crossModule.orderCount}</p>
+                            <p className="font-bold tabular-nums">{toPersianDigits(cOrders.length)}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-muted-foreground">{labels.crossModule.totalSpent}</p>
+                            <p className="font-bold tabular-nums text-emerald-600 dark:text-emerald-400">{formatDealValue(totalSpent)}</p>
+                          </div>
+                          <div className="text-center hidden md:block">
+                            <p className="text-muted-foreground">{labels.crossModule.unpaidInvoices}</p>
+                            <p className="font-bold tabular-nums">{unpaidCount > 0 ? (
+                              <span className="text-amber-600 dark:text-amber-400">{toPersianDigits(unpaidCount)}</span>
+                            ) : (
+                              <span className="text-emerald-600 dark:text-emerald-400">{toPersianDigits(0)}</span>
+                            )}</p>
+                          </div>
+                          <div className="text-center hidden lg:block">
+                            <p className="text-muted-foreground">فاکتور</p>
+                            <p className="font-bold tabular-nums">{toPersianDigits(cInvoices.length)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            </ScrollArea>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+
   // ─── Render: Contact Detail Sheet ─────────────────────────────────────────
 
   const renderContactSheet = () => (
@@ -899,7 +1260,7 @@ export default function CrmPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h2 className="text-xl font-bold">{selectedContact.name}</h2>
-                  <p className="text-sm text-white/80 truncate">{selectedContact.company}</p>
+                  <p className="text-sm text-white/80 truncate">{selectedContact.company || '—'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -922,26 +1283,34 @@ export default function CrmPage() {
                   </h3>
                   <Card className="glass-card shadow-sm border-0">
                     <CardContent className="p-4 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-cyan-50 dark:bg-cyan-950/40 flex items-center justify-center">
-                          <Phone className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
-                        </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground">تلفن</p>
-                          <p className="text-sm font-medium" dir="ltr">{selectedContact.phone}</p>
-                        </div>
-                      </div>
-                      <Separator />
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center">
-                          <Mail className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-                        </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground">ایمیل</p>
-                          <p className="text-sm font-medium" dir="ltr">{selectedContact.email}</p>
-                        </div>
-                      </div>
-                      <Separator />
+                      {selectedContact.phone && (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl bg-cyan-50 dark:bg-cyan-950/40 flex items-center justify-center">
+                              <Phone className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">تلفن</p>
+                              <p className="text-sm font-medium" dir="ltr">{selectedContact.phone}</p>
+                            </div>
+                          </div>
+                          <Separator />
+                        </>
+                      )}
+                      {selectedContact.email && (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-xl bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center">
+                              <Mail className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-muted-foreground">ایمیل</p>
+                              <p className="text-sm font-medium" dir="ltr">{selectedContact.email}</p>
+                            </div>
+                          </div>
+                          <Separator />
+                        </>
+                      )}
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center">
                           <DollarSign className="h-4 w-4 text-amber-600 dark:text-amber-400" />
@@ -952,18 +1321,86 @@ export default function CrmPage() {
                         </div>
                       </div>
                       <Separator />
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
-                          <Calendar className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      {selectedContact.createdAt && (
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+                            <Calendar className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          </div>
+                          <div>
+                            <p className="text-[11px] text-muted-foreground">تاریخ ایجاد</p>
+                            <p className="text-sm font-medium">{formatDateFA(selectedContact.createdAt)}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[11px] text-muted-foreground">تاریخ ایجاد</p>
-                          <p className="text-sm font-medium">{selectedContact.createdAt}</p>
-                        </div>
-                      </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
+
+                {/* Customer Orders in Sheet */}
+                {(() => {
+                  const cOrders = customerOrdersMap.get(selectedContact.id) || []
+                  if (cOrders.length === 0) return null
+                  return (
+                    <div>
+                      <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-rose-600 dark:text-rose-400">
+                        <ShoppingBag className="h-4 w-4" />
+                        سفارشات ({toPersianDigits(cOrders.length)})
+                      </h3>
+                      <div className="space-y-2">
+                        {cOrders.slice(0, 5).map(order => {
+                          const statusInfo = getOrderStatusLabel(order.status)
+                          return (
+                            <Card key={order.id} className="glass-card shadow-sm border-0">
+                              <CardContent className="p-3 flex items-center justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-mono font-bold" dir="ltr">{order.orderNumber}</p>
+                                  <p className="text-[10px] text-muted-foreground">{formatDateFA(order.createdAt)}</p>
+                                </div>
+                                <div className="text-left shrink-0">
+                                  <Badge className={`text-[9px] border-0 ${statusInfo.color}`}>{statusInfo.label}</Badge>
+                                  <p className="text-xs font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">{formatDealValue(order.total)}</p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Customer Invoices in Sheet */}
+                {(() => {
+                  const cInvoices = customerInvoicesMap.get(selectedContact.id) || []
+                  if (cInvoices.length === 0) return null
+                  return (
+                    <div>
+                      <h3 className="text-sm font-bold mb-3 flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                        <Receipt className="h-4 w-4" />
+                        فاکتورها ({toPersianDigits(cInvoices.length)})
+                      </h3>
+                      <div className="space-y-2">
+                        {cInvoices.slice(0, 5).map(inv => {
+                          const statusInfo = getInvoiceStatusLabel(inv.status)
+                          return (
+                            <Card key={inv.id} className="glass-card shadow-sm border-0">
+                              <CardContent className="p-3 flex items-center justify-between">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-mono font-bold" dir="ltr">{inv.invoiceNumber}</p>
+                                  <p className="text-[10px] text-muted-foreground">{formatDateFA(inv.createdAt)}</p>
+                                </div>
+                                <div className="text-left shrink-0">
+                                  <Badge className={`text-[9px] border-0 ${statusInfo.color}`}>{statusInfo.label}</Badge>
+                                  <p className="text-xs font-bold tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">{formatDealValue(inv.total)}</p>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {/* Notes */}
                 {selectedContact.notes && (
@@ -1000,7 +1437,7 @@ export default function CrmPage() {
                                 <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{activity.description}</p>
                                 <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
                                   <Clock className="h-2.5 w-2.5" />
-                                  {activity.date} - {activity.time}
+                                  {activity.date} {activity.time ? `- ${activity.time}` : ''}
                                 </p>
                               </div>
                             </div>
@@ -1105,6 +1542,13 @@ export default function CrmPage() {
             <BarChart3 className="h-4 w-4" />
             <span className="hidden sm:inline">{labels.tabs.reports}</span>
           </TabsTrigger>
+          <TabsTrigger
+            value="crossModule"
+            className="gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-600 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-300"
+          >
+            <ExternalLink className="h-4 w-4" />
+            <span className="hidden sm:inline">{labels.tabs.crossModule}</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pipeline" className="mt-2">
@@ -1118,6 +1562,9 @@ export default function CrmPage() {
         </TabsContent>
         <TabsContent value="reports" className="mt-2">
           {renderReports()}
+        </TabsContent>
+        <TabsContent value="crossModule" className="mt-2">
+          {renderCrossModule()}
         </TabsContent>
       </Tabs>
 

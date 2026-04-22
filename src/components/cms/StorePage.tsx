@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -40,10 +40,19 @@ import {
   Clock, CheckCircle2, XCircle, AlertCircle, Archive, RotateCcw,
   Filter, Boxes, Store, BarChart3, CalendarDays, Hash, Weight,
   Ruler, Image, Layers, FileText, ArrowUpDown, PackageCheck, Warehouse,
+  TriangleAlert, UserCircle, FileCheck, CircleDollarSign, ArrowLeftRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRegisterStoreData, ContactCrossRef, ProductCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
 import { useCrossModuleStore } from '@/lib/cross-module-store'
+import { useCMSData } from './useCMSData'
+import { useEnsureData } from './useEnsureData'
+import type {
+  Product as ApiProduct, Order as ApiOrder, OrderItem as ApiOrderItem,
+  ProductCategory as ApiProductCategory, Coupon as ApiCoupon,
+  InventoryItem as ApiInventoryItem, Invoice as ApiInvoice, Customer,
+} from './types'
+import { formatDate } from './types'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -303,11 +312,192 @@ const emptyCoupon: Omit<Coupon, 'id'> = {
   allowedProducts: '', allowedCategories: '', active: true,
 }
 
+// ─── Revenue Dashboard Cards (extracted to avoid useMemo-in-JSX lint error) ──────────
+
+function RevenueDashboardCards({ orders }: { orders: Order[] }) {
+  const statusRevenue = useMemo(() => {
+    const map = new Map<string, number>()
+    orders.forEach(o => {
+      const current = map.get(o.status) ?? 0
+      map.set(o.status, current + o.total)
+    })
+    return map
+  }, [orders])
+
+  const totalRevenue = orders.reduce((s, o) => s + o.total, 0)
+  const completedRevenue = statusRevenue.get('completed') ?? 0
+  const pendingRevenue = (statusRevenue.get('pending') ?? 0) + (statusRevenue.get('processing') ?? 0)
+  const returnedAmount = statusRevenue.get('returned') ?? 0
+
+  return (
+    <>
+      {[
+        { label: 'کل فروش', value: totalRevenue, color: 'text-foreground', icon: CircleDollarSign },
+        { label: 'تکمیل شده', value: completedRevenue, color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 },
+        { label: 'در انتظار/پردازش', value: pendingRevenue, color: 'text-amber-600 dark:text-amber-400', icon: Clock },
+        { label: 'مرجوع شده', value: returnedAmount, color: 'text-red-600 dark:text-red-400', icon: RotateCcw },
+      ].map(item => (
+        <div key={item.label} className="p-3 rounded-lg border bg-background/40">
+          <div className="flex items-center gap-1.5 mb-1">
+            <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+            <span className="text-xs text-muted-foreground">{item.label}</span>
+          </div>
+          <p className={`text-sm font-bold tabular-nums ${item.color}`}>{formatPrice(item.value)} <span className="text-[10px] font-normal text-muted-foreground">تومان</span></p>
+        </div>
+      ))}
+    </>
+  )
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export default function StorePage() {
-  // ── Products State ──
+  // ── API Data Layer ──
+  const cms = useCMSData()
+  useEnsureData(['products', 'orders', 'product-categories', 'coupons', 'inventory', 'invoices', 'customers'])
+
+  const apiProducts = (cms.products.data ?? []) as ApiProduct[]
+  const apiOrders = (cms.orders.data ?? []) as ApiOrder[]
+  const apiProductCategories = (cms.productCategories.data ?? []) as ApiProductCategory[]
+  const apiCoupons = (cms.coupons.data ?? []) as ApiCoupon[]
+  const apiInventory = (cms.inventory.data ?? []) as ApiInventoryItem[]
+  const apiInvoices = (cms.invoices.data ?? []) as ApiInvoice[]
+  const apiCustomers = (cms.customers.data ?? []) as Customer[]
+
+  const isDataLoading = cms.products.isLoading || cms.orders.isLoading
+
+  // ── Inventory Lookup ──
+  const inventoryByProduct = useMemo(() => {
+    const map = new Map<string, ApiInventoryItem>()
+    apiInventory.forEach(inv => { if (inv.productId) map.set(inv.productId, inv) })
+    return map
+  }, [apiInventory])
+
+  // ── Invoice Lookup by Order ──
+  const invoicesByOrder = useMemo(() => {
+    const map = new Map<string, ApiInvoice[]>()
+    apiInvoices.forEach(inv => {
+      if (inv.orderId) {
+        const existing = map.get(inv.orderId) ?? []
+        existing.push(inv)
+        map.set(inv.orderId, existing)
+      }
+    })
+    return map
+  }, [apiInvoices])
+
+  // ── Customer Lookup ──
+  const customerById = useMemo(() => {
+    const map = new Map<string, Customer>()
+    apiCustomers.forEach(c => map.set(c.id, c))
+    return map
+  }, [apiCustomers])
+
+  // ── Derived data from API (useMemo avoids set-state-in-effect lint error) ──
+  const apiMappedProducts = useMemo<Product[]>(() => {
+    if (apiProducts.length === 0) return initialProducts
+    return apiProducts.map(p => {
+      const inv = inventoryByProduct.get(p.id)
+      return {
+        id: p.id,
+        name: p.name,
+        slug: p.sku?.toLowerCase().replace(/\s+/g, '-') ?? '',
+        shortDesc: p.description?.slice(0, 80) ?? '',
+        fullDesc: p.description ?? '',
+        price: p.price ?? 0,
+        salePrice: p.salePrice ?? 0,
+        sku: p.sku ?? '',
+        stock: inv?.stock ?? 0,
+        minStock: inv?.minStock ?? 5,
+        category: p.productCategory?.name ?? '',
+        tags: [],
+        image: '📦',
+        gallery: [],
+        status: (p.status === 'active' || p.status === 'inactive' || p.status === 'draft') ? p.status : 'draft',
+        weight: 0,
+        dimensions: '',
+        createdAt: formatDate(p.createdAt),
+      }
+    })
+  }, [apiProducts, inventoryByProduct])
+
+  const apiMappedOrders = useMemo<Order[]>(() => {
+    if (apiOrders.length === 0) return initialOrders
+    return apiOrders.map(o => {
+      const cust = customerById.get(o.customerId)
+      return {
+        id: o.id,
+        orderNumber: o.orderNumber ?? '',
+        customer: cust?.name ?? o.customerId ?? '',
+        customerPhone: cust?.phone ?? '',
+        items: (o.items ?? []).map((item: ApiOrderItem) => ({
+          name: item.product?.name ?? 'محصول',
+          quantity: item.quantity ?? 1,
+          price: item.unitPrice ?? 0,
+          total: item.totalPrice ?? 0,
+        })),
+        subtotal: o.subtotal ?? 0,
+        shippingCost: o.shippingCost ?? 0,
+        tax: o.tax ?? 0,
+        total: o.total ?? 0,
+        status: (['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'returned'].includes(o.status) ? o.status : 'pending') as Order['status'],
+        shippingAddress: o.shippingAddress ?? '',
+        notes: o.notes ?? '',
+        createdAt: formatDate(o.createdAt),
+      }
+    })
+  }, [apiOrders, customerById])
+
+  const apiMappedCategories = useMemo<Category[]>(() => {
+    if (apiProductCategories.length === 0) return initialCategories
+    return apiProductCategories.map(c => ({
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      description: c.description ?? '',
+      image: '📁',
+      parentId: null,
+      productCount: c.products?.length ?? 0,
+    }))
+  }, [apiProductCategories])
+
+  const apiMappedCoupons = useMemo<Coupon[]>(() => {
+    if (apiCoupons.length === 0) return initialCoupons
+    return apiCoupons.map(c => ({
+      id: c.id,
+      code: c.code ?? '',
+      type: (c.type === 'percent' || c.type === 'fixed') ? c.type : 'percent',
+      value: c.value ?? 0,
+      minOrder: c.minPurchase ?? 0,
+      maxDiscount: 0,
+      usedCount: c.usedCount ?? 0,
+      maxUsage: c.maxUses ?? 0,
+      startDate: c.createdAt ? formatDate(c.createdAt) : '',
+      expiryDate: c.expiresAt ? formatDate(c.expiresAt) : '',
+      allowedProducts: '',
+      allowedCategories: '',
+      active: c.active ?? false,
+    }))
+  }, [apiCoupons])
+
+  // ── Mutable local state (starts from API-mapped data, supports CRUD) ──
   const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [orders, setOrders] = useState<Order[]>(initialOrders)
+  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
+
+  // One-time sync from API to local state when API data first loads.
+  // This is an intentional one-time sync, not a reactive effect pattern.
+  const apiSynced = useMemo(() => apiProducts.length > 0 || apiOrders.length > 0, [apiProducts.length, apiOrders.length])
+  useEffect(() => {
+    if (apiSynced) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-time API→local state sync
+      setProducts(apiMappedProducts)
+      setOrders(apiMappedOrders)
+      setCategories(apiMappedCategories)
+      setCoupons(apiMappedCoupons)
+    }
+  }, [apiSynced])
   const [productSearch, setProductSearch] = useState('')
   const [productCategoryFilter, setProductCategoryFilter] = useState('all')
   const [productStatusFilter, setProductStatusFilter] = useState('all')
@@ -318,15 +508,13 @@ export default function StorePage() {
   const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false)
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null)
 
-  // ── Orders State ──
-  const [orders, setOrders] = useState<Order[]>(initialOrders)
+  // ── Orders State (local UI only) ──
   const [orderSearch, setOrderSearch] = useState('')
   const [orderStatusFilter, setOrderStatusFilter] = useState('all')
   const [orderDetailOpen, setOrderDetailOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
-  // ── Categories State ──
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  // ── Categories State (local UI only) ──
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [categoryForm, setCategoryForm] = useState<Omit<Category, 'id' | 'productCount'>>(emptyCategory)
@@ -341,8 +529,7 @@ export default function StorePage() {
   const [tagSelected, setTagSelected] = useState<Set<string>>(new Set())
   const [deleteTagDialogOpen, setDeleteTagDialogOpen] = useState(false)
 
-  // ── Coupons State ──
-  const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
+  // ── Coupons State (local UI only) ──
   const [couponDialogOpen, setCouponDialogOpen] = useState(false)
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null)
   const [couponForm, setCouponForm] = useState<Omit<Coupon, 'id'>>(emptyCoupon)
@@ -653,6 +840,63 @@ export default function StorePage() {
       <div className="flex items-center gap-3 flex-wrap">
         <CrossModuleSyncStatus />
       </div>
+
+      {/* ─── Cross-Module: Stock Alerts ─── */}
+      {(() => {
+        const lowStockProducts = products.filter(p => p.stock > 0 && p.stock <= p.minStock)
+        const outOfStockProducts = products.filter(p => p.stock === 0)
+        if (lowStockProducts.length === 0 && outOfStockProducts.length === 0) return null
+        return (
+          <Card className="border-amber-300 dark:border-amber-700 bg-amber-50/50 dark:bg-amber-950/20 glass-card shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <TriangleAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">هشدار موجودی انبار</span>
+                <Badge variant="outline" className="border-amber-300 text-amber-700 dark:text-amber-300 text-xs">
+                  {toPersianDigits(lowStockProducts.length + outOfStockProducts.length)} محصول
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                {[...outOfStockProducts.map(p => ({ ...p, alertLevel: 'out' as const })), ...lowStockProducts.map(p => ({ ...p, alertLevel: 'low' as const }))].map(p => (
+                  <div key={p.id} className="flex items-center gap-2 p-2 rounded-lg bg-background/60 border text-xs">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{p.name}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <Warehouse className="h-3 w-3 text-muted-foreground" />
+                        <span className={p.alertLevel === 'out' ? 'text-red-600 dark:text-red-400 font-bold' : 'text-amber-600 dark:text-amber-400'}>
+                          {toPersianDigits(p.stock)} / {toPersianDigits(p.minStock)}
+                        </span>
+                        {(() => {
+                          const inv = inventoryByProduct.get(p.id)
+                          return inv ? (
+                            <span className="text-muted-foreground mr-1">— {inv.warehouse}</span>
+                          ) : null
+                        })()}
+                      </div>
+                    </div>
+                    <Badge variant={p.alertLevel === 'out' ? 'destructive' : 'outline'} className={`text-[10px] shrink-0 ${p.alertLevel === 'low' ? 'border-amber-300 text-amber-700 dark:text-amber-300' : ''}`}>
+                      {p.alertLevel === 'out' ? 'ناموجود' : 'کمبود'}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )
+      })()}
+
+      {/* ─── Cross-Module: Revenue Dashboard ─── */}
+      <Card className="glass-card shadow-sm">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart3 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-sm font-semibold">داشبورد درآمد</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <RevenueDashboardCards orders={orders} />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ─── Main Tabs ─── */}
       <Tabs defaultValue="products" className="w-full" dir="rtl">
@@ -1761,6 +2005,54 @@ export default function StorePage() {
 
               {/* Cross-Module Contact Reference */}
               <ContactCrossRef contactName={selectedOrder.customer} currentModule="store" />
+
+              {/* Cross-Module: Invoice Links */}
+              {(() => {
+                const linkedInvoices = invoicesByOrder.get(selectedOrder.id)
+                if (!linkedInvoices || linkedInvoices.length === 0) return null
+                return (
+                  <Card className="glass-card shadow-sm border-cyan-200 dark:border-cyan-800">
+                    <CardContent className="p-3 space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
+                        <FileCheck className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400" />
+                        فاکتورهای مرتبط ({toPersianDigits(linkedInvoices.length)})
+                      </p>
+                      <div className="space-y-1.5">
+                        {linkedInvoices.map(inv => {
+                          const invStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
+                            paid: { label: 'پرداخت شده', color: 'text-emerald-700 dark:text-emerald-300', bg: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200' },
+                            unpaid: { label: 'پرداخت نشده', color: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200' },
+                            overdue: { label: 'سررسید شده', color: 'text-red-700 dark:text-red-300', bg: 'bg-red-100 dark:bg-red-900/30 border-red-200' },
+                            cancelled: { label: 'لغو شده', color: 'text-gray-500 dark:text-gray-400', bg: 'bg-gray-100 dark:bg-gray-800/30 border-gray-200' },
+                            draft: { label: 'پیش‌نویس', color: 'text-slate-600 dark:text-slate-300', bg: 'bg-slate-100 dark:bg-slate-800/30 border-slate-200' },
+                          }
+                          const sc = invStatusConfig[inv.status] ?? invStatusConfig.draft
+                          const invCust = customerById.get(inv.customerId)
+                          return (
+                            <div key={inv.id} className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/30 transition-colors">
+                              <div className="flex items-center gap-2">
+                                <Receipt className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400" />
+                                <div>
+                                  <p className="text-xs font-medium font-mono" dir="ltr">{inv.invoiceNumber}</p>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {invCust?.name ?? inv.customerId} · {invCust?.company ?? ''}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={`text-[10px] ${sc.color} ${sc.bg}`}>
+                                  {sc.label}
+                                </Badge>
+                                <span className="text-xs font-medium tabular-nums">{formatPrice(inv.total)}</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })()}
 
               {/* Order Items */}
               <Card className="glass-card shadow-sm">

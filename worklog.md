@@ -2038,3 +2038,315 @@ Stage Summary:
 - Transaction creation auto-updates bank account balance
 - Coupon codes auto-uppercased on creation
 - ESLint clean: 0 errors, 0 warnings
+
+---
+Task ID: 3-b
+Agent: Main Agent
+Task: Add business seed data with cross-module relations to /api/seed route
+
+Work Log:
+- Read existing worklog.md and seed route to understand patterns and Prisma schema
+- Read Prisma schema to understand all 12 new business models (ProductCategory, Product, Order, OrderItem, Coupon, InventoryItem, InboundRecord, OutboundRecord, Invoice, InvoiceItem, Transaction, BankAccount, CrmActivity, BudgetItem)
+- Added 12 sections of business seed data to /src/app/api/seed/route.ts after the quickNotes section:
+  1. Product Categories (4): الکترونیک, لباس, لوازم خانگی, کتاب
+  2. Products (10): Persian names, IRR prices, costs, SKUs, linked to product categories
+  3. Coupons (3): WELCOME10, SUMMER20, VIP30
+  4. Orders (6): ORD-1001 through ORD-1006, linked to real customers and products
+  5. Inventory Items (10): 1:1 with products, Persian warehouse names
+  6. Inbound Records (4): linked to inventory items, supplier names
+  7. Outbound Records (3): linked to inventory items and orders
+  8. Invoices (5): INV-2001 through INV-2005, linked to customers, some to orders
+  9. Bank Accounts (3): بانک ملی, بانک ملت, بانک صادرات
+  10. Transactions (10): income/expense, linked to invoices and bank accounts
+  11. CRM Activities (8): call/email/meeting/note/deal, linked to customers
+  12. Budget Items (5): بازاریابی, عملیات, حقوق و دستمزد, توسعه, نگهداری
+- All cross-module references verified working:
+  - Orders → real customer IDs + product IDs
+  - Invoices → real customer IDs + some order IDs
+  - Invoice items → real product IDs
+  - CRM activities → real customer IDs
+  - Inventory items → real product IDs (1:1)
+  - Transactions → real invoice IDs + bank account IDs
+  - Outbound records → real order IDs
+- Updated return counts in seed endpoint to include all new entities
+- Verified seed data via standalone script (all 85+ records created successfully)
+- ESLint: 0 errors, 0 warnings
+
+Stage Summary:
+- 1 file modified: src/app/api/seed/route.ts (890 → 1720 lines, +830 lines)
+- 12 new business entity seed sections added with full cross-module relations
+- Total seeded entities: 5 categories, 8 tags, 4 users, 12 posts, 11 comments, 8 customers, 7 projects, 7 team members, 4 media, 12 activity logs, 20 settings, 10 tasks, 4 quick notes, 4 product categories, 10 products, 3 coupons, 6 orders, 10 inventory items, 4 inbound records, 3 outbound records, 5 invoices, 10 transactions, 3 bank accounts, 8 CRM activities, 5 budget items
+---
+Task ID: 5-a
+Agent: Sub-agent (full-stack-developer)
+Task: Refactor CrmPage to use shared API data with cross-module integration
+
+Work Log:
+- Replaced local useState demo data (initialContacts, initialActivities) with API-driven data
+- Added useEnsureData([\"customers\", \"crm-activities\", \"orders\", \"invoices\"]) for lazy data loading
+- Added useCMS() hook to access shared data layer (customers, crmActivities, orders, invoices)
+- Mapped Customer model fields to existing Contact UI (name, email, phone, company → all exist on Customer)
+- Added Customer.status → CRM pipeline stage mapping (active→initial, lead→assessment, inactive→lost, churned→lost)
+- Added avatar pool with 16 emoji avatars assigned by index for customers without custom avatars
+- Derived activities from CrmActivity model with proper type mapping (call, email, meeting, note)
+- Added formatDateFA() and formatTimeFA() helpers using Intl.DateTimeFormat(\"fa-IR\")
+- Added getOrderStatusLabel() and getInvoiceStatusLabel() with full Persian labels and color variants
+- Added new \"ارتباطات بین‌ابزاری\" (Cross-Module Links) tab with 4 sections:
+  1. Quick Stats cards: مشتریان با سفارش فعال, فاکتورهای پرداخت‌نشده, ارزش کل سفارشات
+  2. Customer Orders table: order number, customer name, date, status badge, total amount
+  3. Customer Invoices table: invoice number, customer name, date, status badge, total amount
+  4. Purchase History: per-customer summary with order count, total spent, unpaid invoices count
+- Enhanced Contact Detail Sheet with cross-module data:
+  - Customer orders section (up to 5 recent orders with status badges)
+  - Customer invoices section (up to 5 recent invoices with status badges)
+- Added customerOrdersMap and customerInvoicesMap useMemo for efficient cross-reference lookups
+- Computed customersWithActiveOrders, unpaidInvoicesCount, totalOrderValue stats from real data
+- Added 3 new icons: Receipt, Wallet, Package, ExternalLink from lucide-react
+- Added comprehensive crossModule labels in Persian for all new UI elements
+- Empty state handling for orders, invoices, and activities when no data available
+- Verified: ESLint 0 errors, 0 warnings
+- Verified: Dev server HTTP 200, orders and invoices API endpoints working
+
+Stage Summary:
+- CrmPage now fully uses shared CMS data layer instead of local useState demo data
+- 5 data keys loaded via useEnsureData: customers, crm-activities, orders, invoices
+- 1 new tab added: ارتباطات بین‌ابزاری (Cross-Module Links) with 4 sections
+- Contact Detail Sheet enhanced with real order/invoice data per customer
+- All existing UI/tabs (Pipeline, Contacts, Activities, Reports) fully preserved
+- All Persian text and RTL layout maintained
+- ESLint: 0 errors, 0 warnings
+
+---
+Task ID: 5-c
+Agent: Main Agent
+Task: Refactor AccountingPage to use shared API data with cross-module integration
+
+Work Log:
+- Read current AccountingPage.tsx (1214 lines) — uses local useState() with hardcoded sample data for invoices, transactions, bank accounts
+- Read useCMSData.ts — confirmed available hooks: invoices, transactions, bankAccounts, customers queries + createInvoice/updateInvoice/deleteInvoice mutations
+- Read types.ts — confirmed API types: Invoice (with customer, order, items, transactions relations), InvoiceItem (with product relation), Transaction (with invoice, bankAccount relations), BankAccount
+- Read useEnsureData.ts — fetchQuery-based lazy loading pattern
+- Read CrossModulePanel.tsx and cross-module-store.ts — understood data registration format and cross-reference hooks
+
+- **Refactored data loading**:
+  - Replaced `useState<Invoice[]>(initialInvoices)` → `useCMS().invoices` query
+  - Replaced `useState<Transaction[]>(initialTransactions)` → `useCMS().transactions` query
+  - Replaced hardcoded `initialAccounts` → `useCMS().bankAccounts` query
+  - Added `useEnsureData(['invoices', 'transactions', 'bank-accounts', 'customers'])` for lazy data loading
+  - Added `isLoading` state with Loader2 spinner fallback
+  - Added `safeInvoices/safeTransactions/safeBankAccounts` fallbacks (empty arrays)
+
+- **Mapped API fields to existing UI**:
+  - `invoice.number` → `invoice.invoiceNumber`
+  - `invoice.customer` (string) → `invoice.customer?.name || invoice.customerId`
+  - `invoice.amount` → `invoice.total`
+  - `invoice.date` → `invoice.createdAt` (formatted via formatDateToPersian using Intl.DateTimeFormat('fa-IR'))
+  - `transaction.date` → `transaction.createdAt`
+  - `transaction.account` → `transaction.bankAccount?.name || '—'`
+  - Bank accounts: `bankName` → `name`, added `maskAccountNumber()` helper, `bankStyles` array for deterministic color/icon assignment
+
+- **Added cross-module reference sections**:
+  1. **Customer on Invoices**: Show customer name, company, and balance from `invoice.customer` relation in table and detail Sheet
+  2. **Order References**: New Card in invoice detail Sheet showing `invoice.order.orderNumber`, `invoice.order.status`, `invoice.order.total`
+  3. **Product Details**: Invoice items now show `item.product.name` and `item.product.sku` inline when product relation exists
+  4. **Transaction Links**: Transactions table shows linked `txn.invoice.invoiceNumber` via Link2 icon, and `txn.bankAccount.name` with `txn.reference`
+  5. **Financial Summary**: New Card below stat cards with 4 computed metrics: Total Receivable (unpaid), Total Paid, Overdue Amount, Bank Balances
+
+- **Enhanced Reports tab**:
+  - Monthly income/expense chart now computed dynamically from actual API transactions (with Persian month names)
+  - Category expense breakdown computed from expense transactions (grouped by category)
+  - Fallback to sample data when API returns no transactions
+
+- **Updated CRUD operations**:
+  - `handleSave` now uses `createInvoice.mutate()` / `updateInvoice.mutate()` with customer lookup
+  - `handleDelete` now uses `deleteInvoice.mutate()`
+  - `handleBatchStatus` now uses `updateInvoice.mutate()` per selected invoice
+  - Customer form field has `<datalist>` for autocomplete from API customers
+
+- **Computed overdue status**: Added `isOverdue()` helper — pending invoices past dueDate show 'overdue' status with red styling
+- **Extended status system**: Added draft, overdue, partial, sent statuses with proper icons and colors
+- **Cross-module registration**: Adapted `useRegisterAccountingData()` call with `useMemo` to map API Invoice/Transaction to expected format
+
+- Cleaned up unused imports (useEffect, Textarea, CardHeader, CardTitle, Building2, Eye, Filter, Users, etc.)
+- ESLint: 0 errors, 0 warnings
+- Dev server compiles successfully (HTTP 200)
+
+Stage Summary:
+- AccountingPage now fully uses shared CMS data layer instead of local useState demo data
+- 4 data keys loaded via useEnsureData: invoices, transactions, bank-accounts, customers
+- 5 cross-module integration features added (customer info, order refs, product details, transaction links, financial summary)
+- Reports tab dynamically computes data from API transactions
+- All existing UI/tabs (Invoices, Transactions, Bank Accounts, Reports) fully preserved
+- All Persian text, RTL layout, animations, and glass-card styling maintained
+- ESLint: 0 errors, 0 warnings
+- File size: 1214 → 1533 lines---
+Task ID: 5-e
+Agent: Main Agent
+Task: Refactor FinancePage to use shared API data with cross-module integration
+
+Work Log:
+- Read FinancePage.tsx (1384 lines) — component using local useState for transactions and budget data
+- Read useCMSData.ts — confirmed queries available: transactions, bankAccounts, budgets, invoices, orders
+- Read types.ts — confirmed Transaction, BankAccount, BudgetItem, Invoice, Order type definitions
+- Read useEnsureData.ts — confirmed fetchQuery pattern for lazy data loading
+- Read context.tsx — confirmed useCMS() hook via CMSProvider context
+
+- **Refactored data loading**:
+  - Replaced `useState<Transaction[]>(initialTransactions)` → `useCMS().transactions` query
+  - Replaced `useState<BudgetItem[]>(initialBudgetItems)` → `useCMS().budgets` query
+  - Added `useEnsureData(['transactions', 'bank-accounts', 'budgets', 'invoices', 'orders'])` for lazy loading
+  - Replaced local CRUD handlers with API mutations: `createTransaction`, `deleteTransaction`, `createBudgetItem`, `updateBudgetItem`
+  - Removed all local sample data arrays (initialTransactions, initialBudgetItems, cashFlowData, monthlyData)
+  - Added loading state with spinner when queries are fetching
+  - Added error toast notifications for failed mutations
+  - Added disabled states on buttons during pending mutations
+
+- **Added cross-module integration features**:
+  1. **Invoice-Transaction Links**: Transactions table shows invoice number badge when `invoiceId` is present; mobile cards also show linked invoice info
+  2. **Bank Account Balances**: New dashboard card showing total bank balance + individual account breakdowns from bankAccounts query
+  3. **Order Revenue**: New dashboard card showing revenue from completed/delivered orders with completion rate progress bar
+  4. **Budget vs Actual**: Budget tab now computes actual spending from transactions per budget category, showing over-budget warnings
+  5. **Cash Flow**: Income vs Expense from transactions, grouped by last 7 days dynamically
+  6. **Financial Dashboard**: Total income/expense from real transactions, net cash flow, budget utilization percentage, savings rate from real data
+
+- **Computed derived data from API**:
+  - monthlyData: grouped by month from real transactions (replaces hardcoded 12-month array)
+  - cashFlowData: computed from last 7 days of transactions (replaces hardcoded weekly data)
+  - incomeCategories/expenseCategories: dynamically extracted from transaction data
+  - budgetWithActual: API budgets merged with actual spending from transactions
+  - healthScore: computed from savings rates + budget adherence using real data
+
+- **Preserved all existing features**:
+  - All 4 tabs: Dashboard, Transactions, Budget, Reports
+  - All Persian text and RTL layout
+  - CrossModuleSyncStatus and ModuleStatsOverview panels
+  - HealthGauge component
+  - Transaction filtering (search, type, category)
+  - Running total calculation
+  - Export summary feature (now includes cross-module data)
+  - Mobile responsive card layout
+  - All glass-card, animate-in, hover-lift styling
+  - Cross-module store registration via useRegisterFinanceData
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings
+- FinancePage.tsx fully refactored from local state to shared CMS data layer
+- 6 cross-module integration features added
+- All derived data now computed dynamically from API data
+- Server compiles successfully (HTTP 200)
+- All existing UI/tabs preserved with enhanced data
+
+---
+Task ID: 5-d
+Agent: Main Agent
+Task: Refactor InventoryPage to use shared API data with cross-module integration
+
+Work Log:
+- Read InventoryPage.tsx (1407 lines), useCMSData.ts, types.ts, useEnsureData.ts
+- Identified API response wrapping issue: `/api/inventory` returns `{ inventoryItems: [...] }` but `inventoryItems` was not in WRAPPED_KEYS
+- Added `'inventoryItems'` to WRAPPED_KEYS in useCMSData.ts for auto-unwrap support
+- Completely rewrote InventoryPage.tsx to use shared CMS data layer:
+  - Replaced local `useState` with `useCMSData()` for `inventory`, `products`, `orders` queries
+  - Added `useEnsureData(['inventory', 'products', 'orders'])` for lazy data loading
+  - Removed all hardcoded sample data arrays (initialItems, initialInbound, initialOutbound)
+  - Removed CrossModulePanel and cross-module-store imports
+  - Created DisplayInventoryItem, DisplayInboundRecord, DisplayOutboundRecord derived types
+  - Used `useMemo` to derive display data from API InventoryItems with product relations
+- Added 5 cross-module integration features:
+  1. **Product Details**: Each inventory item shows product name, SKU, price, category from `item.product` relation
+  2. **Order References**: Outbound records show order number badge and customer name from `record.order` relation
+  3. **Stock Alerts**: Products where `stock <= minStock` show amber/red warning badges and alert panel
+  4. **Inventory Valuation**: Total inventory value calculated using `product.cost * inventory.stock` (cost basis)
+  5. **Movement Tracking**: Inbound/outbound records flattened from inventory item relations with supplier, quantity, unit cost, dates
+- Enhanced UI:
+  - Loading state with spinner when data is loading
+  - Empty state with helpful guidance message
+  - Product sale price discount indicator in table rows
+  - Category badges from product relations (dynamic, not hardcoded)
+  - Order number badges in outbound tab
+  - Unit cost column in inbound tab
+  - Product details panel in stock adjustment dialog
+  - Total movements summary in reports tab
+  - Badge counts on Inbound/Outbound tab triggers
+  - Mutation loading states on save buttons
+  - `formatRelativeTime()` for date display on records
+- Kept ALL existing UI/tabs (Inventory, Inbound, Outbound, Reports)
+- Kept Persian text and RTL layout
+- Kept all existing shadcn/ui components and styling classes
+- ESLint: 0 errors, 0 warnings (fully clean)
+- Server compiles successfully (HTTP 200)
+
+Stage Summary:
+- InventoryPage.tsx fully refactored from local state to shared CMS data layer
+- 5 cross-module integration features added (product details, order refs, stock alerts, valuation, movement tracking)
+- useCMSData.ts updated with `inventoryItems` in WRAPPED_KEYS
+- All derived data now computed dynamically from API data with product/order relations
+- Server compiles successfully (HTTP 200)
+- All existing UI/tabs preserved with enhanced data display
+
+---
+Task ID: cross-module-integration
+Agent: Main Agent + Sub-agents (full-stack-developer x7)
+Task: Integrate all CMS modules with cross-module data relations (products ↔ accounting ↔ CRM ↔ inventory ↔ finance)
+
+Work Log:
+- **Phase 1 — Updated Prisma Schema** (schema.prisma):
+  - Added 11 new models: Product, ProductCategory, Order, OrderItem, Coupon, InventoryItem, InboundRecord, OutboundRecord, Invoice, InvoiceItem, Transaction, BankAccount, CrmActivity, BudgetItem
+  - Enhanced Customer model with new fields: source, tags, address, city
+  - Added cross-module relations: Customer→orders, Customer→invoices, Customer→crmActivities; Product→orderItems, Product→invoiceItems, Product→inventory; Order→customer, Order→coupon, Order→invoices; InventoryItem→product; Invoice→customer, Invoice→order, Invoice→items, Invoice→transactions; Transaction→invoice, Transaction→bankAccount; CrmActivity→customer
+  - Ran migration: prisma migrate dev --name init_business
+
+- **Phase 2 — Created 15 API Routes**:
+  - /api/products + /api/products/[id] — full CRUD with filtering (status, category, featured, search)
+  - /api/product-categories — full CRUD
+  - /api/orders + /api/orders/[id] — full CRUD with auto-generated order numbers
+  - /api/invoices + /api/invoices/[id] — full CRUD with auto-generated invoice numbers
+  - /api/inventory + /api/inventory/[id] — full CRUD with low-stock filter
+  - /api/transactions — POST with auto bank account balance update
+  - /api/bank-accounts — GET/POST with transaction count
+  - /api/crm-activities + /api/crm-activities/[id] — full CRUD with customer/type filter
+  - /api/coupons — GET/POST with active filter
+  - /api/budgets — GET/POST with category/period filter
+
+- **Phase 3 — Updated Seed Data** (seed/route.ts, 890→1720 lines, +830 lines):
+  - 4 Product Categories (الکترونیک, لباس, لوازم خانگی, کتاب)
+  - 10 Products with IRR prices, SKUs, cross-references to categories and inventory
+  - 3 Coupons (WELCOME10, SUMMER20, VIP30)
+  - 6 Orders linked to real customers and products, with various statuses
+  - 10 Inventory items (1:1 with products), Persian warehouse names
+  - 4 Inbound records with supplier names and unit costs
+  - 3 Outbound records linked to orders
+  - 5 Invoices linked to customers, some with order references, including line items with products
+  - 3 Bank Accounts (بانک ملی, بانک ملت, بانک صادرات)
+  - 10 Transactions linked to invoices and bank accounts, Persian categories
+  - 8 CRM Activities (call, email, meeting, note, deal) linked to real customers
+  - 5 Budget Items (بازاریابی, عملیات, حقوق و دستمزد, توسعه, نگهداری)
+
+- **Phase 4 — Updated Types and Data Layer**:
+  - Added 15 new TypeScript interfaces to types.ts
+  - Added 7 new fields to Stats interface (totalProducts, totalOrders, totalInvoices, totalInventoryValue, pendingOrders, unpaidInvoices, lowStockProducts)
+  - Added 10 new API endpoints to useCMSData.ts
+  - Added 10 new wrapped keys for auto-unwrap
+  - Added 10 new QUERY_CONFIGS entries
+  - Added 10 new lazy queries (all enabled: false)
+  - Added 22 new mutations for CRUD operations
+
+- **Phase 5 — Refactored All 5 Business Pages**:
+  - CrmPage: Replaced local contacts/activities with API customers/crmActivities + added cross-module tab (customer orders, invoices, purchase history)
+  - StorePage: Replaced local products/orders/categories/coupons with API data + added inventory stock display, customer info on orders, invoice links, stock alerts
+  - AccountingPage: Replaced local invoices/transactions/bankAccounts with API data + added customer details, order references, product details, transaction links, financial summary
+  - InventoryPage: Replaced local inventory with API data + added product details, order references, stock alerts, inventory valuation, movement tracking
+  - FinancePage: Replaced local transactions/budgets with API data + added invoice-transaction links, bank balances, order revenue, budget vs actual, cash flow, financial dashboard
+
+- **Phase 6 — Cross-Module Integration Infrastructure**:
+  - Created CrossModulePanel.tsx (shared cross-module UI components)
+  - Created cross-module-store.ts (Zustand store for cross-module state)
+
+Stage Summary:
+- ESLint: 0 errors, 0 warnings across all files
+- 15 new API routes created
+- 11 new Prisma models with full cross-module relations
+- All 5 business pages refactored from local state to shared API data
+- Cross-module data flowing: Products↔Inventory↔Orders↔Invoices↔Customers↔CRM↔Accounting↔Finance
+- Database seeded with realistic Persian business data (10 products, 6 orders, 5 invoices, 3 bank accounts, 10 transactions, 8 CRM activities)
+- Server compiles and runs successfully (HTTP 200)
