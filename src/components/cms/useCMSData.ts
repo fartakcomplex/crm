@@ -52,7 +52,7 @@ const api = {
 // ---------------------------------------------------------------------------
 
 // Known API response wrappers: { entityName: [...], total, page, limit }
-const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes', 'events', 'products', 'orders', 'invoices', 'inventory', 'inventoryItems', 'transactions', 'bank-accounts', 'crm-activities', 'coupons', 'budgets', 'product-categories', 'productCategories']
+const WRAPPED_KEYS = ['posts', 'users', 'customers', 'projects', 'members', 'media', 'comments', 'categories', 'tags', 'activities', 'settings', 'notifications', 'tasks', 'notes', 'events', 'products', 'orders', 'invoices', 'inventory', 'inventoryItems', 'transactions', 'bankAccounts', 'bank-accounts', 'crmActivities', 'crm-activities', 'coupons', 'budgets', 'budgetItems', 'product-categories', 'productCategories']
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init })

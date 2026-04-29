@@ -1571,7 +1571,7 @@ function FloatingActionBar() {
   ]
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4">
       {/* Expanded action buttons */}
       <div
         className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${

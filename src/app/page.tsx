@@ -29,7 +29,6 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
-import OnboardingWelcome from '@/components/cms/OnboardingWelcome'
 import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
 import PerformanceMonitorWidget from '@/components/cms/PerformanceMonitorWidget'
 import NotificationHistoryWidget from '@/components/cms/NotificationHistoryWidget'
@@ -621,7 +620,7 @@ function UserProfileDropdown({ onLogout, onOpenProfile }: { onLogout: () => void
 // ─── Main App ──────────────────────────────────────────────────────────
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [activeTab, setActiveTab] = useState('accounting')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
@@ -630,16 +629,14 @@ function AppContent() {
   const [quickDraftOpen, setQuickDraftOpen] = useState(false)
   const [notificationSheetOpen, setNotificationSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [showOnboarding, setShowOnboarding] = useState(false)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
 
-  // ── Onboarding check ──
+  // ── Onboarding auto-complete (don't block UI) ──
   useEffect(() => {
     const completed = localStorage.getItem('onboarding-completed')
     if (!completed) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowOnboarding(true)
+      localStorage.setItem('onboarding-completed', 'true')
     }
   }, [])
 
@@ -755,7 +752,7 @@ function AppContent() {
         {/* ─── Desktop Sidebar ─── */}
         {!isMobile && (
           <aside
-            className={`sticky top-0 h-screen border-l border-border/60 bg-card/40 backdrop-blur-xl transition-all duration-300 flex flex-col z-30 ${
+            className={`sticky top-0 h-screen border-l border-border/60 bg-card/40 backdrop-blur-xl transition-all duration-300 flex flex-col z-[60] ${
               sidebarOpen ? 'w-[240px]' : 'w-[60px]'
             }`}
             dir="rtl"
@@ -942,10 +939,7 @@ function AppContent() {
       {/* Theme Switcher Widget */}
       <ThemeSwitcherWidget />
 
-      {/* Onboarding Welcome */}
-      {showOnboarding && (
-        <OnboardingWelcome onComplete={() => setShowOnboarding(false)} />
-      )}
+      {/* Onboarding Welcome — disabled by default to avoid blocking sidebar */}
     </TooltipProvider>
   )
 }

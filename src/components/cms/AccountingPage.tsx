@@ -262,9 +262,9 @@ export default function AccountingPage() {
   const { getContactByName } = useCrossModuleStore()
 
   // ── Derived Invoice Data ──
-  const safeInvoices = invoices ?? []
-  const safeTransactions = transactions ?? []
-  const safeBankAccounts = bankAccounts ?? []
+  const safeInvoices = Array.isArray(invoices) ? invoices : []
+  const safeTransactions = Array.isArray(transactions) ? transactions : []
+  const safeBankAccounts = Array.isArray(bankAccounts) ? bankAccounts : []
 
   const paidInvoices = useMemo(() => safeInvoices.filter(i => i.status === 'paid'), [safeInvoices])
   const unpaidInvoices = useMemo(() => safeInvoices.filter(i => i.status === 'pending'), [safeInvoices])
