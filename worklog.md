@@ -1151,3 +1151,26 @@ Stage Summary:
 - AI Content Studio component created with comprehensive feature catalog
 - 100 AI features across 8 categories with full interactivity
 - Production-ready with real API integration for text generation features
+---
+Task ID: 11
+Agent: Main Agent
+Task: Fix menu click bug, create GitHub release v2.1.0
+
+Work Log:
+- Investigated menu click issue with Explore sub-agent
+- Found CRITICAL bug: Duplicate Sheet component (lines 787-802) creating double Radix portal overlays
+  that blocked all page interaction on mobile and potentially on desktop
+- Found MODERATE bug: Tooltip component wrapping itself in TooltipProvider, creating 22+ nested
+  providers that could cause event handling conflicts
+- Fixed both bugs:
+  1. Removed orphan Sheet component, kept only the Sheet inside header with SheetTrigger
+  2. Simplified Tooltip to not wrap in TooltipProvider (top-level provider suffices)
+- Ran lint: 0 errors, 0 warnings
+- Committed fixes, created tag v2.1.0, pushed to GitHub
+- Created GitHub release: https://github.com/fartakcomplex/crm/releases/tag/v2.1.0
+
+Stage Summary:
+- 2 critical bugs fixed (duplicate Sheet overlay + nested TooltipProvider)
+- Release v2.1.0 created and pushed to GitHub
+- All 13 prior commits pushed to origin/main
+- Lint clean (0 errors)
