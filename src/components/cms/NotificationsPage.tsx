@@ -221,7 +221,7 @@ export default function NotificationsPage() {
             variant="outline"
             onClick={handleMarkAllRead}
             disabled={unreadCount === 0}
-            className="btn-ghost-subtle gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="btn-ghost-subtle gap-2 border-purple-300 dark:border-purple-700 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 animated-underline"
           >
             {markAllNotificationsRead.isPending ? (
               <div className="h-4 w-4 border-2 border-purple-400/30 border-t-purple-500 rounded-full animate-spin" />
@@ -234,7 +234,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* ─── Filter Tabs with Count Badges ─── */}
-      <Card className="glass-card shadow-sm card-inner-glow animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
+      <Card className="glass-card card-elevated shadow-sm card-inner-glow animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
         <CardContent className="p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
             <Filter className="h-4 w-4" />
@@ -276,7 +276,7 @@ export default function NotificationsPage() {
 
       {/* ─── Notifications List ─── */}
       {filtered.length === 0 ? (
-        <Card className="glass-card card-inner-glow shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+        <Card className="glass-card card-elevated card-inner-glow shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
           <CardContent className="flex flex-col items-center justify-center py-20 text-muted-foreground">
             <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-100 to-fuchsia-100 dark:from-purple-900/20 dark:to-fuchsia-800/20 flex items-center justify-center mb-5 float-animation">
               <Inbox className="h-12 w-12 text-purple-300" />
@@ -320,7 +320,7 @@ export default function NotificationsPage() {
                             onClick={() => { setSelectedNotification(n); if (!n.read) handleMarkRead(n.id) }}
                             className={`
                               ${config.bg} ${config.border} ${config.borderAccent}
-                              glass-card card-inner-glow hover-lift shadow-sm animate-in cursor-pointer
+                              glass-card card-elevated card-inner-glow hover-lift list-item-hover shadow-sm animate-in cursor-pointer
                               transition-all duration-300 scale-in
                               ${!n.read ? 'ring-1 ring-purple-300/50 dark:ring-purple-700/50' : 'opacity-80 hover:opacity-100'}
                             `}

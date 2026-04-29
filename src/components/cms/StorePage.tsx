@@ -795,7 +795,7 @@ export default function StorePage() {
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">مدیریت فروشگاه</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">مدیریت فروشگاه</h1>
           <p className="text-sm text-muted-foreground mt-0.5">مدیریت کامل محصولات، سفارشات و تنظیمات فروشگاه</p>
         </div>
         <div className="flex items-center gap-2">
@@ -889,11 +889,11 @@ export default function StorePage() {
       })()}
 
       {/* ─── Cross-Module: Revenue Dashboard ─── */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card card-elevated shadow-sm">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span className="text-sm font-semibold">داشبورد درآمد</span>
+            <span className="text-sm font-semibold text-gradient-violet">داشبورد درآمد</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <RevenueDashboardCards orders={orders} />
@@ -948,7 +948,7 @@ export default function StorePage() {
           </div>
 
           {/* Filters & Actions Bar */}
-          <Card className="glass-card-pink shadow-sm">
+          <Card className="glass-card-pink card-elevated shadow-sm">
             <CardContent className="p-4 space-y-3">
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                 {/* Search */}
@@ -1033,7 +1033,7 @@ export default function StorePage() {
           </Card>
 
           {/* Products Table */}
-          <Card className="glass-card shadow-sm">
+          <Card className="glass-card card-elevated card-gradient-border shadow-sm">
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 <Table>
@@ -1060,7 +1060,7 @@ export default function StorePage() {
                     {filteredProducts.map(product => {
                       const sc = productStatusConfig[product.status]
                       return (
-                        <TableRow key={product.id} className="group" data-state={productSelected.has(product.id) ? 'selected' : undefined}>
+                        <TableRow key={product.id} className="group card-press" data-state={productSelected.has(product.id) ? 'selected' : undefined}>
                           <TableCell className="p-3">
                             <Checkbox
                               checked={productSelected.has(product.id)}
@@ -1140,9 +1140,12 @@ export default function StorePage() {
                   </TableBody>
                 </Table>
                 {filteredProducts.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <Package className="h-12 w-12 mb-3 opacity-40" />
-                    <p className="text-sm font-medium">محصولی یافت نشد</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <div className="h-16 w-16 rounded-2xl glass-card flex items-center justify-center mb-4 float-animation shadow-inner">
+                      <Package className="h-8 w-8 opacity-40" />
+                    </div>
+                    <p className="text-sm font-semibold">محصولی یافت نشد</p>
+                    <p className="text-xs text-muted-foreground mt-1">فیلترها را تغییر دهید یا محصول جدیدی اضافه کنید</p>
                   </div>
                 )}
               </div>
@@ -1172,7 +1175,7 @@ export default function StorePage() {
           </div>
 
           {/* Filters */}
-          <Card className="glass-card-pink shadow-sm">
+          <Card className="glass-card-pink card-elevated shadow-sm">
             <CardContent className="p-4 space-y-3">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1 w-full">
@@ -1204,7 +1207,7 @@ export default function StorePage() {
           </Card>
 
           {/* Orders Table */}
-          <Card className="glass-card shadow-sm">
+          <Card className="glass-card card-elevated shadow-sm">
             <CardContent className="p-0">
               <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
                 <Table>
@@ -1262,9 +1265,12 @@ export default function StorePage() {
                   </TableBody>
                 </Table>
                 {filteredOrders.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <ShoppingCart className="h-12 w-12 mb-3 opacity-40" />
-                    <p className="text-sm font-medium">سفارشی یافت نشد</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <div className="h-16 w-16 rounded-2xl glass-card flex items-center justify-center mb-4 float-animation shadow-inner">
+                      <ShoppingCart className="h-8 w-8 opacity-40" />
+                    </div>
+                    <p className="text-sm font-semibold">سفارشی یافت نشد</p>
+                    <p className="text-xs text-muted-foreground mt-1">فیلترها را تغییر دهید</p>
                   </div>
                 )}
               </div>

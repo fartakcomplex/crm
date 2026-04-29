@@ -366,14 +366,14 @@ export default function ContentPage() {
             <Download className="h-4 w-4" />
             خروجی CSV
           </Button>
-          <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+          <Button className="gap-2 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-700 hover:to-cyan-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md shine-effect" onClick={openCreate}>
             <Plus className="h-4 w-4" />{labels.create}
           </Button>
         </div>
       </div>
 
       {/* Filters */}
-      <Card className="glass-card shadow-sm">
+      <Card className="glass-card card-elevated shadow-sm">
         <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -399,7 +399,7 @@ export default function ContentPage() {
       </Card>
 
       {/* Posts Table */}
-      <Card className="glass-card shadow-sm overflow-hidden">
+      <Card className="glass-card card-elevated card-gradient-border shadow-sm overflow-hidden">
         {/* Table header area with columns visibility toggle */}
         {filtered.length > 0 && (
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
@@ -495,7 +495,7 @@ export default function ContentPage() {
                     return (
                       <TableRow
                         key={post.id}
-                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
+                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer list-item-hover ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         onClick={() => setPreviewPost(post)}
                       >
@@ -512,13 +512,13 @@ export default function ContentPage() {
                               <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
                                 <FileText className="h-4 w-4" />
                               </div>
-                              <div className="font-medium max-w-[200px] truncate">{post.title}</div>
+                              <div className="font-medium max-w-[200px] truncate animated-underline">{post.title}</div>
                             </div>
                           </TableCell>
                         )}
                         {visibleColumns.status && (
                           <TableCell>
-                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm`}>
+                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm ${post.status === 'published' ? 'badge-gradient' : post.status === 'draft' ? 'badge-gradient' : ''}`}>
                               {statusLabels[post.status] ?? post.status}
                             </Badge>
                           </TableCell>
