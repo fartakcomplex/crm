@@ -1,16 +1,41 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { PrismaClient } from '@prisma/client'
 
-// POST seed the database with sample data (idempotent)
-export async function POST() {
+// Fresh PrismaClient used only for newly-added models (bypasses hot-reload cache)
+function getFreshDb() {
+  return new PrismaClient({ log: ['error'] })
+}
+
+// Helper: millisecond day multiplier
+const DAY = 24 * 60 * 60 * 1000
+const HOUR = 60 * 60 * 1000
+
+// POST /api/seed?force=true — seed the database (idempotent, or force-reseed)
+export async function POST(request: NextRequest) {
   try {
-    // Check if data already exists
-    const existingUsers = await db.user.count()
-    if (existingUsers > 0) {
-      return NextResponse.json({
-        message: 'Database already seeded',
-        seeded: false,
-      })
+    const { searchParams } = new URL(request.url)
+    const force = searchParams.get('force') === 'true'
+
+    // --- Force reset: wipe all tables ---
+    if (force) {
+      await db.$executeRawUnsafe(`PRAGMA foreign_keys = OFF`)
+      const tables = await db.$queryRawUnsafe<{ name: string }[]>(
+        `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name`
+      )
+      for (const table of tables) {
+        await db.$executeRawUnsafe(`DELETE FROM "${table.name}"`)
+      }
+      await db.$executeRawUnsafe(`PRAGMA foreign_keys = ON`)
+    } else {
+      // Idempotent check
+      const existingUsers = await db.user.count()
+      if (existingUsers > 0) {
+        return NextResponse.json({
+          message: 'Database already seeded',
+          seeded: false,
+        })
+      }
     }
 
     // --- Create Categories ---
@@ -96,7 +121,7 @@ export async function POST() {
           featured: true,
           authorId: users[0].id,
           categoryId: categories[0].id,
-          publishedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 5 * DAY),
           tags: {
             create: [
               { tagId: tags[2].id },
@@ -116,7 +141,7 @@ export async function POST() {
           featured: false,
           authorId: users[1].id,
           categoryId: categories[1].id,
-          publishedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 3 * DAY),
           tags: {
             create: [{ tagId: tags[6].id }, { tagId: tags[4].id }],
           },
@@ -132,7 +157,7 @@ export async function POST() {
           featured: true,
           authorId: users[2].id,
           categoryId: categories[2].id,
-          publishedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 1 * DAY),
           tags: {
             create: [{ tagId: tags[5].id }],
           },
@@ -180,7 +205,6 @@ export async function POST() {
           categoryId: categories[2].id,
         },
       }),
-      // ─── New Posts (6 additional) ───
       db.post.create({
         data: {
           title: 'Tips for Better TypeScript Code',
@@ -191,7 +215,7 @@ export async function POST() {
           featured: false,
           authorId: users[0].id,
           categoryId: categories[0].id,
-          publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 7 * DAY),
           tags: {
             create: [{ tagId: tags[3].id }, { tagId: tags[0].id }],
           },
@@ -207,7 +231,7 @@ export async function POST() {
           featured: true,
           authorId: users[1].id,
           categoryId: categories[1].id,
-          publishedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 2 * DAY),
           tags: {
             create: [{ tagId: tags[6].id }, { tagId: tags[4].id }, { tagId: tags[2].id }],
           },
@@ -238,7 +262,7 @@ export async function POST() {
           featured: false,
           authorId: users[3].id,
           categoryId: categories[0].id,
-          publishedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          publishedAt: new Date(Date.now() - 10 * DAY),
           tags: {
             create: [{ tagId: tags[7].id }, { tagId: tags[0].id }, { tagId: tags[3].id }],
           },
@@ -323,7 +347,6 @@ export async function POST() {
           postId: posts[0].id,
         },
       }),
-      // ─── New Comments (6 additional) ───
       db.comment.create({
         data: {
           content: 'This TypeScript article finally made generics click for me. Excellent explanation!',
@@ -432,7 +455,6 @@ export async function POST() {
           value: 4200,
         },
       }),
-      // ─── New Customers (3 additional) ───
       db.customer.create({
         data: {
           name: 'Cyberdyne Systems',
@@ -474,8 +496,8 @@ export async function POST() {
           status: 'active',
           progress: 65,
           priority: 'high',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 30 * DAY),
+          dueDate: new Date(Date.now() + 15 * DAY),
         },
       }),
       db.project.create({
@@ -485,8 +507,8 @@ export async function POST() {
           status: 'planning',
           progress: 15,
           priority: 'high',
-          startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          dueDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 7 * DAY),
+          dueDate: new Date(Date.now() + 90 * DAY),
         },
       }),
       db.project.create({
@@ -496,8 +518,8 @@ export async function POST() {
           status: 'active',
           progress: 40,
           priority: 'medium',
-          startDate: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-          dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 14 * DAY),
+          dueDate: new Date(Date.now() + 45 * DAY),
         },
       }),
       db.project.create({
@@ -507,8 +529,8 @@ export async function POST() {
           status: 'completed',
           progress: 100,
           priority: 'low',
-          startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-          dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 60 * DAY),
+          dueDate: new Date(Date.now() - 5 * DAY),
         },
       }),
       db.project.create({
@@ -518,10 +540,9 @@ export async function POST() {
           status: 'planning',
           progress: 5,
           priority: 'medium',
-          dueDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + 60 * DAY),
         },
       }),
-      // ─── New Projects (2 additional) ───
       db.project.create({
         data: {
           title: 'Analytics Dashboard',
@@ -529,8 +550,8 @@ export async function POST() {
           status: 'active',
           progress: 35,
           priority: 'high',
-          startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 10 * DAY),
+          dueDate: new Date(Date.now() + 30 * DAY),
         },
       }),
       db.project.create({
@@ -540,7 +561,7 @@ export async function POST() {
           status: 'planning',
           progress: 0,
           priority: 'medium',
-          dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + 45 * DAY),
         },
       }),
     ])
@@ -602,7 +623,6 @@ export async function POST() {
           joinedAt: new Date('2024-01-05'),
         },
       }),
-      // ─── New Team Members (2 additional) ───
       db.teamMember.create({
         data: {
           name: 'Rachel Foster',
@@ -678,7 +698,7 @@ export async function POST() {
           action: 'post.published',
           details: 'Published "Getting Started with Next.js 14"',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 5 * DAY),
         },
       }),
       db.activityLog.create({
@@ -686,7 +706,7 @@ export async function POST() {
           action: 'comment.approved',
           details: 'Approved comment from John Doe on "Getting Started with Next.js 14"',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 4 * DAY),
         },
       }),
       db.activityLog.create({
@@ -694,7 +714,7 @@ export async function POST() {
           action: 'post.created',
           details: 'Created draft "Building a SaaS Business from Scratch"',
           userId: users[1].id,
-          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 3 * DAY),
         },
       }),
       db.activityLog.create({
@@ -702,7 +722,7 @@ export async function POST() {
           action: 'user.updated',
           details: 'Updated profile for Emily Davis',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.activityLog.create({
@@ -710,7 +730,7 @@ export async function POST() {
           action: 'media.uploaded',
           details: 'Uploaded "Hero Banner"',
           userId: users[1].id,
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 1 * DAY),
         },
       }),
       db.activityLog.create({
@@ -718,7 +738,7 @@ export async function POST() {
           action: 'settings.updated',
           details: 'Updated SEO settings',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 12 * HOUR),
         },
       }),
       db.activityLog.create({
@@ -726,7 +746,7 @@ export async function POST() {
           action: 'comment.created',
           details: 'New comment pending review from Bob Wilson',
           userId: null,
-          createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 6 * HOUR),
         },
       }),
       db.activityLog.create({
@@ -734,16 +754,15 @@ export async function POST() {
           action: 'project.updated',
           details: 'Updated progress of "Website Redesign" to 65%',
           userId: users[2].id,
-          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 3 * HOUR),
         },
       }),
-      // ─── New Activity Logs (4 additional) ───
       db.activityLog.create({
         data: {
           action: 'post.published',
           details: 'Published "Tailwind CSS v4 New Features"',
           userId: users[1].id,
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.activityLog.create({
@@ -751,7 +770,7 @@ export async function POST() {
           action: 'customer.created',
           details: 'Added new customer "Cyberdyne Systems"',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 8 * DAY),
         },
       }),
       db.activityLog.create({
@@ -759,7 +778,7 @@ export async function POST() {
           action: 'team.member_added',
           details: 'Rachel Foster joined the Engineering team',
           userId: users[0].id,
-          createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 14 * DAY),
         },
       }),
       db.activityLog.create({
@@ -767,35 +786,30 @@ export async function POST() {
           action: 'media.uploaded',
           details: 'Uploaded "Company Logo" for brand assets',
           userId: users[1].id,
-          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 10 * DAY),
         },
       }),
     ])
 
     // --- Create Settings ---
     const defaultSettings = [
-      // General
       { key: 'site_name', value: 'Smart CMS', group: 'general' },
       { key: 'site_description', value: 'Intelligent Content Management System', group: 'general' },
       { key: 'site_url', value: 'https://smartcms.com', group: 'general' },
       { key: 'site_language', value: 'en', group: 'general' },
       { key: 'timezone', value: 'UTC', group: 'general' },
-      // SEO
       { key: 'seo_title_template', value: '%title% | %sitename%', group: 'seo' },
       { key: 'meta_description', value: 'Smart CMS - A powerful content management system', group: 'seo' },
       { key: 'og_image', value: '/uploads/og-default.jpg', group: 'seo' },
       { key: 'robots_txt', value: 'User-agent: *\nAllow: /', group: 'seo' },
-      // AI
       { key: 'ai_provider', value: 'glm', group: 'ai' },
       { key: 'ai_model', value: 'GLM-5-turbo', group: 'ai' },
       { key: 'ai_default_tone', value: 'professional', group: 'ai' },
       { key: 'ai_max_tokens', value: '4096', group: 'ai' },
-      // Content
       { key: 'posts_per_page', value: '10', group: 'content' },
       { key: 'auto_save_interval', value: '30', group: 'content' },
       { key: 'default_post_status', value: 'draft', group: 'content' },
       { key: 'comment_moderation', value: 'true', group: 'content' },
-      // Security
       { key: 'max_login_attempts', value: '5', group: 'security' },
       { key: 'session_timeout', value: '3600', group: 'security' },
       { key: 'two_factor_auth', value: 'false', group: 'security' },
@@ -805,16 +819,16 @@ export async function POST() {
 
     // --- Create Tasks ---
     const taskData = [
-      { title: 'نوشتن مقاله جدید درباره هوش مصنوعی', description: 'مقاله جامع درباره کاربردهای جدید هوش مصنوعی در صنعت', status: 'todo', priority: 'high', dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), tags: 'محتوا, AI' },
-      { title: 'بررسی و تایید نظرات جدید', description: 'بررسی نظرات در انتظار تایید و پاسخ به آنها', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), tags: 'محتوا' },
-      { title: 'به‌روزرسانی صفحه درباره ما', description: 'اضافه کردن اطلاعات جدید تیم و پروژه‌ها', status: 'in-progress', priority: 'medium', dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), tags: 'وبسایت' },
-      { title: 'طراحی لوگوی جدید', description: 'طراحی لوگوی جدید برند با همکاری تیم طراحی', status: 'in-progress', priority: 'high', dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), tags: 'طراحی, برند' },
-      { title: 'انتشار مقاله SEO', description: 'نهایی‌سازی و انتشار مقاله بهینه‌سازی موتور جستجو', status: 'review', priority: 'low', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), tags: 'SEO, محتوا' },
-      { title: 'تست فرم تماس با ما', description: 'بررسی عملکرد فرم تماس و ارسال ایمیل', status: 'review', priority: 'medium', dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), tags: 'تست' },
-      { title: 'پشتیبان‌گیری از دیتابیس', description: 'ایجاد نسخه پشتیبان کامل از دیتابیس', status: 'done', priority: 'high', dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), tags: 'امنیت' },
-      { title: 'افزودن نقشه سایت', description: 'ایجاد و ثبت sitemap.xml در موتورهای جستجو', status: 'done', priority: 'low', dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), tags: 'SEO' },
-      { title: 'بهینه‌سازی سرعت سایت', description: 'تحلیل و بهبود سرعت بارگذاری صفحات', status: 'todo', priority: 'critical', dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), tags: 'عملکرد' },
-      { title: 'ایمیل خبرنامه ماهانه', description: 'تهیه و ارسال خبرنامه ماهانه برای مشترکان', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000), tags: 'بازاریابی, ایمیل' },
+      { title: 'نوشتن مقاله جدید درباره هوش مصنوعی', description: 'مقاله جامع درباره کاربردهای جدید هوش مصنوعی در صنعت', status: 'todo', priority: 'high', dueDate: new Date(Date.now() + 3 * DAY), tags: 'محتوا, AI' },
+      { title: 'بررسی و تایید نظرات جدید', description: 'بررسی نظرات در انتظار تایید و پاسخ به آنها', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 1 * DAY), tags: 'محتوا' },
+      { title: 'به‌روزرسانی صفحه درباره ما', description: 'اضافه کردن اطلاعات جدید تیم و پروژه‌ها', status: 'in-progress', priority: 'medium', dueDate: new Date(Date.now() + 5 * DAY), tags: 'وبسایت' },
+      { title: 'طراحی لوگوی جدید', description: 'طراحی لوگوی جدید برند با همکاری تیم طراحی', status: 'in-progress', priority: 'high', dueDate: new Date(Date.now() + 7 * DAY), tags: 'طراحی, برند' },
+      { title: 'انتشار مقاله SEO', description: 'نهایی‌سازی و انتشار مقاله بهینه‌سازی موتور جستجو', status: 'review', priority: 'low', dueDate: new Date(Date.now() + 2 * DAY), tags: 'SEO, محتوا' },
+      { title: 'تست فرم تماس با ما', description: 'بررسی عملکرد فرم تماس و ارسال ایمیل', status: 'review', priority: 'medium', dueDate: new Date(Date.now() + 1 * DAY), tags: 'تست' },
+      { title: 'پشتیبان‌گیری از دیتابیس', description: 'ایجاد نسخه پشتیبان کامل از دیتابیس', status: 'done', priority: 'high', dueDate: new Date(Date.now() - 1 * DAY), tags: 'امنیت' },
+      { title: 'افزودن نقشه سایت', description: 'ایجاد و ثبت sitemap.xml در موتورهای جستجو', status: 'done', priority: 'low', dueDate: new Date(Date.now() - 3 * DAY), tags: 'SEO' },
+      { title: 'بهینه‌سازی سرعت سایت', description: 'تحلیل و بهبود سرعت بارگذاری صفحات', status: 'todo', priority: 'critical', dueDate: new Date(Date.now() + 2 * DAY), tags: 'عملکرد' },
+      { title: 'ایمیل خبرنامه ماهانه', description: 'تهیه و ارسال خبرنامه ماهانه برای مشترکان', status: 'todo', priority: 'medium', dueDate: new Date(Date.now() + 10 * DAY), tags: 'بازاریابی, ایمیل' },
     ] as const
 
     await Promise.all(
@@ -869,7 +883,6 @@ export async function POST() {
     // Business Seed Data — Cross-Module Integration
     // =========================================================================
 
-    // Get existing customers for cross-module references
     const allCustomers = await db.customer.findMany()
 
     // --- 1. Product Categories ---
@@ -1028,7 +1041,7 @@ export async function POST() {
           maxUses: 100,
           usedCount: 23,
           active: true,
-          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + 30 * DAY),
         },
       }),
       db.coupon.create({
@@ -1040,7 +1053,7 @@ export async function POST() {
           maxUses: 50,
           usedCount: 31,
           active: true,
-          expiresAt: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + 15 * DAY),
         },
       }),
       db.coupon.create({
@@ -1052,12 +1065,12 @@ export async function POST() {
           maxUses: 10,
           usedCount: 5,
           active: true,
-          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          expiresAt: new Date(Date.now() + 60 * DAY),
         },
       }),
     ])
 
-    // --- 4. Orders (linked to REAL customers & products) ---
+    // --- 4. Orders (linked to customers & products) ---
     const orders = await Promise.all([
       db.order.create({
         data: {
@@ -1072,7 +1085,7 @@ export async function POST() {
           shippingAddress: 'تهران، خیابان ولیعصر، پلاک ۱۲۳',
           notes: 'تحویل در ساعات اداری',
           couponId: coupons[0].id,
-          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 20 * DAY),
           items: {
             create: [
               { productId: products[0].id, quantity: 1, unitPrice: 45000000, totalPrice: 45000000 },
@@ -1093,7 +1106,7 @@ export async function POST() {
           total: 4885000,
           shippingAddress: 'اصفهان، خیابان چهارباغ، کوچه ۵',
           notes: '',
-          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 10 * DAY),
           items: {
             create: [
               { productId: products[4].id, quantity: 1, unitPrice: 4800000, totalPrice: 4800000 },
@@ -1114,7 +1127,7 @@ export async function POST() {
           shippingAddress: 'شیراز، بلوار ارم، ساختمان آریا',
           notes: 'تماس قبل از ارسال',
           couponId: coupons[1].id,
-          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 3 * DAY),
           items: {
             create: [
               { productId: products[5].id, quantity: 1, unitPrice: 15000000, totalPrice: 15000000 },
@@ -1134,7 +1147,7 @@ export async function POST() {
           total: 65200000,
           shippingAddress: 'مشهد، خیابان امام رضا، نبش خیابان ۱۲',
           notes: 'پیشتاز شبانه',
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 1 * DAY),
           items: {
             create: [
               { productId: products[1].id, quantity: 1, unitPrice: 65000000, totalPrice: 65000000 },
@@ -1154,7 +1167,7 @@ export async function POST() {
           total: 3425000,
           shippingAddress: 'تبریز، خیابان استقلال، پلاک ۴۵',
           notes: 'کنسلی توسط مشتری',
-          createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 15 * DAY),
           items: {
             create: [
               { productId: products[3].id, quantity: 1, unitPrice: 2500000, totalPrice: 2500000 },
@@ -1175,7 +1188,7 @@ export async function POST() {
           total: 5920000,
           shippingAddress: 'کرج، میدان مادر، خیابان فردوسی',
           notes: '',
-          createdAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 25 * DAY),
           items: {
             create: [
               { productId: products[6].id, quantity: 1, unitPrice: 5800000, totalPrice: 5800000 },
@@ -1195,13 +1208,13 @@ export async function POST() {
             minStock: [10, 5, 10, 20, 10, 5, 5, 50, 5, 5][index],
             warehouse: ['انبار مرکزی تهران', 'انبار مرکزی تهران', 'انبار شمال', 'انبار مرکزی تهران', 'انبار جنوب', 'انبار مرکزی تهران', 'انبار مرکزی تهران', 'انبار دیجیتال', 'انبار مرکزی تهران', 'انبار مرکزی تهران'][index],
             location: ['قفسه A-1', 'قفسه A-3', 'قفسه B-2', 'قفسه C-1', 'قفسه C-4', 'قفسه D-1', 'قفسه D-3', 'انبار مجازی', 'قفسه A-5', 'قفسه E-1'][index],
-            lastRestocked: new Date(Date.now() - [3, 7, 1, 5, 2, 10, 4, 1, 14, 6][index] * 24 * 60 * 60 * 1000),
+            lastRestocked: new Date(Date.now() - [3, 7, 1, 5, 2, 10, 4, 1, 14, 6][index] * DAY),
           },
         })
       )
     )
 
-    // --- 6. Inbound Records (linked to inventory items) ---
+    // --- 6. Inbound Records ---
     await Promise.all([
       db.inboundRecord.create({
         data: {
@@ -1211,7 +1224,7 @@ export async function POST() {
           supplier: 'شرکت سامسونگ ایران',
           unitCost: 38000000,
           notes: 'تامین محموله فصلی گوشی گلکسی',
-          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 3 * DAY),
         },
       }),
       db.inboundRecord.create({
@@ -1222,7 +1235,7 @@ export async function POST() {
           supplier: 'کارخانه نساجی پارس',
           unitCost: 1100000,
           notes: 'تامین پیراهن مردانه برای فصل بهار',
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 5 * DAY),
         },
       }),
       db.inboundRecord.create({
@@ -1233,7 +1246,7 @@ export async function POST() {
           supplier: 'شیائومی گلوبال',
           unitCost: 10000000,
           notes: 'واردات جاروبرقی رباتیک',
-          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 10 * DAY),
         },
       }),
       db.inboundRecord.create({
@@ -1244,12 +1257,12 @@ export async function POST() {
           supplier: 'ایسوس خاورمیانه',
           unitCost: 56000000,
           notes: 'محموله لپ‌تاپ ایسوس',
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 7 * DAY),
         },
       }),
     ])
 
-    // --- 7. Outbound Records (some linked to orders) ---
+    // --- 7. Outbound Records ---
     await Promise.all([
       db.outboundRecord.create({
         data: {
@@ -1258,7 +1271,7 @@ export async function POST() {
           orderId: orders[0].id,
           reference: 'SHIP-1001',
           notes: 'ارسال سفارش ORD-1001',
-          createdAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 18 * DAY),
         },
       }),
       db.outboundRecord.create({
@@ -1268,7 +1281,7 @@ export async function POST() {
           orderId: orders[2].id,
           reference: 'SHIP-1003',
           notes: 'ارسال سفارش ORD-1003',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.outboundRecord.create({
@@ -1278,12 +1291,12 @@ export async function POST() {
           orderId: orders[1].id,
           reference: 'SHIP-1002',
           notes: 'ارسال سفارش ORD-1002 به اصفهان',
-          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 8 * DAY),
         },
       }),
     ])
 
-    // --- 8. Invoices (linked to REAL customers, some to orders) ---
+    // --- 8. Invoices (linked to customers & orders) ---
     const invoices = await Promise.all([
       db.invoice.create({
         data: {
@@ -1295,8 +1308,8 @@ export async function POST() {
           tax: 2850000,
           discount: 5250000,
           total: 54600000,
-          dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          paidAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() - 10 * DAY),
+          paidAt: new Date(Date.now() - 12 * DAY),
           notes: 'فاکتور فروش گوشی و هدفون',
           items: {
             create: [
@@ -1316,7 +1329,7 @@ export async function POST() {
           tax: 240000,
           discount: 0,
           total: 5040000,
-          dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + 5 * DAY),
           notes: 'فاکتور فروش کاپشن زنانه',
           items: {
             create: [
@@ -1335,7 +1348,7 @@ export async function POST() {
           tax: 750000,
           discount: 1500000,
           total: 14250000,
-          dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() + 20 * DAY),
           notes: 'فاکتور فروش جاروبرقی رباتیک',
           items: {
             create: [
@@ -1354,7 +1367,7 @@ export async function POST() {
           tax: 3250000,
           discount: 0,
           total: 68250000,
-          dueDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() - 5 * DAY),
           notes: 'فاکتور فروش لپ‌تاپ — سررسید گذشته',
           items: {
             create: [
@@ -1372,7 +1385,7 @@ export async function POST() {
           tax: 167500,
           discount: 0,
           total: 3517500,
-          dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+          dueDate: new Date(Date.now() - 10 * DAY),
           notes: 'فاکتور کنسل شده — درخواست مشتری',
           items: {
             create: [
@@ -1415,8 +1428,8 @@ export async function POST() {
       }),
     ])
 
-    // --- 10. Transactions (some linked to invoices and bank accounts) ---
-    await Promise.all([
+    // --- 10. Transactions ---
+    const transactions = await Promise.all([
       db.transaction.create({
         data: {
           type: 'income',
@@ -1426,7 +1439,7 @@ export async function POST() {
           invoiceId: invoices[0].id,
           bankAccountId: bankAccounts[0].id,
           reference: 'TXN-3001',
-          createdAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 12 * DAY),
         },
       }),
       db.transaction.create({
@@ -1437,7 +1450,7 @@ export async function POST() {
           category: 'خرید',
           bankAccountId: bankAccounts[0].id,
           reference: 'TXN-3002',
-          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 3 * DAY),
         },
       }),
       db.transaction.create({
@@ -1448,7 +1461,7 @@ export async function POST() {
           category: 'حقوق',
           bankAccountId: bankAccounts[1].id,
           reference: 'TXN-3003',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.transaction.create({
@@ -1459,7 +1472,7 @@ export async function POST() {
           category: 'اجاره',
           bankAccountId: bankAccounts[0].id,
           reference: 'TXN-3004',
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 1 * DAY),
         },
       }),
       db.transaction.create({
@@ -1471,7 +1484,7 @@ export async function POST() {
           invoiceId: invoices[1].id,
           bankAccountId: bankAccounts[1].id,
           reference: 'TXN-3005',
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 5 * DAY),
         },
       }),
       db.transaction.create({
@@ -1482,7 +1495,7 @@ export async function POST() {
           category: 'تبلیغات',
           bankAccountId: bankAccounts[2].id,
           reference: 'TXN-3006',
-          createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 4 * DAY),
         },
       }),
       db.transaction.create({
@@ -1493,19 +1506,19 @@ export async function POST() {
           category: 'خرید',
           bankAccountId: bankAccounts[2].id,
           reference: 'TXN-3007',
-          createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 8 * DAY),
         },
       }),
       db.transaction.create({
         data: {
           type: 'income',
           amount: 5920000,
-          description: 'پرداخت فاکتور INV-2006 — Soylent Corp',
+          description: 'پرداخت فاکتور INV-2005 — Soylent Corp',
           category: 'فروش',
           invoiceId: invoices[4].id,
           bankAccountId: bankAccounts[0].id,
           reference: 'TXN-3008',
-          createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 20 * DAY),
         },
       }),
       db.transaction.create({
@@ -1516,7 +1529,7 @@ export async function POST() {
           category: 'حقوق',
           bankAccountId: bankAccounts[1].id,
           reference: 'TXN-3009',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.transaction.create({
@@ -1528,12 +1541,12 @@ export async function POST() {
           invoiceId: invoices[2].id,
           bankAccountId: bankAccounts[0].id,
           reference: 'TXN-3010',
-          createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          createdAt: new Date(Date.now() - 1 * DAY),
         },
       }),
     ])
 
-    // --- 11. CRM Activities (linked to REAL customers) ---
+    // --- 11. CRM Activities ---
     await Promise.all([
       db.crmActivity.create({
         data: {
@@ -1542,8 +1555,8 @@ export async function POST() {
           title: 'تماس پیگیری سفارش',
           description: 'تماس با مشتری جهت پیگیری تحویل سفارش ORD-1001',
           outcome: 'موفق — مشتری رضایت داشت',
-          scheduledAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 18 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 18 * DAY),
+          completedAt: new Date(Date.now() - 18 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1553,8 +1566,8 @@ export async function POST() {
           title: 'ارسال پیشنهاد ویژه',
           description: 'ارسال ایمیل با تخفیف ۲۰٪ برای خریدهای بعدی',
           outcome: 'باز شده — لینک کلیک شده',
-          scheduledAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 7 * DAY),
+          completedAt: new Date(Date.now() - 7 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1564,8 +1577,8 @@ export async function POST() {
           title: 'جلسه مذاکره قرارداد',
           description: 'جلسه حضوری برای بررسی قرارداد سالانه همکاری',
           outcome: 'توافق اولیه — منتظر تایید نهایی',
-          scheduledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 2 * DAY),
+          completedAt: new Date(Date.now() - 2 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1575,7 +1588,7 @@ export async function POST() {
           title: 'مذاکره خرید عمده',
           description: 'درخواست خرید ۵۰ دستگاه لپ‌تاپ با تخفیف ویژه',
           outcome: 'در حال بررسی قیمت',
-          scheduledAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() + 3 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1585,8 +1598,8 @@ export async function POST() {
           title: 'یادداشت تماس مشتری',
           description: 'مشتری درخواست استرداد وجه سفارش کنسل شده را دارد',
           outcome: '',
-          scheduledAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 1 * DAY),
+          completedAt: new Date(Date.now() - 1 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1596,8 +1609,8 @@ export async function POST() {
           title: 'ارسال فاکتور',
           description: 'ارسال فاکتور خرید آب‌میوه‌گیری فیلیپس',
           outcome: 'تحویل داده شد',
-          scheduledAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 22 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 22 * DAY),
+          completedAt: new Date(Date.now() - 22 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1607,8 +1620,8 @@ export async function POST() {
           title: 'پیگیری پرداخت',
           description: 'تماس جهت پیگیری فاکتور سررسید گذشته INV-2004',
           outcome: 'مشتری قول پرداخت تا پایان هفته را داد',
-          scheduledAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-          completedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() - 1 * DAY),
+          completedAt: new Date(Date.now() - 1 * DAY),
         },
       }),
       db.crmActivity.create({
@@ -1618,13 +1631,13 @@ export async function POST() {
           title: 'جلسه بررسی نیازهای جدید',
           description: 'بررسی نیازهای فناوری اطلاعات شرکت Acme برای فصل بعد',
           outcome: '',
-          scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+          scheduledAt: new Date(Date.now() + 5 * DAY),
         },
       }),
     ])
 
     // --- 12. Budget Items ---
-    await Promise.all([
+    const budgetItems = await Promise.all([
       db.budgetItem.create({
         data: {
           name: 'بودجه بازاریابی',
@@ -1632,8 +1645,8 @@ export async function POST() {
           allocated: 200000000,
           spent: 145000000,
           period: 'monthly',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 30 * DAY),
+          endDate: new Date(Date.now()),
         },
       }),
       db.budgetItem.create({
@@ -1643,8 +1656,8 @@ export async function POST() {
           allocated: 350000000,
           spent: 310000000,
           period: 'monthly',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 30 * DAY),
+          endDate: new Date(Date.now()),
         },
       }),
       db.budgetItem.create({
@@ -1654,8 +1667,8 @@ export async function POST() {
           allocated: 500000000,
           spent: 470000000,
           period: 'monthly',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 30 * DAY),
+          endDate: new Date(Date.now()),
         },
       }),
       db.budgetItem.create({
@@ -1665,8 +1678,8 @@ export async function POST() {
           allocated: 300000000,
           spent: 180000000,
           period: 'quarterly',
-          startDate: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 90 * DAY),
+          endDate: new Date(Date.now()),
         },
       }),
       db.budgetItem.create({
@@ -1676,15 +1689,446 @@ export async function POST() {
           allocated: 80000000,
           spent: 62000000,
           period: 'monthly',
-          startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          endDate: new Date(Date.now() + 0 * 24 * 60 * 60 * 1000),
+          startDate: new Date(Date.now() - 30 * DAY),
+          endDate: new Date(Date.now()),
         },
       }),
     ])
 
+    // =========================================================================
+    // NEW SEED DATA — Task 4 Enhancements
+    // =========================================================================
+
+    // --- 13. Additional Activity Logs (5 store-related) ---
+    await Promise.all([
+      db.activityLog.create({
+        data: {
+          action: 'order.created',
+          details: 'سفارش جدید ORD-1004 ثبت شد — لپ‌تاپ ایسوس ZenBook 14',
+          userId: null,
+          createdAt: new Date(Date.now() - 1 * DAY),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'order.shipped',
+          details: 'سفارش ORD-1002 به اصفهان ارسال شد',
+          userId: users[0].id,
+          createdAt: new Date(Date.now() - 8 * DAY),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'product.created',
+          details: 'محصول جدید "جاروبرقی رباتیک شیائومی" اضافه شد',
+          userId: users[1].id,
+          createdAt: new Date(Date.now() - 12 * DAY),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'inventory.low_stock',
+          details: 'هشدار: موجودی جاروبرقی رباتیک (۸ عدد) کمتر از حداقل است',
+          userId: null,
+          createdAt: new Date(Date.now() - 6 * HOUR),
+        },
+      }),
+      db.activityLog.create({
+        data: {
+          action: 'order.delivered',
+          details: 'سفارش ORD-1001 با موفقیت تحویل داده شد — Acme Corporation',
+          userId: users[0].id,
+          createdAt: new Date(Date.now() - 18 * DAY),
+        },
+      }),
+    ])
+
+    // --- 14. Additional Invoices (3 more) ---
+    const extraInvoices = await Promise.all([
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2006',
+          customerId: allCustomers[3].id,
+          status: 'paid',
+          subtotal: 14250000,
+          tax: 712500,
+          discount: 0,
+          total: 14962500,
+          dueDate: new Date(Date.now() - 15 * DAY),
+          paidAt: new Date(Date.now() - 18 * DAY),
+          notes: 'فاکتور فروش جاروبرقی — پرداخت کامل',
+          items: {
+            create: [
+              { productId: products[5].id, description: 'جاروبرقی رباتیک شیائومی', quantity: 1, unitPrice: 14250000, total: 14250000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2007',
+          customerId: allCustomers[7].id,
+          orderId: orders[5].id,
+          status: 'sent',
+          subtotal: 5800000,
+          tax: 290000,
+          discount: 0,
+          total: 6090000,
+          dueDate: new Date(Date.now() + 7 * DAY),
+          notes: 'فاکتور آب‌میوه‌گیری فیلیپس — ارسال شده',
+          items: {
+            create: [
+              { productId: products[6].id, description: 'آب‌میوه‌گیری چندکاره فیلیپس', quantity: 1, unitPrice: 5800000, total: 5800000 },
+            ],
+          },
+        },
+      }),
+      db.invoice.create({
+        data: {
+          invoiceNumber: 'INV-2008',
+          customerId: allCustomers[0].id,
+          status: 'draft',
+          subtotal: 57000000,
+          tax: 2850000,
+          discount: 5700000,
+          total: 54150000,
+          dueDate: new Date(Date.now() + 30 * DAY),
+          notes: 'پیش‌فاکتور سفارش تکراری مشتری — منتظر تایید',
+          items: {
+            create: [
+              { productId: products[0].id, description: 'گوشی هوشمند گلکسی S24', quantity: 1, unitPrice: 42000000, total: 42000000 },
+              { productId: products[2].id, description: 'هدفون بی‌سیم ایرپاد پرو', quantity: 1, unitPrice: 10500000, total: 10500000 },
+              { productId: products[7].id, description: 'آموزش پیشرفته React', quantity: 1, unitPrice: 650000, total: 650000 },
+            ],
+          },
+        },
+      }),
+    ])
+
+    // --- 15. Additional Transactions (5 more) ---
+    await Promise.all([
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 14962500,
+          description: 'پرداخت فاکتور INV-2006 — Wayne Tech',
+          category: 'فروش',
+          invoiceId: extraInvoices[0].id,
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3011',
+          createdAt: new Date(Date.now() - 18 * DAY),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 12000000,
+          description: 'تمدید لایسنس سرور و دامنه',
+          category: 'زیرساخت',
+          bankAccountId: bankAccounts[2].id,
+          reference: 'TXN-3012',
+          createdAt: new Date(Date.now() - 6 * DAY),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'income',
+          amount: 25000000,
+          description: 'پروژه طراحی وب‌سایت — پرداخت مرحله اول',
+          category: 'پروژه',
+          bankAccountId: bankAccounts[1].id,
+          reference: 'TXN-3013',
+          createdAt: new Date(Date.now() - 9 * DAY),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 8500000,
+          description: 'خرید اشتراک ابزارهای طراحی — Figma و Adobe CC',
+          category: 'اشتراک',
+          bankAccountId: bankAccounts[1].id,
+          reference: 'TXN-3014',
+          createdAt: new Date(Date.now() - 3 * DAY),
+        },
+      }),
+      db.transaction.create({
+        data: {
+          type: 'expense',
+          amount: 50000000,
+          description: 'هزینه سفر کاری تیم فروش — نمایشگاه صنعت',
+          category: 'سفر',
+          bankAccountId: bankAccounts[0].id,
+          reference: 'TXN-3015',
+          createdAt: new Date(Date.now() - 11 * DAY),
+        },
+      }),
+    ])
+
+    // --- 16. Notifications (18 realistic Persian notifications) ---
+    // Use fresh PrismaClient to ensure the newly-added model is available
+    const freshDb = getFreshDb()
+    const notifications = await Promise.all([
+      freshDb.notification.create({
+        data: {
+          title: 'مقاله جدید منتشر شد',
+          message: 'مقاله "شروع با Next.js 14" با موفقیت منتشر شد.',
+          type: 'success',
+          read: false,
+          createdAt: new Date(Date.now() - 30 * 60 * 1000),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'نظر جدید در انتظار بررسی',
+          message: 'نظر از رضا محمدی روی مقاله "بهترین روش‌های سئو ۲۰۲۴" نیاز به بررسی دارد.',
+          type: 'warning',
+          read: false,
+          createdAt: new Date(Date.now() - 2 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'بروزرسانی سیستم',
+          message: 'سیستم مدیریت محتوا Smart CMS به نسخه ۲.۰ ارتقا یافت.',
+          type: 'info',
+          read: true,
+          createdAt: new Date(Date.now() - 5 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'پروژه "بازطراحی وب‌سایت" به ۶۵٪ رسید',
+          message: 'پیشرفت پروژه وب‌سایت به ۶۵ درصد رسید. مهلت پایان ۱۵ روز دیگر است.',
+          type: 'info',
+          read: true,
+          createdAt: new Date(Date.now() - 8 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'خطا در پشتیبان‌گیری',
+          message: 'پشتیبان‌گیری خودکار شبانه با خطا مواجه شد. لطفاً بررسی کنید.',
+          type: 'error',
+          read: false,
+          createdAt: new Date(Date.now() - 12 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'کاربر جدید ثبت‌نام کرد',
+          message: 'کاربر جدید "نازنین پارک" در سیستم ثبت‌نام کرد.',
+          type: 'success',
+          read: true,
+          createdAt: new Date(Date.now() - 1 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'سفارش جدید ثبت شد',
+          message: 'سفارش ORD-1004 از مشتری Stark Enterprises ثبت شد — مبلغ ۶۵,۲۰۰,۰۰۰ تومان.',
+          type: 'info',
+          read: false,
+          createdAt: new Date(Date.now() - 1 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'هشدار موجودی کم',
+          message: 'موجودی جاروبرقی رباتیک شیائومی به ۸ عدد رسیده و کمتر از حداقل مجاز است.',
+          type: 'warning',
+          read: false,
+          createdAt: new Date(Date.now() - 6 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'فاکتور سررسید گذشته',
+          message: 'فاکتور INV-2004 مربوط به Stark Enterprises سررسید گذشته و مبلغ ۶۸,۲۵۰,۰۰۰ تومان واریز نشده.',
+          type: 'error',
+          read: false,
+          createdAt: new Date(Date.now() - 5 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'سفارش با موفقیت تحویل داده شد',
+          message: 'سفارش ORD-1001 به آدرس تهران، خیابان ولیعصر تحویل داده شد.',
+          type: 'success',
+          read: true,
+          createdAt: new Date(Date.now() - 18 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'تخفیف ویژه تابستانه',
+          message: 'کد تخفیف SUMMER20 با ۲۰٪ تخفیف فعال شد و به ۵۰ استفاده می‌رسد.',
+          type: 'info',
+          read: true,
+          createdAt: new Date(Date.now() - 3 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'مشتری جدید اضافه شد',
+          message: 'شرکت "فناوری گاما" به عنوان مشتری بالقوه در سیستم ثبت شد.',
+          type: 'success',
+          read: true,
+          createdAt: new Date(Date.now() - 4 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'مهلت تسک نزدیک است',
+          message: 'تسک "بررسی و تایید نظرات جدید" فردا سررسید می‌شود.',
+          type: 'warning',
+          read: false,
+          createdAt: new Date(Date.now() - 8 * HOUR),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'خرید عمده جدید',
+          message: 'درخواست خرید ۵۰ دستگاه لپ‌تاپ از Wayne Tech دریافت شد.',
+          type: 'info',
+          read: false,
+          createdAt: new Date(Date.now() - 2 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'پرداخت موفق فاکتور',
+          message: 'مبلغ ۵۴,۶۰۰,۰۰۰ تومان برای فاکتور INV-2001 از Acme Corporation واریز شد.',
+          type: 'success',
+          read: true,
+          createdAt: new Date(Date.now() - 12 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'خطای پرداخت درگاه',
+          message: 'یک تراکنش از درگاه پرداخت به دلیل قطع ارتباط با بانک ناموفق بود.',
+          type: 'error',
+          read: false,
+          createdAt: new Date(Date.now() - 45 * 60 * 1000),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'همگام‌سازی وردپرس موفق',
+          message: '۳ مقاله جدید از سایت وردپرس با موفقیت همگام‌سازی شدند.',
+          type: 'success',
+          read: true,
+          createdAt: new Date(Date.now() - 2 * DAY),
+        },
+      }),
+      freshDb.notification.create({
+        data: {
+          title: 'گواهی SSL منقضی می‌شود',
+          message: 'گواهی SSL دامنه اصلی تا ۷ روز دیگر منقضی می‌شود. لطفاً اقدام کنید.',
+          type: 'warning',
+          read: false,
+          createdAt: new Date(Date.now() - 3 * HOUR),
+        },
+      }),
+    ])
+    await freshDb.$disconnect()
+
+    // --- 17. Calendar Events (7 events with Persian titles) ---
+    const calendarEvents = await Promise.all([
+      db.calendarEvent.create({
+        data: {
+          title: 'جلسه هفتگی تیم فنی',
+          description: 'بررسی وضعیت پروژه‌ها و برنامه‌ریزی هفته آینده',
+          startDate: new Date(Date.now() + 1 * DAY + 10 * HOUR),
+          endDate: new Date(Date.now() + 1 * DAY + 12 * HOUR),
+          allDay: false,
+          color: 'blue',
+          location: 'اتاق جلسات ۱ — طبقه دوم',
+          type: 'meeting',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'جشن سالگرد تاسیس شرکت',
+          description: 'مراسم جشن سالگرد پنجم تاسیس شرکت با حضور همه اعضا',
+          startDate: new Date(Date.now() + 5 * DAY),
+          endDate: new Date(Date.now() + 5 * DAY),
+          allDay: true,
+          color: 'violet',
+          location: 'سالن همایش‌های البرز',
+          type: 'event',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'آموزش React Server Components',
+          description: 'جلسه آموزشی داخلی درباره الگوهای پیشرفته RSC و Next.js 16',
+          startDate: new Date(Date.now() + 2 * DAY + 14 * HOUR),
+          endDate: new Date(Date.now() + 2 * DAY + 17 * HOUR),
+          allDay: false,
+          color: 'emerald',
+          location: 'آنلاین — Google Meet',
+          type: 'event',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'جلسه مذاکره با مشتری — Wayne Tech',
+          description: 'بحث درباره قرارداد سالانه و خرید عمده تجهیزات',
+          startDate: new Date(Date.now() + 3 * DAY + 11 * HOUR),
+          endDate: new Date(Date.now() + 3 * DAY + 13 * HOUR),
+          allDay: false,
+          color: 'orange',
+          location: 'دفتر مشتری — مشهد',
+          type: 'meeting',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'مهلت تحویل پروژه بازطراحی',
+          description: 'مهلت نهایی تحویل فاز اول پروژه بازطراحی وب‌سایت',
+          startDate: new Date(Date.now() + 15 * DAY),
+          endDate: new Date(Date.now() + 15 * DAY),
+          allDay: true,
+          color: 'red',
+          location: '',
+          type: 'deadline',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'نمایشگاه بین‌المللی فناوری',
+          description: 'شرکت در نمایشگاه و غرفه‌گذاری محصولات شرکت',
+          startDate: new Date(Date.now() + 20 * DAY),
+          endDate: new Date(Date.now() + 22 * DAY),
+          allDay: true,
+          color: 'purple',
+          location: 'محل نمایشگاه تهران',
+          type: 'event',
+        },
+      }),
+      db.calendarEvent.create({
+        data: {
+          title: 'بازبینی عملکرد فصلی',
+          description: 'ارائه گزارش عملکرد Q2 و برنامه‌ریزی Q3 — حضور مدیران ارشد الزامی',
+          startDate: new Date(Date.now() + 10 * DAY + 9 * HOUR),
+          endDate: new Date(Date.now() + 10 * DAY + 12 * HOUR),
+          allDay: false,
+          color: 'cyan',
+          location: 'اتاق جلسات اصلی',
+          type: 'meeting',
+        },
+      }),
+    ])
+
+    // =========================================================================
+    // Return summary
+    // =========================================================================
     return NextResponse.json({
-      message: 'Database seeded successfully',
+      message: force ? 'Database force-reseeded successfully' : 'Database seeded successfully',
       seeded: true,
+      forced: !!force,
       counts: {
         categories: categories.length,
         tags: tags.length,
@@ -1694,7 +2138,7 @@ export async function POST() {
         projects: 7,
         teamMembers: 7,
         media: 4,
-        activityLogs: 12,
+        activityLogs: 17,
         settings: defaultSettings.length,
         tasks: taskData.length,
         quickNotes: 4,
@@ -1706,11 +2150,14 @@ export async function POST() {
         inventoryItems: inventoryItems.length,
         inboundRecords: 4,
         outboundRecords: 3,
-        invoices: invoices.length,
-        transactions: 10,
+        invoices: invoices.length + extraInvoices.length,
+        transactions: transactions.length + 5,
         bankAccounts: bankAccounts.length,
         crmActivities: 8,
-        budgetItems: 5,
+        budgetItems: budgetItems.length,
+        // New entities
+        notifications: notifications.length,
+        calendarEvents: calendarEvents.length,
       },
     }, { status: 201 })
   } catch (error) {

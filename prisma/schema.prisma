@@ -434,6 +434,15 @@ model BudgetItem {
 }
 
 // Backup: Tracks database backup records
+model Notification {
+  id        String   @id @default(cuid())
+  title     String
+  message   String   @default("")
+  type      String   @default("info")  // info | success | warning | error
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
 model BackupRecord {
   id          String   @id @default(cuid())
   filename    String

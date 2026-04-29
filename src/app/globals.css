@@ -4068,3 +4068,739 @@ html {
 .dark .badge-gradient-warning {
   box-shadow: 0 1px 4px oklch(0 0 0 / 25%);
 }
+
+/* ========================================================================== */
+/*  ADVANCED BUTTON STYLES                                                     */
+/* ========================================================================== */
+
+/* Gradient button with animated shimmer on hover */
+.btn-gradient-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  color: oklch(1 0 0);
+  border: none;
+  padding: 10px 24px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-gradient-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(1 0 0 / 25%),
+    transparent
+  );
+  transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.btn-gradient-shimmer:hover::after {
+  left: 120%;
+}
+
+.btn-gradient-shimmer:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px oklch(0.55 0.2 270 / 30%);
+}
+
+.btn-gradient-shimmer:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.dark .btn-gradient-shimmer {
+  box-shadow: 0 2px 8px oklch(0 0 0 / 20%);
+}
+
+.dark .btn-gradient-shimmer:hover {
+  box-shadow: 0 4px 16px oklch(0.7 0.2 270 / 25%);
+}
+
+/* Outlined gradient button */
+.btn-outline-gradient {
+  position: relative;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 8px 22px;
+  font-weight: 600;
+  cursor: pointer;
+  background-clip: padding-box;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-outline-gradient::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  z-index: -1;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.btn-outline-gradient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--background);
+  z-index: -1;
+}
+
+.btn-outline-gradient:hover::before {
+  opacity: 1;
+}
+
+.btn-outline-gradient:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px oklch(0.55 0.2 270 / 20%);
+}
+
+/* Icon button with ripple effect */
+.btn-icon-ripple {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-icon-ripple:hover {
+  background-color: oklch(0.55 0.2 270 / 8%);
+}
+
+.btn-icon-ripple .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: oklch(0.55 0.2 270 / 20%);
+  animation: ripple 0.5s ease-out;
+  pointer-events: none;
+}
+
+.dark .btn-icon-ripple:hover {
+  background-color: oklch(0.7 0.2 270 / 12%);
+}
+
+.dark .btn-icon-ripple .ripple {
+  background: oklch(0.7 0.2 270 / 25%);
+}
+
+/* ========================================================================== */
+/*  CARD PATTERN ENHANCEMENTS                                                 */
+/* ========================================================================== */
+
+/* Card with animated gradient border (rotating conic gradient) */
+.card-rotating-border {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.card-rotating-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--border-angle, 0deg),
+    oklch(0.55 0.2 270),
+    oklch(0.7 0.15 200),
+    oklch(0.7 0.17 160),
+    oklch(0.65 0.2 10),
+    oklch(0.55 0.2 270)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rotate-border 3s linear infinite;
+  pointer-events: none;
+}
+
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes rotate-border {
+  to { --border-angle: 360deg; }
+}
+
+/* Card with subtle noise texture overlay */
+.card-textured {
+  position: relative;
+}
+
+.card-textured::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dark .card-textured::after {
+  opacity: 0.04;
+}
+
+/* Card with frosted inner section */
+.card-frosted-inner {
+  position: relative;
+}
+
+.card-frosted-inner > .frosted-section {
+  background: oklch(1 0 0 / 60%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid oklch(0 0 0 / 6%);
+  border-radius: calc(var(--radius) - 4px);
+}
+
+.dark .card-frosted-inner > .frosted-section {
+  background: oklch(0.205 0 0 / 70%);
+  border-color: oklch(1 0 0 / 8%);
+}
+
+/* Magnetic hover card (CSS-only slight tilt on hover) */
+.card-magnetic {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.card-magnetic:hover {
+  transform: perspective(800px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
+  box-shadow:
+    0 12px 32px oklch(0 0 0 / 10%),
+    0 2px 8px oklch(0 0 0 / 6%);
+}
+
+.dark .card-magnetic:hover {
+  box-shadow:
+    0 12px 32px oklch(0 0 0 / 30%),
+    0 2px 8px oklch(0 0 0 / 15%);
+}
+
+/* ========================================================================== */
+/*  LIST & TABLE ENHANCEMENTS                                                 */
+/* ========================================================================== */
+
+/* Alternating row with gradient */
+.table-row-gradient tbody tr:nth-child(odd) {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.55 0.2 270 / 2%) 50%,
+    transparent 100%
+  );
+}
+
+.table-row-gradient tbody tr:nth-child(even) {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.7 0.15 200 / 2%) 50%,
+    transparent 100%
+  );
+}
+
+.dark .table-row-gradient tbody tr:nth-child(odd) {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.7 0.2 270 / 3%) 50%,
+    transparent 100%
+  );
+}
+
+.dark .table-row-gradient tbody tr:nth-child(even) {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    oklch(0.75 0.15 200 / 3%) 50%,
+    transparent 100%
+  );
+}
+
+/* Sticky first column in tables */
+.table-sticky-first-col th:first-child,
+.table-sticky-first-col td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  background: var(--background);
+}
+
+.table-sticky-first-col th:first-child {
+  z-index: 11;
+}
+
+.table-sticky-first-col th:first-child::after,
+.table-sticky-first-col td:first-child::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(to right, oklch(0 0 0 / 6%), transparent);
+  pointer-events: none;
+}
+
+.dark .table-sticky-first-col th:first-child,
+.dark .table-sticky-first-col td:first-child {
+  background: var(--card);
+}
+
+.dark .table-sticky-first-col th:first-child::after,
+.dark .table-sticky-first-col td:first-child::after {
+  background: linear-gradient(to right, oklch(1 0 0 / 6%), transparent);
+}
+
+/* Sortable column indicator */
+.table-sort-indicator {
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+  padding-left: 20px;
+  transition: color 0.2s ease;
+}
+
+.table-sort-indicator::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 5px solid oklch(0.556 0 0);
+  transition: border-color 0.2s ease;
+}
+
+.table-sort-indicator::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  bottom: 50%;
+  transform: translateY(calc(50% + 2px));
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid oklch(0.556 0 0);
+  transition: border-color 0.2s ease;
+}
+
+.table-sort-indicator[data-sort="asc"]::before {
+  border-bottom-color: oklch(0.55 0.2 270);
+}
+
+.table-sort-indicator[data-sort="desc"]::after {
+  border-top-color: oklch(0.55 0.2 270);
+}
+
+.table-sort-indicator:hover {
+  color: oklch(0.55 0.2 270);
+}
+
+.dark .table-sort-indicator::before,
+.dark .table-sort-indicator::after {
+  border-left-color: transparent;
+  border-right-color: transparent;
+}
+
+.dark .table-sort-indicator::before {
+  border-bottom-color: oklch(0.708 0 0);
+}
+
+.dark .table-sort-indicator::after {
+  border-top-color: oklch(0.708 0 0);
+}
+
+/* Expandable row animation */
+.table-row-expand {
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.25s ease;
+  max-height: 0;
+  opacity: 0;
+}
+
+.table-row-expand.is-expanded {
+  max-height: 500px;
+  opacity: 1;
+}
+
+/* ========================================================================== */
+/*  STATUS INDICATORS                                                         */
+/* ========================================================================== */
+
+/* Animated status bar (loading, progress) */
+.status-bar-animated {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: oklch(0 0 0 / 6%);
+  overflow: hidden;
+}
+
+.status-bar-animated::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+  animation: status-bar-slide 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes status-bar-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+.dark .status-bar-animated {
+  background: oklch(1 0 0 / 8%);
+}
+
+/* Notification count badge with bounce */
+.notif-badge-bounce {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  background: oklch(0.577 0.245 27.325);
+  color: oklch(1 0 0);
+  animation: notif-bounce 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes notif-bounce {
+  0%, 80%, 100% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  60% { transform: scale(0.95); }
+}
+
+/* Status dot pulse wrapper (add to existing status-dot classes) */
+.status-dot-pulse {
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; }
+  50% { box-shadow: 0 0 0 4px transparent; }
+}
+
+.status-dot-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: dot-ring-expand 2s ease-out infinite;
+}
+
+@keyframes dot-ring-expand {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ========================================================================== */
+/*  TEXT EFFECTS                                                              */
+/* ========================================================================== */
+
+/* Typewriter effect for headings */
+.text-typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+  border-left: 2px solid var(--foreground);
+  animation:
+    typewriter-cursor 0.8s step-end infinite;
+  width: fit-content;
+}
+
+@keyframes typewriter-cursor {
+  0%, 100% { border-color: var(--foreground); }
+  50% { border-color: transparent; }
+}
+
+/* Gradient text with shadow */
+.text-gradient-shadow {
+  background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px oklch(0.55 0.2 270 / 25%));
+}
+
+.dark .text-gradient-shadow {
+  filter: drop-shadow(0 2px 6px oklch(0.7 0.2 270 / 35%));
+}
+
+/* Glowing text effect */
+.text-glow {
+  text-shadow:
+    0 0 8px oklch(0.55 0.2 270 / 40%),
+    0 0 20px oklch(0.55 0.2 270 / 20%);
+}
+
+.dark .text-glow {
+  text-shadow:
+    0 0 10px oklch(0.7 0.2 270 / 50%),
+    0 0 25px oklch(0.7 0.2 270 / 25%);
+}
+
+/* Text reveal animation (slide up + fade) */
+.text-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: text-reveal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes text-reveal-up {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delays for text-reveal children */
+.text-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: text-reveal-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.text-reveal-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.text-reveal-stagger > *:nth-child(2) { animation-delay: 60ms; }
+.text-reveal-stagger > *:nth-child(3) { animation-delay: 120ms; }
+.text-reveal-stagger > *:nth-child(4) { animation-delay: 180ms; }
+.text-reveal-stagger > *:nth-child(5) { animation-delay: 240ms; }
+.text-reveal-stagger > *:nth-child(6) { animation-delay: 300ms; }
+
+/* ========================================================================== */
+/*  CONTAINER & LAYOUT UTILITIES                                              */
+/* ========================================================================== */
+
+/* Frosted glass panel (sidebar, sheets) */
+.panel-frosted {
+  background: oklch(1 0 0 / 70%);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  border: 1px solid oklch(0 0 0 / 8%);
+}
+
+.dark .panel-frosted {
+  background: oklch(0.205 0 0 / 80%);
+  border-color: oklch(1 0 0 / 8%);
+}
+
+/* Section with gradient top border */
+.section-accent-top {
+  position: relative;
+}
+
+.section-accent-top::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end), var(--gradient-start));
+  background-size: 200% 100%;
+  animation: gradient-flow 4s ease infinite;
+  border-radius: 0 0 2px 2px;
+}
+
+/* Responsive grid with auto-fill */
+.grid-auto-fill {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .grid-auto-fill {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Masonry-like layout using CSS columns */
+.layout-masonry {
+  column-count: 2;
+  column-gap: 1rem;
+}
+
+.layout-masonry > * {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .layout-masonry {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .layout-masonry {
+    column-count: 1;
+  }
+}
+
+/* ========================================================================== */
+/*  DARK MODE SPECIFIC ENHANCEMENTS                                           */
+/* ========================================================================== */
+
+/* Dark mode card hover with colored shadow */
+.dark .card-colored-shadow {
+  transition: box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .card-colored-shadow:hover {
+  box-shadow:
+    0 8px 24px oklch(0.7 0.2 270 / 20%),
+    0 2px 8px oklch(0 0 0 / 30%);
+  transform: translateY(-2px);
+}
+
+/* Dark mode subtle gradient background for sections */
+.dark .section-dark-gradient {
+  background: linear-gradient(
+    180deg,
+    oklch(0.145 0 0) 0%,
+    oklch(0.17 0.01 270 / 40%) 50%,
+    oklch(0.145 0 0) 100%
+  );
+}
+
+/* Dark mode improved focus states */
+.dark .focus-dark:focus-visible {
+  outline: 2px solid oklch(0.7 0.2 270 / 60%);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px oklch(0.7 0.2 270 / 15%);
+  border-radius: var(--radius);
+}
+
+/* ========================================================================== */
+/*  SCROLL & OVERFLOW ENHANCEMENTS                                            */
+/* ========================================================================== */
+
+/* Horizontal scroll with snap */
+.scroll-snap-x {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  gap: 1rem;
+  scrollbar-width: none;
+}
+
+.scroll-snap-x::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Fade edges on scrollable containers */
+.scroll-fade-edges {
+  position: relative;
+}
+
+.scroll-fade-edges::before,
+.scroll-fade-edges::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 32px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.scroll-fade-edges::before {
+  left: 0;
+  background: linear-gradient(to right, var(--background), transparent);
+}
+
+.scroll-fade-edges::after {
+  right: 0;
+  background: linear-gradient(to left, var(--background), transparent);
+}
+
+/* Custom thin scrollbar for specific containers */
+.scrollbar-accent {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.55 0.2 270 / 40%) transparent;
+}
+
+.scrollbar-accent::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-accent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-accent::-webkit-scrollbar-thumb {
+  background: oklch(0.55 0.2 270 / 40%);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.scrollbar-accent::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.2 270 / 60%);
+}
+
+.dark .scrollbar-accent {
+  scrollbar-color: oklch(0.7 0.2 270 / 35%) transparent;
+}
+
+.dark .scrollbar-accent::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.2 270 / 35%);
+}
+
+.dark .scrollbar-accent::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.7 0.2 270 / 55%);
+}

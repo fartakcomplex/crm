@@ -66,6 +66,7 @@ export function NotificationSoundToggle() {
     return false
   })
   const [isPlaying, setIsPlaying] = useState(false)
+  const [toggleAnimating, setToggleAnimating] = useState(false)
   const waveformRef = useRef<HTMLDivElement>(null)
   const animRef = useRef<number>(0)
 
@@ -118,6 +119,8 @@ export function NotificationSoundToggle() {
   const handleToggle = useCallback(() => {
     const newVal = !enabled
     updateEnabled(newVal)
+    setToggleAnimating(true)
+    setTimeout(() => setToggleAnimating(false), 300)
     if (newVal) {
       // Play sound on enabling to confirm
       setIsPlaying(true)
@@ -134,6 +137,8 @@ export function NotificationSoundToggle() {
         <div className="flex items-center gap-2.5">
           <div
             className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-sm transition-all duration-300 ${
+              toggleAnimating ? 'scale-90' : 'scale-100'
+            } ${
               enabled
                 ? 'bg-gradient-to-br from-violet-500 to-purple-600'
                 : 'bg-gray-200 dark:bg-gray-700'
@@ -149,7 +154,7 @@ export function NotificationSoundToggle() {
             <span className="text-sm font-medium block leading-tight">
               صدای اعلان
             </span>
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[10px] text-muted-foreground transition-colors duration-300">
               {enabled ? 'فعال' : 'غیرفعال'}
             </span>
           </div>
@@ -192,9 +197,9 @@ export function NotificationSoundToggle() {
 
           {/* Toggle Switch */}
           <button
-            className={`relative h-6 w-11 rounded-full transition-colors duration-300 cursor-pointer ${
+            className={`relative h-6 w-11 rounded-full transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] cursor-pointer ${
               enabled
-                ? 'bg-gradient-to-r from-violet-500 to-purple-600'
+                ? 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-sm shadow-violet-500/25'
                 : 'bg-gray-200 dark:bg-gray-700'
             }`}
             onClick={handleToggle}
@@ -203,12 +208,11 @@ export function NotificationSoundToggle() {
             aria-label="فعال/غیرفعال کردن صدای اعلان"
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-300 ${
-                enabled ? 'left-0.5' : 'left-[22px]'
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+                enabled
+                  ? 'left-0.5 scale-100 shadow-violet-500/20'
+                  : 'left-[22px] scale-100'
               }`}
-              style={{
-                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
             />
           </button>
         </div>
