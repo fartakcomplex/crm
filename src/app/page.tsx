@@ -23,6 +23,7 @@ import {
   Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
   Zap, Plus, X, Database, Clock, Wifi, Keyboard, CheckSquare, Pencil,
   CalendarDays, ShoppingBag, Handshake, Receipt, Warehouse, Wallet,
+  Sparkles,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -73,6 +74,7 @@ const pageComponents: Record<string, React.ComponentType> = {
   customers: dynamic(() => import('@/components/cms/CustomersPage'), { loading: LoadingFallback, ssr: false }),
   projects: dynamic(() => import('@/components/cms/ProjectsPage'), { loading: LoadingFallback, ssr: false }),
   'ai-assistant': dynamic(() => import('@/components/cms/AIAssistantPage'), { loading: LoadingFallback, ssr: false }),
+  'ai-studio': dynamic(() => import('@/components/cms/AIContentStudio'), { loading: LoadingFallback, ssr: false }),
   reports: dynamic(() => import('@/components/cms/ReportsPage'), { loading: LoadingFallback, ssr: false }),
   activities: dynamic(() => import('@/components/cms/ActivitiesPage'), { loading: LoadingFallback, ssr: false }),
   comments: dynamic(() => import('@/components/cms/CommentsPage'), { loading: LoadingFallback, ssr: false }),
@@ -104,6 +106,7 @@ const iconComponents: Record<string, React.ComponentType<{className?: string}>> 
   LayoutDashboard, FileText, Image: ImageIcon, Users, UserCog, UserCircle,
   FolderKanban, Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings,
   CheckSquare, CalendarDays, ShoppingBag, Handshake, Receipt, Warehouse, Wallet,
+  Sparkles,
 }
 
 function TabIcon({ name, className }: { name: string; className?: string }) {

@@ -483,6 +483,7 @@ export const CMS_TABS: CMSTab[] = [
   { id: 'calendar',     name: 'تقویم',           icon: 'CalendarDays',   gradient: 'from-indigo-500 to-indigo-700', category: 'workspace' },
   // Intelligence
   { id: 'ai-assistant', name: 'دستیار هوشمند',   icon: 'Bot',            gradient: 'from-violet-500 to-violet-700', category: 'tools' },
+  { id: 'ai-studio',    name: 'استودیوی AI',      icon: 'Sparkles',       gradient: 'from-fuchsia-500 to-pink-600', category: 'tools' },
   { id: 'reports',      name: 'گزارش‌ها',         icon: 'BarChart3',      gradient: 'from-fuchsia-500 to-fuchsia-700', category: 'tools' },
   // System
   { id: 'activities',   name: 'فعالیت‌ها',        icon: 'Activity',       gradient: 'from-lime-500 to-lime-700', category: 'system' },
@@ -666,6 +667,7 @@ export function getTabAccentClass(tabId: string): string {
     customers:     'text-amber-600 dark:text-amber-300',
     projects:      'text-sky-600 dark:text-sky-300',
     'ai-assistant':'text-violet-600 dark:text-violet-300',
+    'ai-studio':   'text-fuchsia-600 dark:text-fuchsia-300',
     reports:       'text-fuchsia-600 dark:text-fuchsia-300',
     activities:    'text-lime-600 dark:text-lime-300',
     comments:      'text-orange-600 dark:text-orange-300',
