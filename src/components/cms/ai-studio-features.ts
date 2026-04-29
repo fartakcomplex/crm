@@ -10,7 +10,7 @@ import {
   Brain, Settings2, Layers3, FileStack, Type, Stamp, FileCheck,
   FileMinus, History, CalendarClock, SplitSquareHorizontal,
   GraduationCap, Cpu, Share2, PenLine, Mail, Hash, Video,
-  BarChart3, Wand2, Download,
+  BarChart3, Wand2, Download, Film, Code, Link, Music,
 } from 'lucide-react'
 import React from 'react'
 
