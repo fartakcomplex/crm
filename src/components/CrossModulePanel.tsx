@@ -387,11 +387,11 @@ export function ModuleStatsOverview() {
   const stats = getModuleStats()
 
   const cards = [
-    { key: 'store' as const, label: 'فروشگاه', ...moduleConfig.store, value: toPersianDigits(stats.store.orders), sub: `درآمد: ${formatValue(stats.store.revenue)} تومان` },
-    { key: 'crm' as const, label: 'CRM', ...moduleConfig.crm, value: toPersianDigits(stats.crm.contacts), sub: `${toPersianDigits(stats.crm.activeDeals)} فرصت فعال — نرخ تبدیل ${toPersianDigits(stats.crm.successRate)}٪` },
-    { key: 'accounting' as const, label: 'حسابداری', ...moduleConfig.accounting, value: toPersianDigits(stats.accounting.invoices), sub: `درآمد پرداخت‌شده: ${formatValue(stats.accounting.paidRevenue)} تومان` },
-    { key: 'inventory' as const, label: 'انبار', ...moduleConfig.inventory, value: toPersianDigits(stats.inventory.items), sub: `ارزش: ${formatValue(stats.inventory.totalValue)} تومان` },
-    { key: 'finance' as const, label: 'مالی', ...moduleConfig.finance, value: toPersianDigits(stats.finance.transactions), sub: `مانده: ${formatValue(stats.finance.netBalance)} تومان` },
+    { key: 'store' as const, ...moduleConfig.store, value: toPersianDigits(stats.store.orders), sub: `درآمد: ${formatValue(stats.store.revenue)} تومان` },
+    { key: 'crm' as const, ...moduleConfig.crm, value: toPersianDigits(stats.crm.contacts), sub: `${toPersianDigits(stats.crm.activeDeals)} فرصت فعال — نرخ تبدیل ${toPersianDigits(stats.crm.successRate)}٪` },
+    { key: 'accounting' as const, ...moduleConfig.accounting, value: toPersianDigits(stats.accounting.invoices), sub: `درآمد پرداخت‌شده: ${formatValue(stats.accounting.paidRevenue)} تومان` },
+    { key: 'inventory' as const, ...moduleConfig.inventory, value: toPersianDigits(stats.inventory.items), sub: `ارزش: ${formatValue(stats.inventory.totalValue)} تومان` },
+    { key: 'finance' as const, ...moduleConfig.finance, value: toPersianDigits(stats.finance.transactions), sub: `مانده: ${formatValue(stats.finance.netBalance)} تومان` },
   ]
 
   return (

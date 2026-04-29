@@ -22,3 +22,23 @@ Stage Summary:
 - Status: Dev server running successfully, accessible via gateway
 - Note: Next.js 16 Turbopack dev server shows loading page during compilation;
   agent-browser testing affected by this but app works via preview panel
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix blurry overlay on pages and Store page not working
+
+Work Log:
+- Identified `glass-card` CSS class using `backdrop-filter: blur(16px)` causing frosted overlay
+- Reduced `--glass-blur` from 16px to 6px in globals.css for subtler glass effect
+- Found duplicate `events` property in useCMSData.ts (TS1117) causing Store compile error
+- Found duplicate `label` property in CrossModulePanel.tsx (TS2783) causing compile error
+- Added missing `.glass-card-pink` CSS class used by StorePage filter bar
+- Fixed server stability by using project's dev.sh script with proper backgrounding
+
+Stage Summary:
+- Blur fix: `--glass-blur: 6px` (was 16px) — glass-morphism still visible but not obstructive
+- Store page: Fixed 3 TypeScript errors (duplicate properties in useCMSData + CrossModulePanel)
+- All 3 affected pages (WordPress, Notifications, Activities) now render clearly
+- Store page compiles and loads successfully
+- Dev server running stable via .zscripts/dev.sh with mini-services

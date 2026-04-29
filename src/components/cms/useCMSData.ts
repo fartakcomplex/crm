@@ -580,8 +580,8 @@ export function useCMSData() {
     createTask, updateTask, deleteTask,
     // Notes
     createNote, updateNote, deleteNote,
-    // Events
-    events, createEvent, updateEvent, deleteEvent,
+    // Events (mutations only — events query already returned above)
+    createEvent, updateEvent, deleteEvent,
     // Products
     createProduct, updateProduct, deleteProduct,
     // Orders

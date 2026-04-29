@@ -79,7 +79,7 @@
   /* Custom properties for animations & utilities */
   --glass-bg: oklch(1 0 0 / 60%);
   --glass-border: oklch(0 0 0 / 8%);
-  --glass-blur: 16px;
+  --glass-blur: 6px;
   --dot-color: oklch(0 0 0 / 7%);
   --scrollbar-thumb: oklch(0.708 0 0 / 50%);
   --scrollbar-track: transparent;
@@ -289,6 +289,20 @@ body {
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
+}
+
+/* Glass morphism card — pink accent variant (used by Store page) */
+.glass-card-pink {
+  background: oklch(0.97 0.015 350 / 60%);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid oklch(0.65 0.2 350 / 15%);
+  border-radius: var(--radius);
+}
+
+.dark .glass-card-pink {
+  background: oklch(0.25 0.03 350 / 50%);
+  border-color: oklch(0.65 0.2 350 / 20%);
 }
 
 /* Gradient text */
