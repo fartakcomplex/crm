@@ -27,7 +27,7 @@ import {
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
   Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
   Wifi, MessageSquare, StickyNote, Pin, PinOff, Timer, BarChart2,
-  MousePointerClick, ShoppingCart, ImagePlus, ZapIcon,
+  MousePointerClick, ShoppingCart, ImagePlus, ZapIcon, Bell, FolderPlus, CreditCard,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -1709,6 +1709,36 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* System Health Widget */}
+      <Card className="glass-card card-elevated col-span-full lg:col-span-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="h-4 w-4 text-emerald-500" />
+            <span>سلامت سیستم</span>
+            <Badge className="badge-gradient-emerald text-[10px]">عالی</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { label: 'سرور', value: 'فعال', status: 'ok', icon: Server },
+              { label: 'پایگاه داده', value: 'متصل', status: 'ok', icon: Database },
+              { label: 'فضای ذخیره', value: '۲.۴ GB', status: 'ok', icon: HardDrive },
+              { label: 'آپتایم', value: '۹۹.۹٪', status: 'ok', icon: Clock },
+            ].map(item => (
+              <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-background/60 hover-lift">
+                <item.icon className="h-4 w-4 text-emerald-500" />
+                <div>
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="text-sm font-medium">{item.value}</p>
+                </div>
+                <div className="mr-auto h-2 w-2 rounded-full bg-emerald-500 status-dot-pulse" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
@@ -1721,27 +1751,27 @@ export default function DashboardPage() {
 
       {/* Collapsible Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Quick Actions */}
-        <Section title={labels.quickActions} defaultOpen={true} delay={100}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <Plus className="h-4 w-4" />{labels.createPost}
-            </Button>
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <UserPlus className="h-4 w-4" />{labels.addUser}
-            </Button>
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <FolderKanban className="h-4 w-4" />{labels.newProject}
-            </Button>
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <UserCircle className="h-4 w-4" />{labels.addCustomer}
-            </Button>
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <Sparkles className="h-4 w-4" />{labels.mediaUpload}
-            </Button>
-            <Button variant="outline" className="gap-2 border-violet-200 dark:border-violet-800 hover:bg-violet-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
-              <Zap className="h-4 w-4" />{labels.aiGenerate}
-            </Button>
+        {/* Quick Access Grid */}
+        <Section title={labels.quickActionsNew} defaultOpen={true} delay={100}>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[
+              { label: 'ایجاد مطلب', icon: FileText, color: 'from-violet-500 to-purple-600', desc: 'محتوای جدید' },
+              { label: 'افزودن کاربر', icon: UserPlus, color: 'from-cyan-500 to-blue-600', desc: 'کاربر جدید' },
+              { label: 'پروژه جدید', icon: FolderPlus, color: 'from-emerald-500 to-green-600', desc: 'شروع پروژه' },
+              { label: 'مشتری جدید', icon: UserCircle, color: 'from-amber-500 to-orange-600', desc: 'ثبت مشتری' },
+              { label: 'ثبت سفارش', icon: ShoppingCart, color: 'from-rose-500 to-pink-600', desc: 'سفارش جدید' },
+              { label: 'آپلود رسانه', icon: Upload, color: 'from-teal-500 to-cyan-600', desc: 'فایل و تصویر' },
+              { label: 'دستیار AI', icon: Sparkles, color: 'from-fuchsia-500 to-purple-600', desc: 'کمک هوشمند' },
+              { label: 'مشاهده گزارش', icon: BarChart3, color: 'from-sky-500 to-indigo-600', desc: 'آمار و ارقام' },
+            ].map((item, i) => (
+              <button key={item.label} className="group p-3 rounded-xl glass-card card-elevated hover-lift text-right transition-all duration-300" style={{ animationDelay: `${i * 60}ms` }}>
+                <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition-transform`}>
+                  <item.icon className="h-5 w-5 text-white" />
+                </div>
+                <p className="text-sm font-medium">{item.label}</p>
+                <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+              </button>
+            ))}
           </div>
         </Section>
 
@@ -2077,6 +2107,35 @@ export default function DashboardPage() {
 
       {/* ═══════ New Feature Widgets ═══════ */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Recent Activity Feed */}
+        <Card className="glass-card card-elevated">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Bell className="h-4 w-4 text-amber-500" />
+              فعالیت‌های اخیر
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 max-h-64 overflow-y-auto cms-scrollbar">
+            {[
+              { text: 'مطلب جدید "راهنمای سئو" منتشر شد', time: '۵ دقیقه پیش', icon: FileText, color: 'text-emerald-500' },
+              { text: 'سفارش #ORD-1403105 تأیید شد', time: '۱۵ دقیقه پیش', icon: ShoppingCart, color: 'text-blue-500' },
+              { text: 'کاربر "زهرا موسوی" ثبت‌نام کرد', time: '۳۰ دقیقه پیش', icon: UserPlus, color: 'text-violet-500' },
+              { text: 'پرداخت ۵,۲۵۰,۰۰۰ تومان دریافت شد', time: '۱ ساعت پیش', icon: CreditCard, color: 'text-emerald-500' },
+              { text: 'نظر جدید روی "معرفی محصول" منتظر تأیید', time: '۲ ساعت پیش', icon: MessageSquare, color: 'text-amber-500' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-accent/50 transition-colors list-item-hover">
+                <div className="mt-0.5">
+                  <item.icon className={`h-3.5 w-3.5 ${item.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs leading-relaxed">{item.text}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{item.time}</p>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* Quick Notes (localStorage) Widget */}
         <NotesWidget />
 

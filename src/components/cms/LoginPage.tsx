@@ -149,7 +149,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         style={{ animation: 'fadeIn 0.5s ease-out, slideUp 0.6s ease-out' }}
       >
         {/* Glass card wrapper */}
-        <div className="rounded-2xl glass-card shadow-2xl shadow-violet-500/10 dark:shadow-violet-500/5 p-8 md:p-10 relative overflow-hidden">
+        <div className="rounded-2xl glass-card card-elevated card-gradient-border hover-lift shadow-2xl shadow-violet-500/10 dark:shadow-violet-500/5 p-8 md:p-10 relative overflow-hidden">
           {/* Decorative gradient accent line at top */}
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500" />
 
@@ -163,7 +163,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 <Bot className="h-8 w-8 text-white" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold gradient-text mb-1">
+            <h1 className="text-2xl font-bold text-gradient-violet mb-1">
               {isRegister ? 'ثبت‌نام' : 'ورود به سیستم'}
             </h1>
             <p className="text-sm text-muted-foreground flex items-center gap-1.5">
@@ -296,7 +296,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-l from-violet-500 via-purple-500 to-fuchsia-500 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                className="w-full h-11 btn-primary-gradient text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-l from-violet-500 via-purple-500 to-fuchsia-500 text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
+                className="w-full h-11 btn-primary-gradient text-white font-semibold shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:from-violet-600 hover:via-purple-600 hover:to-fuchsia-600 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-2">
@@ -427,7 +427,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              className="flex items-center justify-center gap-2 h-10 rounded-xl border border-border/60 bg-background/40 hover:bg-accent/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm font-medium"
+              className="flex items-center justify-center gap-2 h-10 rounded-xl border border-border/60 bg-background/40 hover:bg-accent/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm font-medium shine-effect"
             >
               <svg className="h-4.5 w-4.5" viewBox="0 0 24 24">
                 <path
@@ -451,7 +451,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </button>
             <button
               type="button"
-              className="flex items-center justify-center gap-2 h-10 rounded-xl border border-border/60 bg-background/40 hover:bg-accent/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm font-medium"
+              className="flex items-center justify-center gap-2 h-10 rounded-xl border border-border/60 bg-background/40 hover:bg-accent/60 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-sm font-medium shine-effect"
             >
               <Github className="h-4.5 w-4.5" />
               <span>ورود با گیت‌هاب</span>

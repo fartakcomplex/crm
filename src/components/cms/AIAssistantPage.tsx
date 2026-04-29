@@ -356,7 +356,7 @@ export default function AIAssistantPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-2xl font-bold text-gradient-cyan">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
@@ -373,7 +373,7 @@ export default function AIAssistantPage() {
               {labels.clearChat}
             </Button>
           )}
-          <Badge className="bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 w-fit gap-1.5 shadow-sm">
+          <Badge className="badge-gradient bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 w-fit gap-1.5 shadow-sm">
             <Sparkles className="h-3.5 w-3.5" />
             {labels.modelBadge}
           </Badge>
@@ -395,7 +395,7 @@ export default function AIAssistantPage() {
 
         {/* CHAT TAB */}
         <TabsContent value="chat">
-          <Card className="glass-card shadow-sm overflow-hidden">
+          <Card className="glass-card card-elevated shadow-sm overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
                 <Bot className="h-5 w-5" />
@@ -416,7 +416,7 @@ export default function AIAssistantPage() {
                     <div className="space-y-4">
                       {chatMessages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in`} style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}>
-                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group ${
+                          <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group card-elevated ${
                             msg.role === 'user'
                               ? 'bg-gradient-to-br from-violet-600 to-violet-500 text-white rounded-br-md'
                               : 'bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground rounded-bl-md border border-violet-200/30 dark:border-violet-800/20'
@@ -484,7 +484,7 @@ export default function AIAssistantPage() {
                         key={i}
                         onClick={() => handlePresetClick(tpl.prompt)}
                         disabled={chatLoading}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-white bg-gradient-to-r ${tpl.gradient} shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none shrink-0`}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap text-white bg-gradient-to-r ${tpl.gradient} shadow-sm shine-effect hover-lift hover:scale-105 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none shrink-0`}
                       >
                         <span>{tpl.icon}</span>
                         {tpl.label}
@@ -523,7 +523,7 @@ export default function AIAssistantPage() {
                         size="icon"
                         onClick={handleChatSend}
                         disabled={!chatInput.trim()}
-                        className="shrink-0 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm"
+                        className="shrink-0 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm shine-effect"
                       >
                         <Send className="h-4 w-4" />
                       </Button>
@@ -537,7 +537,7 @@ export default function AIAssistantPage() {
 
         {/* SEO TAB */}
         <TabsContent value="seo">
-          <Card className="glass-card shadow-sm">
+          <Card className="glass-card card-elevated shadow-sm">
             <CardContent className="p-4">
               <Tabs value={activeSeoTab} onValueChange={setActiveSeoTab} className="space-y-4">
                 <TabsList className="flex flex-wrap h-auto gap-1 bg-violet-100/50 dark:bg-violet-900/20 p-1">

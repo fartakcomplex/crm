@@ -267,9 +267,9 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
         style={{ y: heroY, opacity: heroOpacity }}
         className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32"
       >
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center" dir="rtl">
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center" dir="rtl">
           {/* Text Content — RTL-safe alignment */}
-          <div className="text-center lg:text-start">
+          <div className="relative z-10 text-center lg:text-right">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -288,7 +288,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight"
             >
               <span className="block">مدیریت هوشمند</span>
-              <span className="block mt-2 text-gradient-violet">
+              <span className="block mt-2 text-animated-gradient text-gradient-violet">
                 محتوای شما
               </span>
             </motion.h1>
@@ -312,7 +312,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               <Button
                 size="lg"
                 onClick={onEnter}
-                className="gap-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105 active:scale-95 transition-all px-8 h-13 text-base font-semibold shine-effect"
+                className="gap-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105 active:scale-95 transition-all px-8 h-13 text-base font-semibold shine-effect cta-pulse"
               >
                 <Rocket className="h-5 w-5" />
                 شروع رایگان
@@ -321,7 +321,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
                 size="lg"
                 variant="outline"
                 onClick={() => document.querySelector('#features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="gap-2.5 border-border/60 hover:bg-accent/50 hover:border-violet-500/30 transition-all px-8 h-13 text-base hover:scale-[1.02] active:scale-95"
+                className="gap-2.5 border-border/60 hover:bg-accent/50 hover:border-violet-500/30 transition-all px-8 h-13 text-base hover:scale-[1.02] active:scale-95 shine-effect"
               >
                 <Eye className="h-5 w-5" />
                 مشاهده دمو
@@ -359,7 +359,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
             initial={{ opacity: 0, scale: 0.9, x: -30 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="relative"
+            className="relative z-0 max-w-[500px] mx-auto lg:mx-0 cms-hero-float"
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-violet-500/20 border border-border/30 card-gradient-border">
               <div className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent z-10 rounded-2xl" />
@@ -452,7 +452,7 @@ function StatsSection() {
                 <Card className="relative overflow-hidden border-border/40 hover:border-violet-500/30 transition-all duration-300 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 card-elevated hover-lift card-gradient-border">
                   <CardContent className="p-6 text-center">
                     <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} group-hover:scale-110 transition-transform`} />
-                    <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                    <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent stat-count-animate">
                       {stat.value}
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-nowrap">{stat.label}</p>
@@ -557,7 +557,7 @@ function FeaturesSection() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.07}>
-              <Card className={`group relative overflow-hidden border-border/40 hover:border-transparent transition-all duration-500 bg-card/50 backdrop-blur-sm hover:shadow-2xl ${f.glow} cursor-default h-full card-gradient-border card-press`}>
+              <Card className={`group relative overflow-hidden border-border/40 hover:border-transparent transition-all duration-500 bg-card/50 backdrop-blur-sm hover:shadow-2xl ${f.glow} cursor-default h-full card-gradient-border card-press hover-lift card-shimmer`}>
                 <CardContent className="p-6 md:p-8">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                     <f.icon className="h-6 w-6 text-white" />
@@ -600,7 +600,7 @@ function ProductsSection() {
   ]
 
   return (
-    <section id="products" className="relative py-20 md:py-28">
+    <section id="products" className="relative py-20 md:py-28 min-h-[600px]">
       <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.02] via-transparent to-transparent pointer-events-none" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" dir="rtl">
         <AnimatedSection className="text-center mb-16">
@@ -609,7 +609,7 @@ function ProductsSection() {
             محصولات ما
           </Badge>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            ابزارهایی برای <span className="bg-gradient-to-l from-fuchsia-600 to-rose-600 bg-clip-text text-transparent">موفقیت شما</span>
+            ابزارهایی برای <span className="text-gradient-violet">موفقیت شما</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             با ابزارهای حرفه‌ای ما، کسب‌وکار خود را به سطح بالاتری ببرید
@@ -668,7 +668,7 @@ function AICapabilitiesSection() {
   ]
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden">
+    <section className="relative py-20 md:py-28 overflow-hidden min-h-[500px]">
       <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 via-fuchsia-500/5 to-transparent pointer-events-none" />
       <GradientOrb className="w-[600px] h-[600px] bg-cyan-500 top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 opacity-15" />
 
@@ -753,7 +753,7 @@ function TestimonialsSection() {
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
             <AnimatedSection key={t.name} delay={i * 0.12}>
-              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 hover:border-violet-500/20 transition-all duration-300 h-full card-elevated card-gradient-border">
+              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 hover:border-violet-500/20 transition-all duration-300 h-full card-elevated card-gradient-border hover-lift">
                 <CardContent className="p-6 md:p-8">
                   {/* Stars */}
                   <div className="flex gap-1 mb-4">
@@ -847,7 +847,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
                   </div>
                 )}
                 <CardContent className="p-6 md:p-8 flex flex-col flex-1 pt-8">
-                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                  <h3 className="text-xl font-bold mb-2"><span className="badge-gradient px-2 py-0.5 rounded-md text-white">{plan.name}</span></h3>
                   <p className="text-sm text-muted-foreground mb-6">{plan.desc}</p>
 
                   <div className="mb-6">
@@ -987,7 +987,7 @@ function Footer() {
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
               <h4 className="font-semibold text-sm mb-4">{title}</h4>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3 gap-4 flex flex-col">
                 {links.map(link => (
                   <li key={link}>
                     <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors animated-underline">
@@ -1001,7 +1001,7 @@ function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-border/40 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-border/40 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground whitespace-nowrap">
             © ۱۴۰۴ Smart CMS. تمامی حقوق محفوظ است.
           </p>

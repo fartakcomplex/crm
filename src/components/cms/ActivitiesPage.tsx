@@ -122,7 +122,7 @@ export default function ActivitiesPage() {
               <Activity className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold gradient-text">
+              <h1 className="text-2xl font-bold text-gradient-violet">
                 {labels.title}
               </h1>
               <p className="text-sm text-muted-foreground mt-1 animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
@@ -197,7 +197,7 @@ export default function ActivitiesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-8 card-gradient-border p-4 md:p-6 rounded-xl">
           {grouped.map((group, gi) => (
             <div key={gi} className="animate-in" style={{ animationDelay: `${(gi + 1) * 120}ms`, animationFillMode: 'both' }}>
               {/* Date Header */}
@@ -244,7 +244,7 @@ export default function ActivitiesPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <p className="text-sm font-semibold">{a.action}</p>
-                                  <Badge variant="secondary" className={`text-[10px] border px-1.5 py-0 ${config.badge}`}>
+                                  <Badge variant="secondary" className={`badge-gradient text-[10px] border px-1.5 py-0 ${config.badge}`}>
                                     {actionLabels[a.action.toLowerCase().split(' ')[0]] ?? ''}
                                   </Badge>
                                 </div>

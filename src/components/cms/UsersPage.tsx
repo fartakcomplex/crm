@@ -201,7 +201,7 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-2xl font-bold text-gradient-violet">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
@@ -234,14 +234,14 @@ export default function UsersPage() {
             <Download className="h-4 w-4" />
             خروجی CSV
           </Button>
-          <Button className="gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
+          <Button className="gap-2 shine-effect bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md" onClick={openCreate}>
             <Plus className="h-4 w-4" />{labels.create}
           </Button>
         </div>
       </div>
 
       {/* Search + Role Filter Chips */}
-      <Card className="glass-card-emerald shadow-sm">
+      <Card className="glass-card-emerald card-elevated shadow-sm">
         <CardContent className="p-4 space-y-3">
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -291,7 +291,7 @@ export default function UsersPage() {
       </Card>
 
       {/* Users Table */}
-      <Card className="glass-card-emerald shadow-sm overflow-hidden">
+      <Card className="glass-card-emerald card-elevated card-gradient-border shadow-sm overflow-hidden">
         <CardContent className="p-0">
           {filtered.length === 0 ? (
             <EmptyState
@@ -348,7 +348,7 @@ export default function UsersPage() {
                     return (
                       <TableRow
                         key={user.id}
-                        className="hover-lift transition-all duration-200 animate-in cursor-pointer"
+                        className="hover-lift list-item-hover transition-all duration-200 animate-in cursor-pointer"
                         style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
                         onClick={() => openEdit(user)}
                       >
@@ -370,13 +370,13 @@ export default function UsersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={rb.variant} className="gap-1.5 shadow-sm">
+                          <Badge variant={rb.variant} className="badge-gradient gap-1.5 shadow-sm">
                             <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />
                             {roleLabels[user.role] ?? user.role}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
-                          <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm`}>
+                          <Badge className={`badge-gradient ${sc.bg} ${sc.text} border-0 shadow-sm`}>
                             {user.status === 'active' ? <UserCheck className="h-3 w-3 ml-1" /> : user.status === 'suspended' ? <UserX className="h-3 w-3 ml-1" /> : null}
                             {statusLabels[user.status] ?? user.status}
                           </Badge>

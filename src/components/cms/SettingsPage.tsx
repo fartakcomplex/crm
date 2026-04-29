@@ -139,10 +139,10 @@ function SettingsSection({ icon, title, children, color, accent }: {
   color: string; accent?: string
 }) {
   return (
-    <Card className="glass-card hover-lift shadow-sm transition-all duration-300">
+    <Card className="glass-card card-elevated hover-lift shadow-sm transition-all duration-300">
       <CardHeader className="pb-3">
         {accent && <GradientAccent colors={accent} />}
-        <CardTitle className={`text-base flex items-center gap-2 ${color}`}>
+        <CardTitle className={`text-base flex items-center gap-2 text-gradient-violet ${color}`}>
           {icon}
           {title}
         </CardTitle>
@@ -176,7 +176,7 @@ function ToggleRow({
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
-        className="data-[state=checked]:bg-violet-500 transition-colors duration-300"
+        className="data-[state=checked]:bg-violet-500 transition-colors duration-300 badge-gradient"
       />
     </div>
   )
@@ -280,7 +280,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-6 p-4 md:p-6 page-enter stagger-children">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -292,7 +292,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Settings Tabs */}
-      <Tabs defaultValue="general" className="space-y-4">
+      <Tabs defaultValue="general" className="space-y-4 card-gradient-border p-4 md:p-6 rounded-xl">
         <TabsList className="bg-teal-100 dark:bg-teal-900/30 h-11 shadow-sm flex-wrap">
           <TabsTrigger value="general" className="gap-2 data-[state=active]:bg-teal-600 data-[state=active]:text-white transition-all duration-200">
             <Globe className="h-4 w-4" />{labels.general}
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                 </Select>
               </div>
             </div>
-            <Button onClick={() => handleSave('general')} disabled={saving} className="gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('general')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -475,7 +475,7 @@ export default function SettingsPage() {
               accentColor="border-violet-100/50 dark:border-violet-800/20 hover:bg-violet-500/5"
             />
 
-            <Button onClick={() => handleSave('appearance')} disabled={saving} className="gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-700 hover:to-fuchsia-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('appearance')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-violet-600 to-fuchsia-500 hover:from-violet-700 hover:to-fuchsia-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -521,7 +521,7 @@ export default function SettingsPage() {
               accentColor="border-violet-100/50 dark:border-violet-800/20 hover:bg-violet-500/5"
             />
 
-            <Button onClick={() => handleSave('notifications')} disabled={saving} className="gap-2 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('notifications')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-700 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -551,7 +551,7 @@ export default function SettingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => handleSave('seo')} disabled={saving} className="gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('seo')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -599,7 +599,7 @@ export default function SettingsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={() => handleSave('ai')} disabled={saving} className="gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('ai')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -644,7 +644,7 @@ export default function SettingsPage() {
                 </Select>
               </div>
             )}
-            <Button onClick={() => handleSave('content')} disabled={saving} className="gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('content')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
@@ -779,13 +779,13 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <Button onClick={() => handleSave('security')} disabled={saving} className="gap-2 bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
+            <Button onClick={() => handleSave('security')} disabled={saving} className="gap-2 animated-underline bg-gradient-to-r from-teal-600 to-teal-500 hover:from-teal-700 hover:to-teal-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
 
           {/* Danger Zone */}
-          <Card className="border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/10 hover-lift shadow-sm transition-all duration-300">
+          <Card className="card-elevated border-red-200 dark:border-red-900/30 bg-red-50/30 dark:bg-red-950/10 hover-lift shadow-sm transition-all duration-300">
             <CardHeader className="pb-3">
               <GradientAccent colors="from-red-400 to-rose-600" />
               <CardTitle className="text-base flex items-center gap-2 text-red-700 dark:text-red-400">
