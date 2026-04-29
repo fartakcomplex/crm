@@ -52,3 +52,20 @@ prompt
 server.log
 # Skills directory
 /skills/
+
+# Database files
+db/*.db
+prisma/db/*.db
+backups/
+
+# Upload files
+upload/
+
+# QA screenshots
+download/
+
+# IDE / Agent context
+agent-ctx/
+
+# Mini services node_modules
+mini-services/*/node_modules/
