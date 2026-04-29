@@ -29,7 +29,10 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
+import OnboardingWelcome from '@/components/cms/OnboardingWelcome'
 import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
+import PerformanceMonitorWidget from '@/components/cms/PerformanceMonitorWidget'
+import ScrollProgressIndicator from '@/components/cms/ScrollProgressIndicator'
 import { QuickAIChat } from '@/components/cms/QuickAIChat'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { NotificationCenter } from '@/components/cms/NotificationCenter'
@@ -625,8 +628,18 @@ function AppContent() {
   const [quickDraftOpen, setQuickDraftOpen] = useState(false)
   const [notificationSheetOpen, setNotificationSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
+
+  // ── Onboarding check ──
+  useEffect(() => {
+    const completed = localStorage.getItem('onboarding-completed')
+    if (!completed) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowOnboarding(true)
+    }
+  }, [])
 
   // Ensure notification data for badge count
   useEnsureData(['notifications'])
@@ -733,6 +746,9 @@ function AppContent() {
   return (
     <TooltipProvider delayDuration={0}>
       <div className="min-h-screen flex bg-background" dir="rtl">
+
+        {/* Scroll Progress Indicator */}
+        <ScrollProgressIndicator />
 
         {/* ─── Desktop Sidebar ─── */}
         {!isMobile && (
@@ -914,6 +930,14 @@ function AppContent() {
 
       {/* Scroll to Top Button */}
       <ScrollToTopButton />
+
+      {/* Performance Monitor Widget */}
+      <PerformanceMonitorWidget />
+
+      {/* Onboarding Welcome */}
+      {showOnboarding && (
+        <OnboardingWelcome onComplete={() => setShowOnboarding(false)} />
+      )}
     </TooltipProvider>
   )
 }

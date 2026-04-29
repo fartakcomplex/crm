@@ -1043,6 +1043,12 @@ button, a, [role="button"] {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+.text-gradient-amber {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 /* ========================================================================== */
 /*  ANIMATED UNDERLINE                                                        */
@@ -5055,4 +5061,160 @@ html {
   background: linear-gradient(90deg, #8b5cf6, #06b6d4, #10b981);
   z-index: 9999;
   transition: width 0.1s linear;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ADVANCED UTILITIES — Round 5
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Neon Glow Border ─── */
+.neon-border-violet {
+  box-shadow: 0 0 5px rgba(139, 92, 246, 0.3), 0 0 15px rgba(139, 92, 246, 0.1);
+}
+.neon-border-cyan {
+  box-shadow: 0 0 5px rgba(6, 182, 212, 0.3), 0 0 15px rgba(6, 182, 212, 0.1);
+}
+.neon-border-emerald {
+  box-shadow: 0 0 5px rgba(16, 185, 129, 0.3), 0 0 15px rgba(16, 185, 129, 0.1);
+}
+.neon-border-rose {
+  box-shadow: 0 0 5px rgba(244, 63, 94, 0.3), 0 0 15px rgba(244, 63, 94, 0.1);
+}
+.neon-border-amber {
+  box-shadow: 0 0 5px rgba(245, 158, 11, 0.3), 0 0 15px rgba(245, 158, 11, 0.1);
+}
+
+/* ─── Glass Card with Top Accent ─── */
+.glass-card-accent {
+  position: relative;
+  overflow: hidden;
+}
+.glass-card-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b5cf6, #06b6d4, #10b981);
+}
+
+/* ─── Animated Underline Input ─── */
+.input-animated-underline {
+  position: relative;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid hsl(var(--border));
+  outline: none;
+  transition: border-color 0.3s ease;
+  padding: 0.5rem 0;
+}
+.input-animated-underline:focus {
+  border-bottom-color: #8b5cf6;
+  box-shadow: 0 2px 0 0 #8b5cf6;
+}
+.input-animated-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #8b5cf6;
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+.input-animated-underline:focus::after {
+  width: 100%;
+}
+
+/* ─── Chip/Pill Component ─── */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.chip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.chip-active {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+.dark .chip-active {
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+}
+
+/* ─── Slide Over Panel ─── */
+.slide-over-right {
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.slide-over-right.open {
+  transform: translateX(0);
+}
+[dir="rtl"] .slide-over-right {
+  transform: translateX(-100%);
+}
+[dir="rtl"] .slide-over-right.open {
+  transform: translateX(0);
+}
+
+/* ─── Breadcrumb Separator ─── */
+.breadcrumb-sep {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.4;
+}
+[dir="rtl"] .breadcrumb-sep {
+  transform: scaleX(-1);
+}
+
+/* ─── Metric Card Variant ─── */
+.metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  text-align: center;
+  border-radius: 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  transition: all 0.3s ease;
+}
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+.dark .metric-card:hover {
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── Dot Grid Background ─── */
+.dot-grid-bg {
+  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.15) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+.dark .dot-grid-bg {
+  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.08) 1px, transparent 1px);
+}
+
+/* ─── Smooth Number ─── */
+@keyframes smooth-number {
+  0% { opacity: 0; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.smooth-number {
+  display: inline-block;
+  animation: smooth-number 0.5s ease-out forwards;
 }

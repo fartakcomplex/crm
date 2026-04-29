@@ -33,6 +33,7 @@ const BackupPanel = dynamic(() => import('./BackupPanel'), {
   ),
 })
 import { useTheme } from 'next-themes'
+import NotificationPreferences from '@/components/cms/NotificationPreferences'
 import { toast } from 'sonner'
 
 // ─── Persian Labels ───────────────────────────────────────────────────────────
@@ -525,6 +526,11 @@ export default function SettingsPage() {
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{labels.save}
             </Button>
           </SettingsSection>
+
+          {/* Notification Preferences (Category-based) */}
+          <div className="mt-4">
+            <NotificationPreferences />
+          </div>
         </TabsContent>
 
         {/* ═══════════════ SEO ═══════════════ */}

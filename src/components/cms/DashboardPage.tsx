@@ -27,7 +27,7 @@ import {
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
   Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
   Wifi, MessageSquare, StickyNote, Pin, PinOff, Timer, BarChart2,
-  MousePointerClick, ShoppingCart, ImagePlus, ZapIcon, Bell, FolderPlus, CreditCard,
+  MousePointerClick, ShoppingCart, ImagePlus, ZapIcon, Bell, FolderPlus, CreditCard, Download,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -56,6 +56,7 @@ import { SystemStatusWidget } from './SystemStatusWidget'
 import ActivityFeedWidget from './ActivityFeedWidget'
 import AnalyticsOverviewWidget from './AnalyticsOverviewWidget'
 import ThemeCustomizerWidget from './ThemeCustomizerWidget'
+import DataExportDialog from '@/components/cms/DataExportDialog'
 
 // Persian labels
 const labels = {
@@ -1617,6 +1618,7 @@ export default function DashboardPage() {
   const commentsData = comments.data ?? []
   const categoriesData = categories.data ?? []
   const isLoading = stats.isLoading || charts.isLoading || categories.isLoading
+  const [exportOpen, setExportOpen] = useState(false)
 
   // ── Data transforms for Recharts ──
 
@@ -1648,6 +1650,15 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <CrossModuleSyncStatus />
             <PersianClockWidget />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs hover:bg-accent/60 transition-colors"
+              onClick={() => setExportOpen(true)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">خروجی داده</span>
+            </Button>
             <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 w-fit shadow-sm gap-1">
               <Activity className="h-3 w-3" />
               آنلاین
@@ -1709,8 +1720,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* System Health Widget */}
-      <Card className="glass-card card-elevated col-span-full lg:col-span-2">
+      {/* System Health Widget — compact */}
+      <Card className="glass-card card-elevated">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Activity className="h-4 w-4 text-emerald-500" />
@@ -1750,10 +1761,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Collapsible Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Access Grid */}
         <Section title={labels.quickActionsNew} defaultOpen={true} delay={100}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {[
               { label: 'ایجاد مطلب', icon: FileText, color: 'from-violet-500 to-purple-600', desc: 'محتوای جدید' },
               { label: 'افزودن کاربر', icon: UserPlus, color: 'from-cyan-500 to-blue-600', desc: 'کاربر جدید' },
@@ -1764,12 +1775,12 @@ export default function DashboardPage() {
               { label: 'دستیار AI', icon: Sparkles, color: 'from-fuchsia-500 to-purple-600', desc: 'کمک هوشمند' },
               { label: 'مشاهده گزارش', icon: BarChart3, color: 'from-sky-500 to-indigo-600', desc: 'آمار و ارقام' },
             ].map((item, i) => (
-              <button key={item.label} className="group p-3 rounded-xl glass-card card-elevated hover-lift text-right transition-all duration-300" style={{ animationDelay: `${i * 60}ms` }}>
-                <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-2 shadow-md group-hover:scale-110 transition-transform`}>
-                  <item.icon className="h-5 w-5 text-white" />
+              <button key={item.label} className="group p-2.5 rounded-xl glass-card card-elevated hover-lift text-right transition-all duration-300" style={{ animationDelay: `${i * 60}ms` }}>
+                <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-1.5 shadow-md group-hover:scale-110 transition-transform`}>
+                  <item.icon className="h-4 w-4 text-white" />
                 </div>
-                <p className="text-sm font-medium">{item.label}</p>
-                <p className="text-[11px] text-muted-foreground">{item.desc}</p>
+                <p className="text-xs font-medium">{item.label}</p>
+                <p className="text-[10px] text-muted-foreground">{item.desc}</p>
               </button>
             ))}
           </div>
@@ -2066,11 +2077,11 @@ export default function DashboardPage() {
 
       {/* ═══════ New Dashboard Widgets ═══════ */}
       {/* Analytics Overview Widget — full width */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <AnalyticsWidget />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Quick Actions Widget */}
         <QuickActionsWidget />
 
@@ -2106,7 +2117,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════ New Feature Widgets ═══════ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Recent Activity Feed */}
         <Card className="glass-card card-elevated">
           <CardHeader className="pb-3">
@@ -2146,7 +2157,7 @@ export default function DashboardPage() {
         <PerformanceMonitor />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Notification Sound Toggle */}
         <NotificationSoundToggle />
 
@@ -2159,6 +2170,9 @@ export default function DashboardPage() {
 
       {/* Floating Action Bar */}
       <FloatingActionBar />
+
+      {/* Data Export Dialog */}
+      <DataExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </div>
   )
 }
