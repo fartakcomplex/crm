@@ -634,7 +634,7 @@ export default function FinancePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
           <div className="mt-2">
             <CrossModuleSyncStatus />
@@ -882,7 +882,7 @@ export default function FinancePage() {
                   </CardHeader>
                   <CardContent className="px-5 pb-5">
                     <div className="text-center mb-3">
-                      <p className="text-3xl font-bold gradient-text">{toPersianDigits(totalIncome > 0 ? Math.round((netCashFlow / totalIncome) * 100) : 0)}٪</p>
+                      <p className="text-3xl font-bold text-gradient-violet">{toPersianDigits(totalIncome > 0 ? Math.round((netCashFlow / totalIncome) * 100) : 0)}٪</p>
                       <p className="text-xs text-muted-foreground mt-1">پس‌انداز: {shortenAmount(netCashFlow)} از {shortenAmount(totalIncome)}</p>
                     </div>
                     <div className="h-3 bg-muted/60 rounded-full overflow-hidden mb-3">
@@ -1092,7 +1092,7 @@ export default function FinancePage() {
                       return (
                         <tr
                           key={transaction.id}
-                          className="border-b border-border/30 hover:bg-muted/30 transition-colors animate-in"
+                          className="border-b border-border/30 hover:bg-muted/30 transition-colors animate-in hover-lift"
                           style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         >
                           <td className="p-3 text-xs tabular-nums whitespace-nowrap">{formatDate(transaction.createdAt)}</td>
@@ -1160,7 +1160,7 @@ export default function FinancePage() {
                   return (
                     <div
                       key={transaction.id}
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-all duration-200 animate-in"
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/30 transition-all duration-200 animate-in hover-lift card-press"
                       style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                     >
                       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tc.gradient} flex items-center justify-center shadow-sm shrink-0`}>

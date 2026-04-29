@@ -361,7 +361,7 @@ export default function CalendarEventsPage() {
             <CalendarDays className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">تقویم و رویدادها</h1>
+            <h1 className="text-xl font-bold tracking-tight text-gradient-violet">تقویم و رویدادها</h1>
             <p className="text-sm text-muted-foreground">مدیریت رویدادها، جلسات و یادآوری‌ها</p>
           </div>
         </div>
@@ -382,7 +382,7 @@ export default function CalendarEventsPage() {
           { label: 'این هفته', value: stats.thisWeek, icon: CalendarClock, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
           { label: 'جلسات', value: stats.meetings, icon: Users, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
         ].map((stat, i) => (
-          <Card key={i} className={`glass-card hover-lift animate-in border-0 ${stat.bg}`} style={{ animationDelay: `${i * 60}ms` }}>
+          <Card key={i} className={`glass-card hover-lift animate-in border-0 card-elevated ${stat.bg}`} style={{ animationDelay: `${i * 60}ms` }}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -567,7 +567,7 @@ export default function CalendarEventsPage() {
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                               <h4 className="text-sm font-semibold truncate">{event.title}</h4>
                               <Badge
-                                className={`text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r ${typeConf.gradient} text-white border-0 shrink-0`}
+                                className={`text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r ${typeConf.gradient} text-white border-0 shrink-0 badge-gradient`}
                               >
                                 <TypeIcon className="h-2.5 w-2.5 ml-0.5" />
                                 {typeConf.label}

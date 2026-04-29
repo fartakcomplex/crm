@@ -530,7 +530,7 @@ export default function AccountingPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         <Button
@@ -745,7 +745,7 @@ export default function AccountingPage() {
                         return (
                           <TableRow
                             key={invoice.id}
-                            className={`hover-lift transition-all duration-200 animate-in cursor-pointer ${isSelected ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}
+                            className={`hover-lift transition-all duration-200 animate-in cursor-pointer list-item-hover ${isSelected ? 'bg-emerald-50/50 dark:bg-emerald-950/20' : ''}`}
                             style={{ animationDelay: `${idx * 40}ms`, animationFillMode: 'both' }}
                             onClick={() => openDetail(invoice)}
                           >
@@ -779,7 +779,7 @@ export default function AccountingPage() {
                             </TableCell>
                             <TableCell className="font-bold tabular-nums">{formatAmount(invoice.total)} <span className="text-xs text-muted-foreground font-normal">{labels.toman}</span></TableCell>
                             <TableCell>
-                              <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm ${effectiveStatus === 'paid' ? 'animate-in' : ''}`} style={effectiveStatus === 'paid' ? { animationDuration: '500ms', animationFillMode: 'both' } : undefined}>
+                              <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm badge-gradient ${effectiveStatus === 'paid' ? 'animate-in' : ''}`} style={effectiveStatus === 'paid' ? { animationDuration: '500ms', animationFillMode: 'both' } : undefined}>
                                 <StatusIcon className="h-3 w-3" />
                                 {statusLabels[effectiveStatus] || effectiveStatus}
                               </Badge>

@@ -542,7 +542,7 @@ export default function CrmPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4" style={{ direction: 'ltr' }}>
+        <div className="flex gap-4 overflow-x-auto pb-4 card-gradient-border" style={{ direction: 'ltr' }}>
           {pipelineStages.map((stage, stageIdx) => {
             const stageContacts = getStageContacts(stage.id)
             const stageValue = getStageValue(stage.id)
@@ -558,7 +558,7 @@ export default function CrmPage() {
                     <span className={`h-2.5 w-2.5 rounded-full ${stage.dotColor} shadow-sm shadow-current/30`} />
                     <h3 className={`text-sm font-bold ${stage.color}`}>{stage.title}</h3>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] tabular-nums">
+                  <Badge variant="secondary" className="text-[10px] tabular-nums badge-gradient">
                     {toPersianDigits(stageContacts.length)}
                   </Badge>
                 </div>
@@ -744,7 +744,7 @@ export default function CrmPage() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge className={`text-[10px] border-0 ${stage.color}`} style={{ backgroundColor: 'var(--stage-bg, transparent)' }}>
+                      <Badge className={`text-[10px] border-0 ${stage.color} badge-gradient`} style={{ backgroundColor: 'var(--stage-bg, transparent)' }}>
                         <span className={`h-1.5 w-1.5 rounded-full ${stage.dotColor} ml-1.5`} />
                         {stage.title}
                       </Badge>
@@ -1502,7 +1502,7 @@ export default function CrmPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         <Button

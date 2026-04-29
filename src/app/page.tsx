@@ -32,6 +32,8 @@ import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
 import OnboardingWelcome from '@/components/cms/OnboardingWelcome'
 import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
 import PerformanceMonitorWidget from '@/components/cms/PerformanceMonitorWidget'
+import NotificationHistoryWidget from '@/components/cms/NotificationHistoryWidget'
+import ThemeSwitcherWidget from '@/components/cms/ThemeSwitcherWidget'
 import ScrollProgressIndicator from '@/components/cms/ScrollProgressIndicator'
 import { QuickAIChat } from '@/components/cms/QuickAIChat'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
@@ -933,6 +935,12 @@ function AppContent() {
 
       {/* Performance Monitor Widget */}
       <PerformanceMonitorWidget />
+
+      {/* Notification History Widget */}
+      <NotificationHistoryWidget />
+
+      {/* Theme Switcher Widget */}
+      <ThemeSwitcherWidget />
 
       {/* Onboarding Welcome */}
       {showOnboarding && (

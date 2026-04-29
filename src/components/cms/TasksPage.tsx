@@ -291,11 +291,11 @@ export default function TasksPage() {
       {/* ═══════════════ Header ═══════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         <Button
-          className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md"
+          className="gap-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-sm hover:shadow-md shine-effect"
           onClick={() => openCreate()}
         >
           <Plus className="h-4 w-4" />
@@ -427,7 +427,7 @@ export default function TasksPage() {
           description="فیلترهای جستجو یا اولویت را تغییر دهید"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-in" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-in card-gradient-border" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
           {KANBAN_COLUMNS.map((column) => {
             const columnTasks = tasksByStatus[column.id] ?? []
             const isDragTarget = dragOverColumn === column.id
@@ -519,21 +519,21 @@ export default function TasksPage() {
                                     handleStatusChange(task.id, KANBAN_COLUMNS[currentIndex + 1].id)
                                   }
                                 }}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors"
+                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors shine-effect"
                                 title="انتقال به مرحله بعد"
                               >
                                 <ArrowUpDown className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openEdit(task, e)}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 transition-colors"
+                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 transition-colors shine-effect"
                                 title={labels.edit}
                               >
                                 <Edit className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openDelete(task.id, e)}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors"
+                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors shine-effect"
                                 title={labels.delete}
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -555,12 +555,12 @@ export default function TasksPage() {
 
                           {/* Priority + Overdue Badge */}
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1`}>
+                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${pc.dot}`} />
                               {priorityLabels[task.priority]}
                             </Badge>
                             {overdue && (
-                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-0 text-[10px] shadow-sm gap-1">
+                              <Badge className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-0 text-[10px] shadow-sm gap-1 badge-gradient">
                                 <AlertTriangle className="h-3 w-3" />
                                 {labels.overdue}
                               </Badge>

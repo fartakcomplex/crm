@@ -511,7 +511,7 @@ export default function InventoryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">{labels.title}</h1>
+          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         {items.length > 0 && (
@@ -820,7 +820,7 @@ export default function InventoryPage() {
                                     </div>
                                   ) : (
                                     <button
-                                      className="flex items-center gap-2 group cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors"
+                                      className="flex items-center gap-2 group cursor-pointer hover:bg-muted/50 px-2 py-1 rounded-md transition-colors card-press"
                                       onClick={() => openQuickEdit(item)}
                                       title={labels.quickEdit.title}
                                     >
@@ -839,7 +839,7 @@ export default function InventoryPage() {
                                 <TableCell className="hidden lg:table-cell text-sm text-muted-foreground tabular-nums">{toPersianDigits(item.minStock)}</TableCell>
                                 <TableCell className="hidden sm:table-cell text-sm font-medium tabular-nums">{formatPrice(item.cost || item.unitPrice)}</TableCell>
                                 <TableCell>
-                                  <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm`}>
+                                  <Badge className={`${sc.bg} ${sc.text} border-0 gap-1.5 shadow-sm badge-gradient`}>
                                     <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />
                                     {statusLabels[item.status]}
                                   </Badge>
