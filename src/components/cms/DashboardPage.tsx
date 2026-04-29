@@ -1609,7 +1609,7 @@ function FloatingActionBar() {
 // ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
-  useEnsureData(['stats', 'charts', 'activities', 'posts', 'categories', 'notes'])
+  useEnsureData(['stats', 'charts', 'activities', 'posts', 'categories', 'notes', 'orders', 'invoices', 'inventory', 'transactions', 'customers', 'products'])
   const { stats, charts, activities, comments, categories, createPost, notes } = useCMS()
   const notesData: QuickNote[] = (notes.data as QuickNote[] | undefined) ?? []
   const statsData = stats.data

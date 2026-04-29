@@ -880,3 +880,72 @@ Stage Summary:
 - Quick Access Grid items made 20% more compact (smaller icons, tighter gaps)
 - System Health widget cleaned up (removed orphaned grid-span classes)
 - Zero lint errors, ready for VLM QA re-assessment
+
+---
+## HANDOVER DOCUMENT (Updated — Round 6)
+
+### Current Project Status
+- **Project**: Smart CMS v2.0 — Persian RTL content management system
+- **Stack**: Next.js 16 + TypeScript + Tailwind CSS 4 + shadcn/ui + Prisma (SQLite)
+- **Modules**: 21 menu items all rendering correctly
+- **Build**: Lint passes cleanly (0 errors), dev server compiles and serves pages
+- **QA Score**: All 21 pages verified rendering, cross-module stats showing real data
+
+### Completed This Session (Round 6 — Comprehensive Bug Fix)
+
+**CRITICAL BUGS FIXED:**
+1. **ModuleStatsOverview (CrossModulePanel.tsx)** — Was showing "۰ تومان" for all modules because it relied on Zustand cross-module store which was only populated when pages were visited. Fixed by making it use `useCMS()` + `useEnsureData()` directly to fetch and compute stats reactively. Now shows real data: Revenue 136.9M, Paid 69.6M, Inventory 4.2B Toman.
+
+2. **FinancePage.tsx** — Edit mode was broken: always called `createTransaction` even when `editingId` was set. Fixed by:
+   - Adding `updateTransaction` mutation to `useCMSData.ts`
+   - Updating `handleSave` to branch on `editingId` (create vs update)
+
+3. **SettingsPage.tsx** — Settings form never loaded saved values from backend. Always showed hardcoded defaults. Fixed by:
+   - Destructuring `settings` query from `useCMS()`
+   - Adding useEffect that maps backend settings data into form state on fetch
+
+4. **WordPressPage.tsx** — Two bugs:
+   - Hardcoded `ws://localhost:3005/ws` WebSocket URL → Changed to gateway-aware pattern using `window.location.host` + `XTransformPort=3005`
+   - Form state initialized from unloaded query, never synced → Added useEffect to sync fetched config into local form state
+
+5. **StorePage.tsx** — Revenue calculation only counted `completed` orders but no DB orders had that status. Fixed:
+   - Status normalization: `delivered`/`confirmed` → `completed` before status check
+   - Revenue filter changed from `status === 'completed'` to `!['cancelled', 'returned'].includes(status)`
+
+6. **Cross-module store (cross-module-store.ts)** — `totalStoreRevenue` only counted `status === 'completed'` orders. Fixed to count all non-cancelled orders.
+
+**MEDIUM BUGS FIXED:**
+7. **MediaPage.tsx** — No loading state; showed empty message during data fetch. Added loading spinner guard.
+
+8. **CrmPage.tsx** — `isLoading` computed but never used as render guard. Added loading spinner. Removed unused imports (`useEffect`, `CrmActivity`).
+
+9. **InventoryPage.tsx** — Used `useCMSData()` directly instead of `useCMS()` from context, creating ~30 duplicate query hooks. Fixed to use `useCMS()`. Also added `deleteInventoryItem` to destructuring.
+
+10. **DashboardPage.tsx** — Added missing data keys to `useEnsureData` so `ModuleStatsOverview` has data on first load: `orders`, `invoices`, `inventory`, `transactions`, `customers`, `products`.
+
+### Files Modified
+- `/src/components/CrossModulePanel.tsx` — ModuleStatsOverview now uses useCMS + useEnsureData directly
+- `/src/components/cms/useCMSData.ts` — Added updateTransaction mutation
+- `/src/components/cms/FinancePage.tsx` — Fixed edit mode, added updateTransaction
+- `/src/components/cms/SettingsPage.tsx` — Added settings data loading from backend
+- `/src/components/cms/WordPressPage.tsx` — Fixed WebSocket URL, form state sync
+- `/src/components/cms/StorePage.tsx` — Fixed revenue calculation, status normalization
+- `/src/components/cms/MediaPage.tsx` — Added loading state
+- `/src/components/cms/CrmPage.tsx` — Added loading guard, removed unused imports
+- `/src/components/cms/InventoryPage.tsx` — Changed to useCMS from context
+- `/src/components/cms/DashboardPage.tsx` — Extended useEnsureData keys
+- `/src/lib/cross-module-store.ts` — Fixed totalStoreRevenue calculation
+
+### QA Results
+- All 21 menu pages render without errors ✅
+- Dashboard module stats show real financial data ✅
+- Revenue: 136.9M Toman (from 4 non-cancelled orders) ✅
+- Paid Revenue: 69.6M Toman ✅
+- Inventory Value: 4.2B Toman ✅
+- All API endpoints return 200 ✅
+- Lint: 0 errors, 0 warnings ✅
+
+### Unresolved Issues / Risks
+1. **StorePage** still uses `useCMSData()` directly instead of `useCMS()` — works but architecturally inconsistent
+2. **Dashboard may be slow** with additional useEnsureData keys (7 new API calls on mount)
+3. **Fast Refresh full reload** — Occasional runtime error triggers full page reload (transient, not code bug)

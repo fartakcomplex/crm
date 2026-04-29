@@ -13,6 +13,8 @@ import {
   ChevronLeft,
 } from 'lucide-react'
 import { useCrossModuleStore, type SharedContact, type SharedProduct, type SharedOrderInvoice } from '@/lib/cross-module-store'
+import { useCMS } from '@/components/cms/context'
+import { useEnsureData } from '@/components/cms/useEnsureData'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -384,14 +386,37 @@ export function OrderInvoiceCrossRef({
 
 export function ModuleStatsOverview() {
   const { getModuleStats } = useCrossModuleStore()
-  const stats = getModuleStats()
+  const crossStats = getModuleStats()
+
+  // Fetch cross-module data directly for reliable stats display
+  const { orders, invoices, inventory, transactions, customers } = useCMS()
+  useEnsureData(['orders', 'invoices', 'inventory', 'transactions', 'customers'])
+
+  const ordersData = (orders.data ?? []) as any[]
+  const invoicesData = (invoices.data ?? []) as any[]
+  const inventoryData = (inventory.data ?? []) as any[]
+  const transactionsData = (transactions.data ?? []) as any[]
+  const customersData = (customers.data ?? []) as any[]
+
+  const storeRevenue = ordersData.filter((o: any) => !['cancelled', 'returned'].includes(o.status)).reduce((s: number, o: any) => s + (o.total || 0), 0)
+  const storeOrders = ordersData.length
+  const accountingPaid = invoicesData.filter((i: any) => i.status === 'paid').reduce((s: number, i: any) => s + (i.total || 0), 0)
+  const invoiceCount = invoicesData.length
+  const inventoryValue = inventoryData.reduce((s: number, i: any) => s + (i.stock || 0) * ((i.product?.price || i.product?.cost) || 0), 0)
+  const inventoryItems = inventoryData.length
+  const financeIncome = transactionsData.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + (t.amount || 0), 0)
+  const financeExpense = transactionsData.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + (t.amount || 0), 0)
+
+  const crmContacts = crossStats.crm.contacts || customersData.length
+  const crmActiveDeals = crossStats.crm.activeDeals || 0
+  const crmSuccessRate = crossStats.crm.successRate || 0
 
   const cards = [
-    { key: 'store' as const, ...moduleConfig.store, value: toPersianDigits(stats.store.orders), sub: `درآمد: ${formatValue(stats.store.revenue)} تومان` },
-    { key: 'crm' as const, ...moduleConfig.crm, value: toPersianDigits(stats.crm.contacts), sub: `${toPersianDigits(stats.crm.activeDeals)} فرصت فعال — نرخ تبدیل ${toPersianDigits(stats.crm.successRate)}٪` },
-    { key: 'accounting' as const, ...moduleConfig.accounting, value: toPersianDigits(stats.accounting.invoices), sub: `درآمد پرداخت‌شده: ${formatValue(stats.accounting.paidRevenue)} تومان` },
-    { key: 'inventory' as const, ...moduleConfig.inventory, value: toPersianDigits(stats.inventory.items), sub: `ارزش: ${formatValue(stats.inventory.totalValue)} تومان` },
-    { key: 'finance' as const, ...moduleConfig.finance, value: toPersianDigits(stats.finance.transactions), sub: `مانده: ${formatValue(stats.finance.netBalance)} تومان` },
+    { key: 'store' as const, ...moduleConfig.store, value: toPersianDigits(storeOrders || crossStats.store.orders), sub: `درآمد: ${formatValue(storeRevenue || crossStats.store.revenue)} تومان` },
+    { key: 'crm' as const, ...moduleConfig.crm, value: toPersianDigits(crmContacts), sub: `${toPersianDigits(crmActiveDeals)} فرصت فعال — نرخ تبدیل ${toPersianDigits(crmSuccessRate)}٪` },
+    { key: 'accounting' as const, ...moduleConfig.accounting, value: toPersianDigits(invoiceCount || crossStats.accounting.invoices), sub: `درآمد پرداخت‌شده: ${formatValue(accountingPaid || crossStats.accounting.paidRevenue)} تومان` },
+    { key: 'inventory' as const, ...moduleConfig.inventory, value: toPersianDigits(inventoryItems || crossStats.inventory.items), sub: `ارزش: ${formatValue(inventoryValue || crossStats.inventory.totalValue)} تومان` },
+    { key: 'finance' as const, ...moduleConfig.finance, value: toPersianDigits(transactionsData.length || crossStats.finance.transactions), sub: `مانده: ${formatValue(financeIncome - financeExpense || crossStats.finance.netBalance)} تومان` },
   ]
 
   return (

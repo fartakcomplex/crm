@@ -130,6 +130,17 @@ export default function WordPressPage() {
   const [apiKey, setApiKey] = useState(existingConfig?.apiKey ?? '')
   const [username, setUsername] = useState(existingConfig?.username ?? '')
   const [syncFreq, setSyncFreq] = useState(existingConfig?.syncFreq ?? 'manual')
+
+  // Sync fetched config into local form state
+  useEffect(() => {
+    if (existingConfig) {
+      setSiteUrl(existingConfig.siteUrl ?? '')
+      setApiKey(existingConfig.apiKey ?? '')
+      setUsername(existingConfig.username ?? '')
+      setSyncFreq(existingConfig.syncFreq ?? 'manual')
+    }
+  }, [existingConfig])
+
   const [syncing, setSyncing] = useState(false)
   const [syncProgress, setSyncProgress] = useState(0)
   const [syncResult, setSyncResult] = useState<{ created: number; updated: number; total: number } | null>(null)
@@ -145,7 +156,8 @@ export default function WordPressPage() {
 
   const connectWebSocket = useCallback(() => {
     try {
-      const ws = new WebSocket(`ws://localhost:3005/ws`)
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const ws = new WebSocket(`${protocol}//${window.location.host}/?XTransformPort=3005`)
 
       ws.onopen = () => {
         setServiceStatus('online')

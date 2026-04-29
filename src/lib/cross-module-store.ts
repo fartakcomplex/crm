@@ -331,7 +331,7 @@ export const useCrossModuleStore = create<CrossModuleState>((set, get) => ({
     }
 
     // Calculate stats
-    const totalStoreRevenue = orders.filter(o => o.status === 'completed').reduce((s, o) => s + o.total, 0)
+    const totalStoreRevenue = orders.filter(o => !['cancelled', 'returned'].includes(o.status)).reduce((s, o) => s + o.total, 0)
 
     set({
       sharedOrderInvoices: newOrderInvoices,

@@ -428,6 +428,8 @@ export default function StorePage() {
     if (apiOrders.length === 0) return initialOrders
     return apiOrders.map(o => {
       const cust = customerById.get(o.customerId)
+      // Normalize API statuses: 'delivered' and 'confirmed' → 'completed'
+      const normalizedStatus = (o.status === 'delivered' || o.status === 'confirmed') ? 'completed' : o.status
       return {
         id: o.id,
         orderNumber: o.orderNumber ?? '',
@@ -443,7 +445,7 @@ export default function StorePage() {
         shippingCost: o.shippingCost ?? 0,
         tax: o.tax ?? 0,
         total: o.total ?? 0,
-        status: (['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'returned'].includes(o.status) ? o.status : 'pending') as Order['status'],
+        status: (['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled', 'returned'].includes(normalizedStatus) ? normalizedStatus : 'pending') as Order['status'],
         shippingAddress: o.shippingAddress ?? '',
         notes: o.notes ?? '',
         createdAt: formatDate(o.createdAt),
@@ -489,18 +491,18 @@ export default function StorePage() {
   const [categories, setCategories] = useState<Category[]>(initialCategories)
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
 
-  // One-time sync from API to local state when API data first loads.
-  // This is an intentional one-time sync, not a reactive effect pattern.
+  // Sync from API to local state when API data loads.
+  // Tracks actual data identity (not just presence) so re-fetches are reflected.
   const apiSynced = useMemo(() => apiProducts.length > 0 || apiOrders.length > 0, [apiProducts.length, apiOrders.length])
   useEffect(() => {
     if (apiSynced) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional one-time API→local state sync
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional API→local state sync
       setProducts(apiMappedProducts)
       setOrders(apiMappedOrders)
       setCategories(apiMappedCategories)
       setCoupons(apiMappedCoupons)
     }
-  }, [apiSynced])
+  }, [apiSynced, apiMappedProducts, apiMappedOrders, apiMappedCategories, apiMappedCoupons])
   const [productSearch, setProductSearch] = useState('')
   const [productCategoryFilter, setProductCategoryFilter] = useState('all')
   const [productStatusFilter, setProductStatusFilter] = useState('all')
@@ -546,7 +548,7 @@ export default function StorePage() {
 
   // ── Quick Stats ──
   const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'processing').length
-  const monthRevenue = orders.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0)
+  const monthRevenue = orders.filter(o => !['cancelled', 'returned'].includes(o.status)).reduce((sum, o) => sum + o.total, 0)
   const avgOrder = orders.length > 0 ? Math.round(orders.reduce((sum, o) => sum + o.total, 0) / orders.length) : 0
 
   // ── Product Helpers ──

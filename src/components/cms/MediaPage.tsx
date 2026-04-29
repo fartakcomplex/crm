@@ -224,6 +224,14 @@ export default function MediaPage() {
     }
   }, [])
 
+  if (media.isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin h-8 w-8 border-4 border-violet-500 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
+
   return (
     <div
       className="space-y-6 p-4 md:p-6 page-enter"

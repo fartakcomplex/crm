@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useCMS } from './context'
+import type { Setting } from './types'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -226,10 +227,50 @@ function ThemeCard({
 
 export default function SettingsPage() {
   useEnsureData(['settings'])
-  const { bulkUpdateSettings } = useCMS()
+  const { settings: settingsQuery, bulkUpdateSettings } = useCMS()
   const { theme, setTheme } = useTheme()
 
   const [form, setForm] = useState<SettingsForm>(defaultSettings)
+  const [prevSettingsData, setPrevSettingsData] = useState<Setting[] | null>(null)
+
+  // Hydrate form from backend settings when data first arrives.
+  // This render-phase pattern (comparing with previous state) is the React-
+  // recommended way to sync local state with async props/query data.
+  const settingsData = settingsQuery.data as Setting[] | undefined
+  if (settingsData && settingsData !== prevSettingsData) {
+    setPrevSettingsData(settingsData)
+    const byKey = Object.fromEntries(settingsData.map(s => [s.key, s.value]))
+    setForm(prev => ({
+      ...prev,
+      siteName: byKey.siteName ?? prev.siteName,
+      siteDescription: byKey.siteDescription ?? prev.siteDescription,
+      language: byKey.language ?? prev.language,
+      timezone: byKey.timezone ?? prev.timezone,
+      metaTitle: byKey.metaTitle ?? prev.metaTitle,
+      metaDesc: byKey.metaDesc ?? prev.metaDesc,
+      robots: byKey.robots ?? prev.robots,
+      defaultModel: byKey.defaultModel ?? prev.defaultModel,
+      provider: byKey.provider ?? prev.provider,
+      apiEndpoint: byKey.apiEndpoint ?? prev.apiEndpoint,
+      maxTokens: byKey.maxTokens ?? prev.maxTokens,
+      postsPerPage: byKey.postsPerPage ?? prev.postsPerPage,
+      defaultCategory: byKey.defaultCategory ?? prev.defaultCategory,
+      autoSave: byKey.autoSave !== undefined ? byKey.autoSave === 'true' : prev.autoSave,
+      autoSaveInterval: byKey.autoSaveInterval ?? prev.autoSaveInterval,
+      twoFactor: byKey.twoFactor !== undefined ? byKey.twoFactor === 'true' : prev.twoFactor,
+      passwordPolicy: byKey.passwordPolicy ?? prev.passwordPolicy,
+      sessionTimeout: byKey.sessionTimeout ?? prev.sessionTimeout,
+      minPasswordLength: byKey.minPasswordLength ?? prev.minPasswordLength,
+      sidebarDefault: byKey.sidebarDefault ?? prev.sidebarDefault,
+      fontSize: byKey.fontSize ?? prev.fontSize,
+      compactMode: byKey.compactMode !== undefined ? byKey.compactMode === 'true' : prev.compactMode,
+      emailNotifs: byKey.emailNotifs !== undefined ? byKey.emailNotifs === 'true' : prev.emailNotifs,
+      pushNotifs: byKey.pushNotifs !== undefined ? byKey.pushNotifs === 'true' : prev.pushNotifs,
+      soundAlerts: byKey.soundAlerts !== undefined ? byKey.soundAlerts === 'true' : prev.soundAlerts,
+      activityDigest: byKey.activityDigest !== undefined ? byKey.activityDigest === 'true' : prev.activityDigest,
+    }))
+  }
+
   const [saving, setSaving] = useState(false)
 
   // Change password state

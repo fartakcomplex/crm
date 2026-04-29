@@ -237,6 +237,7 @@ export default function FinancePage() {
     invoices: invoiceQuery,
     orders: orderQuery,
     createTransaction,
+    updateTransaction,
     deleteTransaction,
     createBudgetItem,
     updateBudgetItem,
@@ -251,7 +252,7 @@ export default function FinancePage() {
   const orders = orderQuery.data ?? []
 
   const isLoading = txQuery.isLoading || budgetQuery.isLoading
-  const isCreating = createTransaction.isPending || createBudgetItem.isPending
+  const isCreating = createTransaction.isPending || updateTransaction.isPending || createBudgetItem.isPending
   const isDeleting = deleteTransaction.isPending
 
   // ── Local UI State ──
@@ -509,20 +510,33 @@ export default function FinancePage() {
 
   const handleSave = () => {
     if (!form.description || form.amount <= 0) return
-    createTransaction.mutate({
+    const data = {
       description: form.description,
       amount: form.amount,
       type: form.type,
       category: form.category,
-    }, {
-      onSuccess: () => {
-        toast.success(editingId ? 'تراکنش با موفقیت ویرایش شد' : 'تراکنش جدید ثبت شد')
-        setDialogOpen(false)
-      },
-      onError: () => {
-        toast.error('خطا در ثبت تراکنش')
-      },
-    })
+    }
+    if (editingId) {
+      updateTransaction.mutate({ id: editingId, ...data }, {
+        onSuccess: () => {
+          toast.success('تراکنش با موفقیت ویرایش شد')
+          setDialogOpen(false)
+        },
+        onError: () => {
+          toast.error('خطا در ویرایش تراکنش')
+        },
+      })
+    } else {
+      createTransaction.mutate(data, {
+        onSuccess: () => {
+          toast.success('تراکنش جدید ثبت شد')
+          setDialogOpen(false)
+        },
+        onError: () => {
+          toast.error('خطا در ثبت تراکنش')
+        },
+      })
+    }
   }
 
   const handleDelete = () => {

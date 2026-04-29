@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,7 +39,7 @@ import { useRegisterCRMData, ContactCrossRef, ModuleBadge, CrossModuleSyncStatus
 import { useCrossModuleStore } from '@/lib/cross-module-store'
 import { useCMS } from './context'
 import { useEnsureData } from './useEnsureData'
-import type { Customer, CrmActivity, Order, Invoice } from './types'
+import type { Customer, Order, Invoice } from './types'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -1488,6 +1488,14 @@ export default function CrmPage() {
   )
 
   // ─── Main Render ──────────────────────────────────────────────────────────
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin h-8 w-8 border-4 border-violet-500 border-t-transparent rounded-full" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6 p-4 md:p-6 page-enter">

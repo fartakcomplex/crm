@@ -467,6 +467,12 @@ export function useCMSData() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
   })
 
+  const updateTransaction = useMutation({
+    mutationFn: ({ id, ...data }: Partial<Transaction> & { id: string }) =>
+      fetchJSON<Transaction>(`${api.transactions}/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
+  })
+
   const deleteTransaction = useMutation({
     mutationFn: (id: string) => fetchJSON<void>(`${api.transactions}/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['transactions'] }),
@@ -591,7 +597,7 @@ export function useCMSData() {
     // Inventory
     createInventoryItem, updateInventoryItem, deleteInventoryItem,
     // Transactions
-    createTransaction, deleteTransaction,
+    createTransaction, updateTransaction, deleteTransaction,
     // CRM Activities
     createCrmActivity, updateCrmActivity, deleteCrmActivity,
     // Coupons

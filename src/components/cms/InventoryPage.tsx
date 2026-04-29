@@ -26,7 +26,7 @@ import {
   ShoppingBag, Tag,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useCMSData } from '@/components/cms/useCMSData'
+import { useCMS } from '@/components/cms/context'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import type {
   InventoryItem as APIInventoryItem,
@@ -230,8 +230,8 @@ export default function InventoryPage() {
   // ── Shared CMS Data Layer ──
   const {
     inventory, products, orders,
-    updateInventoryItem, createInventoryItem,
-  } = useCMSData()
+    updateInventoryItem, createInventoryItem, deleteInventoryItem,
+  } = useCMS()
   useEnsureData(['inventory', 'products', 'orders'])
 
   // ── Local UI State ──
