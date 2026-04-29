@@ -783,24 +783,6 @@ function AppContent() {
           </aside>
         )}
 
-        {/* ─── Mobile Sheet Sidebar ─── */}
-        {isMobile && (
-          <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
-            <SheetContent side="right" className="w-[280px] p-0 bg-card/95 backdrop-blur-xl" dir="rtl">
-              <SidebarNav
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                collapsed={false}
-                theme={theme}
-                onThemeToggle={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                onNavigateToNotifications={handleNavigateNotifications}
-                unreadCount={unreadCount}
-                onOpenShortcuts={() => setShortcutsOpen(true)}
-              />
-            </SheetContent>
-          </Sheet>
-        )}
-
         {/* ─── Main Content ─── */}
         <main className="flex-1 min-w-0 flex flex-col">
           {/* Top Bar */}
