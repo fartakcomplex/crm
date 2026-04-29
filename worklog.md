@@ -42,3 +42,31 @@ Stage Summary:
 - All 3 affected pages (WordPress, Notifications, Activities) now render clearly
 - Store page compiles and loads successfully
 - Dev server running stable via .zscripts/dev.sh with mini-services
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix persistent blurry/frosted overlay (user reported still blurry after first fix)
+
+Work Log:
+- User reported Pages (صفحات), Notifications (اعلان‌ها), Activities (فعالیت‌ها) still have frosted overlay
+- Analyzed screenshot with VLM — confirmed aggressive blur across entire main content area
+- Root cause: `.dark .glass-card` had `backdrop-filter: blur(20px)` + semi-transparent background (55% opacity)
+- Complete fix applied:
+  1. Removed `backdrop-filter` from `.glass-card` base class entirely
+  2. Set `.dark .glass-card` to `backdrop-filter: none`
+  3. Increased dark mode `--glass-bg` opacity from 55% to 85% for solid backgrounds
+  4. Removed `backdrop-filter` from all colored glass-card variants (cyan, violet, rose, emerald, amber)
+  5. Removed `backdrop-filter` from enhanced glass-card variants (emerald-enhanced, amber-enhanced, rose-enhanced)
+  6. Increased `.glass-card-pink` background opacity from 60% to 80%
+  7. Updated dark mode media query glass background from rgba(30,30,40,0.6) to rgba(30,30,40,0.85)
+- Kept backdrop-filter only on small UI elements (tooltips, sticky headers, loading overlay, navbar)
+- Verified Store module code — API routes, Prisma schema, and component logic all correct
+- No TypeScript/lint errors found
+
+Stage Summary:
+- Blur fix: Completely removed backdrop-filter blur from ALL glass-card classes
+- Cards now have solid opaque backgrounds instead of frosted glass effect
+- Store page code verified correct (uses useCMSData + useEnsureData properly, API routes exist, DB in sync)
+- Note: Dev server has intermittent stability issues in sandbox (process killed after ~15-20s idle)
+  but compiles and serves pages successfully during active requests
