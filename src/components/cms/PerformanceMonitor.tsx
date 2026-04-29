@@ -326,9 +326,12 @@ export function PerformanceMonitor() {
   return (
     <div className="glass-card glass-card-emerald rounded-xl overflow-hidden animate-in" dir="rtl">
       {/* ─── Header ─── */}
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         className="w-full flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-emerald-500/5 transition-colors"
         onClick={() => setCollapsed((p) => !p)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setCollapsed((p) => !p) } }}
       >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-sm">
@@ -367,7 +370,7 @@ export function PerformanceMonitor() {
             <ChevronUp className="h-4 w-4 text-muted-foreground" />
           )}
         </div>
-      </button>
+      </div>
 
       {/* ─── Metrics Grid ─── */}
       {!collapsed && (

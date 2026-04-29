@@ -274,7 +274,7 @@ export default function CrmPage() {
   const { customers, crmActivities, orders, invoices } = useCMS()
 
   const customerData = customers.data ?? []
-  const crmActivityData = crmActivities.data ?? []
+  const crmActivityData = Array.isArray(crmActivities.data) ? crmActivities.data : []
   const orderData = orders.data ?? []
   const invoiceData = invoices.data ?? []
 
