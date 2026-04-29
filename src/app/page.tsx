@@ -29,6 +29,8 @@ import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
+import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
+import { QuickAIChat } from '@/components/cms/QuickAIChat'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import { NotificationCenter } from '@/components/cms/NotificationCenter'
 import { formatRelativeTime } from '@/components/cms/types'
@@ -857,6 +859,9 @@ function AppContent() {
             </div>
           </header>
 
+          {/* Announcement Banner */}
+          <AnnouncementBanner />
+
           {/* Page Content */}
           <div className="flex-1 p-4 md:p-6 content-area">
             <div className="max-w-[1400px] mx-auto">
@@ -871,6 +876,9 @@ function AppContent() {
 
       {/* Floating Action Button */}
       <FloatingActionButton onNavigate={handleTabChange} onOpenQuickDraft={() => setQuickDraftOpen(true)} />
+
+      {/* Quick AI Chat Widget */}
+      <QuickAIChat />
 
       {/* Quick Draft Dialog */}
       <QuickDraftDialog open={quickDraftOpen} onOpenChange={setQuickDraftOpen} />

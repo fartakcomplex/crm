@@ -3640,3 +3640,431 @@ html {
     transparent 100%
   );
 }
+
+/* ========================================================================== */
+/*  CMS OVERALL STYLING IMPROVEMENTS                                          */
+/* ========================================================================== */
+
+/* -------------------------------------------------------------------------- */
+/*  1. SIDEBAR NAVIGATION STYLING                                             */
+/* -------------------------------------------------------------------------- */
+
+/* Subtle gradient sidebar background (replaces plain bg-card/40) */
+.cms-sidebar {
+  background: linear-gradient(
+    180deg,
+    oklch(0.985 0.006 270) 0%,
+    oklch(0.975 0.01 280) 40%,
+    oklch(0.968 0.012 270) 100%
+  );
+  border-inline-end: 1px solid oklch(0.55 0.2 270 / 10%);
+}
+
+.dark .cms-sidebar {
+  background: linear-gradient(
+    180deg,
+    oklch(0.185 0.02 270) 0%,
+    oklch(0.165 0.025 280) 40%,
+    oklch(0.145 0.02 270) 100%
+  );
+  border-inline-end: 1px solid oklch(0.7 0.2 270 / 12%);
+}
+
+/* Active sidebar item — colored left border indicator */
+.cms-sidebar-nav-active {
+  position: relative;
+  background: oklch(0.55 0.2 270 / 8%);
+  color: oklch(0.45 0.18 270);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-weight: 500;
+}
+
+.cms-sidebar-nav-active::before {
+  content: "";
+  position: absolute;
+  inset-block: 6px;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, oklch(0.55 0.2 270), oklch(0.65 0.2 180));
+}
+
+.dark .cms-sidebar-nav-active {
+  background: oklch(0.7 0.2 270 / 15%);
+  color: oklch(0.85 0.15 270);
+}
+
+.dark .cms-sidebar-nav-active::before {
+  background: linear-gradient(180deg, oklch(0.7 0.2 270), oklch(0.75 0.2 180));
+}
+
+/* Active sidebar item — pill highlight variant */
+.cms-sidebar-pill-active {
+  background: linear-gradient(
+    135deg,
+    oklch(0.55 0.2 270 / 12%),
+    oklch(0.65 0.2 180 / 8%)
+  );
+  color: oklch(0.45 0.18 270);
+  border-radius: var(--radius);
+  font-weight: 500;
+  box-shadow: inset 0 0 0 1px oklch(0.55 0.2 270 / 12%);
+}
+
+.dark .cms-sidebar-pill-active {
+  background: linear-gradient(
+    135deg,
+    oklch(0.7 0.2 270 / 18%),
+    oklch(0.75 0.2 180 / 12%)
+  );
+  color: oklch(0.85 0.15 270);
+  box-shadow: inset 0 0 0 1px oklch(0.7 0.2 270 / 18%);
+}
+
+/* Sidebar footer area */
+.cms-sidebar-footer {
+  padding: 12px 16px;
+  margin: 8px;
+  border-radius: var(--radius);
+  background: oklch(0.97 0.006 270 / 50%);
+  border-top: 1px solid oklch(0.55 0.2 270 / 8%);
+}
+
+.dark .cms-sidebar-footer {
+  background: oklch(0.16 0.018 270 / 50%);
+  border-top-color: oklch(0.7 0.2 270 / 10%);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  2. ENHANCED HOVER-LIFT WITH GRADIENT BORDER                               */
+/* -------------------------------------------------------------------------- */
+
+.hover-lift {
+  position: relative;
+}
+
+/* Gradient border pseudo-element (hidden by default, shown on hover) */
+.hover-lift::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    135deg,
+    oklch(0.55 0.2 270 / 0%),
+    oklch(0.65 0.2 180 / 45%),
+    oklch(0.7 0.17 160 / 25%),
+    oklch(0.55 0.2 270 / 0%)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hover-lift:hover::after {
+  opacity: 1;
+}
+
+/* Dark mode gradient border — more vivid */
+.dark .hover-lift::after {
+  background: linear-gradient(
+    135deg,
+    oklch(0.7 0.2 270 / 0%),
+    oklch(0.75 0.2 180 / 50%),
+    oklch(0.75 0.17 160 / 30%),
+    oklch(0.7 0.2 270 / 0%)
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  3. HEADER / TOPBAR WITH SCROLL SHADOW                                     */
+/* -------------------------------------------------------------------------- */
+
+.cms-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: oklch(0.995 0 0 / 92%);
+  border-bottom: 1px solid oklch(0 0 0 / 5%);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+/* Scrolled state — subtle bottom shadow appears */
+.cms-topbar.cms-topbar-scrolled {
+  box-shadow:
+    0 1px 3px oklch(0 0 0 / 4%),
+    0 4px 12px oklch(0 0 0 / 6%);
+  background: oklch(0.99 0 0 / 97%);
+}
+
+.dark .cms-topbar {
+  background: oklch(0.16 0 0 / 92%);
+  border-bottom-color: oklch(1 0 0 / 6%);
+}
+
+.dark .cms-topbar.cms-topbar-scrolled {
+  box-shadow:
+    0 1px 3px oklch(0 0 0 / 20%),
+    0 4px 12px oklch(0 0 0 / 30%);
+  background: oklch(0.16 0 0 / 97%);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  4. PAGE TRANSITION ANIMATION (TAB SWITCHING)                              */
+/* -------------------------------------------------------------------------- */
+
+@keyframes cms-page-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-slide-in {
+  animation: cms-page-slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  5. BOTTOM STATUS BAR                                                      */
+/* -------------------------------------------------------------------------- */
+
+.cms-status-bar {
+  padding: 6px 20px;
+  background: linear-gradient(
+    90deg,
+    oklch(0.97 0.005 270) 0%,
+    oklch(0.96 0.008 280) 50%,
+    oklch(0.97 0.005 270) 100%
+  );
+  border-top: 1px solid oklch(0.55 0.2 270 / 8%);
+  font-size: 0.75rem;
+  line-height: 1;
+  color: oklch(0.45 0 0);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  letter-spacing: 0.01em;
+}
+
+.cms-status-bar > * + * {
+  padding-inline-start: 20px;
+  border-inline-start: 1px solid oklch(0.55 0.2 270 / 10%);
+}
+
+.dark .cms-status-bar {
+  background: linear-gradient(
+    90deg,
+    oklch(0.17 0.015 270) 0%,
+    oklch(0.155 0.02 280) 50%,
+    oklch(0.17 0.015 270) 100%
+  );
+  border-top-color: oklch(0.7 0.2 270 / 10%);
+  color: oklch(0.6 0 0);
+}
+
+.dark .cms-status-bar > * + * {
+  border-inline-start-color: oklch(0.7 0.2 270 / 12%);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  6. ENHANCED WEBKIT SCROLLBAR (THIN, ROUNDED, ACCENT)                      */
+/* -------------------------------------------------------------------------- */
+
+.cms-scrollbar::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.cms-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cms-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.55 0.2 270 / 22%);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.cms-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.55 0.2 270 / 40%);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.cms-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.dark .cms-scrollbar::-webkit-scrollbar-thumb {
+  background: oklch(0.7 0.2 270 / 28%);
+}
+
+.dark .cms-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.7 0.2 270 / 48%);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  7. PRIMARY GRADIENT BUTTON                                                */
+/* -------------------------------------------------------------------------- */
+
+.btn-primary-gradient {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 22px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: oklch(1 0 0);
+  background: linear-gradient(135deg, #7c3aed, #9333ea, #a855f7);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background-position 0.4s ease;
+  box-shadow:
+    0 1px 3px oklch(0 0 0 / 10%),
+    0 1px 2px oklch(0 0 0 / 6%);
+}
+
+.btn-primary-gradient:hover {
+  background-position: 100% 100%;
+  box-shadow:
+    0 4px 14px oklch(0.55 0.2 270 / 30%),
+    0 2px 6px oklch(0 0 0 / 10%);
+  transform: translateY(-1px);
+}
+
+.btn-primary-gradient:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 10%);
+}
+
+.btn-primary-gradient:focus-visible {
+  outline: 2px solid oklch(0.55 0.2 270 / 50%);
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+.btn-primary-gradient:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Small variant */
+.btn-primary-gradient-sm {
+  padding: 5px 14px;
+  font-size: 0.8125rem;
+}
+
+/* Large variant */
+.btn-primary-gradient-lg {
+  padding: 12px 28px;
+  font-size: 1rem;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  8. GRADIENT BADGE / PILL STYLES                                           */
+/* -------------------------------------------------------------------------- */
+
+.badge-gradient {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  border-radius: 999px;
+  color: oklch(1 0 0);
+  background: linear-gradient(135deg, #7c3aed, #9333ea);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Gradient badge — violet */
+.badge-gradient-violet {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+/* Gradient badge — cyan */
+.badge-gradient-cyan {
+  background: linear-gradient(135deg, #0891b2, #22d3ee);
+}
+
+/* Gradient badge — emerald */
+.badge-gradient-emerald {
+  background: linear-gradient(135deg, #059669, #34d399);
+}
+
+/* Gradient badge — rose */
+.badge-gradient-rose {
+  background: linear-gradient(135deg, #e11d48, #fb7185);
+}
+
+/* Gradient badge — amber (with dark text) */
+.badge-gradient-amber {
+  background: linear-gradient(135deg, #d97706, #fbbf24);
+  color: oklch(0.25 0 0);
+}
+
+/* Gradient badge — blue */
+.badge-gradient-blue {
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+/* Gradient badge — success */
+.badge-gradient-success {
+  background: linear-gradient(135deg, #059669, #10b981);
+}
+
+/* Gradient badge — warning */
+.badge-gradient-warning {
+  background: linear-gradient(135deg, #d97706, #f59e0b);
+  color: oklch(0.25 0 0);
+}
+
+/* Gradient badge — danger */
+.badge-gradient-danger {
+  background: linear-gradient(135deg, #dc2626, #f87171);
+}
+
+/* Gradient badge — info */
+.badge-gradient-info {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+/* Dark mode — slightly more vivid badges */
+.dark .badge-gradient,
+.dark .badge-gradient-violet,
+.dark .badge-gradient-cyan,
+.dark .badge-gradient-emerald,
+.dark .badge-gradient-rose,
+.dark .badge-gradient-blue,
+.dark .badge-gradient-success,
+.dark .badge-gradient-danger,
+.dark .badge-gradient-info {
+  box-shadow: 0 1px 4px oklch(0 0 0 / 25%);
+}
+
+.dark .badge-gradient-amber,
+.dark .badge-gradient-warning {
+  box-shadow: 0 1px 4px oklch(0 0 0 / 25%);
+}

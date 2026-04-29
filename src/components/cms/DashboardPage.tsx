@@ -27,7 +27,7 @@ import {
   CalendarDays, ArrowUpRight, ArrowDownRight, Target, Flame,
   Save, PenLine, X, Upload, Wand2, Database, Server, HardDrive,
   Wifi, MessageSquare, StickyNote, Pin, PinOff, Timer, BarChart2,
-  MousePointerClick,
+  MousePointerClick, ShoppingCart, ImagePlus, ZapIcon,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -130,6 +130,16 @@ const labels = {
   noteDeleted: 'یادداشت حذف شد',
   noNotes: 'یادداشتی وجود ندارد',
   noNotesDesc: 'با کلیک روی دکمه + یک یادداشت جدید ایجاد کنید',
+  // Clock widget labels
+  clockWidgetTitle: 'ساعت و تاریخ',
+  // Quick stats summary
+  quickStatsSummary: 'خلاصه آمار',
+  totalOrders: 'سفارشات',
+  // Floating action bar
+  floatingBarTitle: 'دسترسی سریع',
+  newPostBtn: 'مطلب جدید',
+  newOrderBtn: 'سفارش جدید',
+  uploadMediaBtn: 'بارگذاری رسانه',
 }
 
 const statusLabel: Record<string, string> = {
@@ -250,8 +260,72 @@ function Section({ title, defaultOpen, children, delay }: {
   )
 }
 
-// ──────────────────── Persian Date ──────────────────────────────
+// ──────────────── Real-time Persian Clock Widget ────────────────
 
+const emptySubscribe = (_callback: () => void) => () => {}
+
+function usePersianClock(interval = 1000) {
+  const [time, setTime] = useState({ hours: '', minutes: '', seconds: '', date: '', weekday: '' })
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date()
+      setTime({
+        hours: now.toLocaleTimeString('fa-IR', { hour: '2-digit', hour12: false }),
+        minutes: now.toLocaleTimeString('fa-IR', { minute: '2-digit' }),
+        seconds: now.toLocaleTimeString('fa-IR', { second: '2-digit' }),
+        date: now.toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }),
+        weekday: now.toLocaleDateString('fa-IR', { weekday: 'long' }),
+      })
+    }
+    update()
+    const id = setInterval(update, interval)
+    return () => clearInterval(id)
+  }, [interval])
+
+  return time
+}
+
+function PersianClockWidget() {
+  const { hours, minutes, seconds, date, weekday } = usePersianClock()
+  const colonVisible = useSyncExternalStore(
+    emptySubscribe,
+    () => new Date().getMilliseconds() < 500,
+    () => true,
+  )
+
+  return (
+    <div className="flex flex-col items-center gap-1">
+      {/* Digital Clock */}
+      <div className="flex items-center gap-0.5 font-mono" dir="ltr">
+        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm">
+          {hours}
+        </span>
+        <span className={`text-violet-500 dark:text-violet-400 text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
+          :
+        </span>
+        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm">
+          {minutes}
+        </span>
+        <span className={`text-violet-500 dark:text-violet-400 text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
+          :
+        </span>
+        <span className="inline-flex items-center justify-center bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm animate-pulse">
+          {seconds}
+        </span>
+      </div>
+      {/* Jalali Date */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <CalendarDays className="h-3.5 w-3.5" />
+        <span className="font-medium">{weekday}</span>
+        <span className="text-border">|</span>
+        <span>{date}</span>
+      </div>
+    </div>
+  )
+}
+
+// Legacy PersianDate (kept for backward compatibility with other references)
 function PersianDate() {
   const date = useSyncExternalStore(
     emptySubscribe,
@@ -260,8 +334,6 @@ function PersianDate() {
   )
   return <span>{date}</span>
 }
-
-const emptySubscribe = (_callback: () => void) => () => {}
 
 // ──────────────────── Mini Trend Card ────────────────────────────
 
@@ -1225,6 +1297,314 @@ function AnalyticsWidget() {
   )
 }
 
+// ────────────── CSS-Only Sparkline Bar Chart ──────────────────
+
+function CSSBarChart({ data, color = '#8b5cf6', height = 32 }: { data: number[]; color?: string; height?: number }) {
+  if (!data || data.length === 0) return null
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+
+  return (
+    <div className="flex items-end gap-[2px]" style={{ height: `${height}px` }}>
+      {data.map((v, i) => {
+        const pct = ((v - min) / range) * 100
+        return (
+          <div
+            key={i}
+            className="flex-1 rounded-sm transition-all duration-500 ease-out"
+            style={{
+              height: `${Math.max(pct, 8)}%`,
+              backgroundColor: color,
+              opacity: 0.4 + (pct / 100) * 0.6,
+              animationDelay: `${i * 50}ms`,
+            }}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// ────────────── Dashboard Quick Stats Summary ──────────────────
+
+function DashboardQuickStatsSummary({ statsData }: { statsData: { totalPosts?: number; totalOrders?: number; revenue?: number; totalUsers?: number; totalCustomers?: number; totalViews?: number; pendingOrders?: number } | null }) {
+  const totalPosts = useCountUp(statsData?.totalPosts ?? 0, 1200, statsData !== null)
+  const totalOrders = useCountUp(statsData?.totalOrders ?? 0, 1200, statsData !== null)
+  const revenue = useCountUp(statsData?.revenue ?? 0, 1400, statsData !== null)
+  const totalUsers = useCountUp(statsData?.totalUsers ?? 0, 1000, statsData !== null)
+
+  const summaryCards = [
+    {
+      label: labels.totalPosts,
+      value: totalPosts.toLocaleString('fa-IR'),
+      rawValue: totalPosts,
+      icon: <FileText className="h-5 w-5" />,
+      gradient: 'from-violet-500 to-purple-600',
+      iconBg: 'bg-violet-100 dark:bg-violet-900/30',
+      iconColor: 'text-violet-600 dark:text-violet-400',
+      barData: [3, 5, 4, 7, 6, 8, 9, 7, 10, 12],
+      barColor: '#8b5cf6',
+    },
+    {
+      label: labels.totalOrders,
+      value: totalOrders.toLocaleString('fa-IR'),
+      rawValue: totalOrders,
+      icon: <ShoppingCart className="h-5 w-5" />,
+      gradient: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      barData: [2, 3, 5, 4, 6, 5, 7, 8, 6, 9],
+      barColor: '#10b981',
+    },
+    {
+      label: labels.revenue,
+      value: `$${revenue.toLocaleString('en-US')}`,
+      rawValue: revenue,
+      icon: <DollarSign className="h-5 w-5" />,
+      gradient: 'from-amber-500 to-orange-600',
+      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+      iconColor: 'text-amber-600 dark:text-amber-400',
+      barData: [40, 55, 48, 60, 52, 70, 65, 78, 72, 85],
+      barColor: '#f59e0b',
+    },
+    {
+      label: labels.totalUsers,
+      value: totalUsers.toLocaleString('fa-IR'),
+      rawValue: totalUsers,
+      icon: <Users className="h-5 w-5" />,
+      gradient: 'from-cyan-500 to-sky-600',
+      iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
+      iconColor: 'text-cyan-600 dark:text-cyan-400',
+      barData: [1, 2, 2, 3, 3, 4, 5, 4, 6, 7],
+      barColor: '#06b6d4',
+    },
+  ]
+
+  return (
+    <Card className="glass-card shadow-sm border-0 overflow-hidden">
+      <CardContent className="p-0">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4 text-violet-500" />
+            <span className="text-sm font-semibold text-violet-700 dark:text-violet-300">{labels.quickStatsSummary}</span>
+          </div>
+          <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+            <Activity className="h-3 w-3 mr-1" />
+            لحظه‌ای
+          </Badge>
+        </div>
+        {/* Cards Row */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border/50">
+          {summaryCards.map((card, i) => (
+            <div
+              key={card.label}
+              className="p-4 hover:bg-muted/30 transition-colors duration-200 animate-in"
+              style={{ animationDelay: `${i * 80}ms`, animationFillMode: 'both' }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className={`h-9 w-9 rounded-xl ${card.iconBg} flex items-center justify-center ${card.iconColor}`}>
+                  {card.icon}
+                </div>
+                <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white shadow-sm`}>
+                  <TrendingUp className="h-4 w-4" />
+                </div>
+              </div>
+              <p className="text-xl font-bold tabular-nums mb-0.5">{card.value}</p>
+              <p className="text-xs text-muted-foreground mb-2">{card.label}</p>
+              {/* CSS-only bar chart */}
+              <CSSBarChart data={card.barData} color={card.barColor} height={24} />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────── Enhanced Activity Timeline with Alternating Cards ──────
+
+const TIMELINE_ICON_MAP: Record<string, React.ReactNode> = {
+  post: <FileText className="h-3 w-3" />,
+  user: <Users className="h-3 w-3" />,
+  comment: <MessageCircle className="h-3 w-3" />,
+  default: <Activity className="h-3 w-3" />,
+}
+
+function getTimelineIcon(action: string): React.ReactNode {
+  const lower = action.toLowerCase()
+  if (lower.includes('post') || lower.includes('مطلب') || lower.includes('محتوا')) return TIMELINE_ICON_MAP.post
+  if (lower.includes('user') || lower.includes('کاربر') || lower.includes('member')) return TIMELINE_ICON_MAP.user
+  if (lower.includes('comment') || lower.includes('نظر')) return TIMELINE_ICON_MAP.comment
+  return TIMELINE_ICON_MAP.default
+}
+
+function EnhancedActivityTimeline({ activities }: { activities: Array<{ id: string; action: string; details: string; createdAt: string; user?: Pick<import('./types').User, 'id' | 'name' | 'email' | 'avatar'> | null }> }) {
+  const recent = activities.slice(0, 6)
+  if (recent.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+        <Activity className="h-10 w-10 mb-3 opacity-20" />
+        <p className="text-sm">{labels.noActivities}</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative">
+      {/* Central timeline line */}
+      <div className="absolute top-3 bottom-3 start-[18px] w-[2px] bg-gradient-to-b from-violet-300 via-purple-400 to-fuchsia-400 dark:from-violet-700 dark:via-purple-600 dark:to-fuchsia-600 rounded-full" />
+
+      <div className="space-y-4">
+        {recent.map((a, i) => {
+          const isRight = i % 2 === 0
+          const colorIdx = i % ACTIVITY_COLORS.length
+          return (
+            <div
+              key={a.id}
+              className={`flex items-start gap-3 relative animate-in`}
+              style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+            >
+              {/* Timeline dot with icon */}
+              <div className="shrink-0 z-10 mt-1">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center border-[3px] border-background shadow-md"
+                  style={{ backgroundColor: ACTIVITY_COLORS[colorIdx] }}
+                >
+                  <span className="text-white">{getTimelineIcon(a.action)}</span>
+                </div>
+              </div>
+
+              {/* Alternating card */}
+              <div className={`flex-1 min-w-0 ${isRight ? '' : ''}`}>
+                <div className={`rounded-xl border p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${
+                  isRight
+                    ? 'bg-gradient-to-l from-violet-50 to-background dark:from-violet-950/30 dark:to-background border-violet-200/60 dark:border-violet-800/40 hover:border-violet-300 dark:hover:border-violet-700'
+                    : 'bg-gradient-to-l from-fuchsia-50 to-background dark:from-fuchsia-950/30 dark:to-background border-fuchsia-200/60 dark:border-fuchsia-800/40 hover:border-fuchsia-300 dark:hover:border-fuchsia-700'
+                }`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium leading-relaxed">{a.details || a.action}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[11px] text-muted-foreground">{formatRelativeTime(a.createdAt)}</span>
+                        {a.user?.name && (
+                          <>
+                            <span className="text-border text-[10px]">•</span>
+                            <div className="flex items-center gap-1">
+                              <div
+                                className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white"
+                                style={{ backgroundColor: ACTIVITY_COLORS[colorIdx] }}
+                              >
+                                {a.user.name.charAt(0)}
+                              </div>
+                              <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">{a.user.name}</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    {/* Color accent bar on the left side */}
+                    <div
+                      className="w-1 h-10 rounded-full shrink-0"
+                      style={{ backgroundColor: ACTIVITY_COLORS[colorIdx], opacity: 0.5 }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ────────────── Floating Action Bar ──────────────────────────
+
+function FloatingActionBar() {
+  const { createPost } = useCMS()
+  const [expanded, setExpanded] = useState(false)
+
+  const actions = [
+    {
+      icon: <Plus className="h-5 w-5" />,
+      label: labels.newPostBtn,
+      gradient: 'from-violet-500 to-purple-600',
+      shadow: 'shadow-violet-500/30',
+      onClick: () => {
+        createPost.mutate({
+          title: '',
+          content: '',
+          status: 'draft',
+          categoryId: null,
+          slug: `post-${Date.now()}`,
+          excerpt: '',
+          featured: false,
+        }, {
+          onSuccess: () => toast.success('مطلب جدید ایجاد شد'),
+        })
+        setExpanded(false)
+      },
+    },
+    {
+      icon: <ShoppingCart className="h-5 w-5" />,
+      label: labels.newOrderBtn,
+      gradient: 'from-emerald-500 to-teal-600',
+      shadow: 'shadow-emerald-500/30',
+      onClick: () => {
+        toast.info('به زودی سفارش جدید اضافه می‌شود')
+        setExpanded(false)
+      },
+    },
+    {
+      icon: <ImagePlus className="h-5 w-5" />,
+      label: labels.uploadMediaBtn,
+      gradient: 'from-rose-500 to-pink-600',
+      shadow: 'shadow-rose-500/30',
+      onClick: () => {
+        toast.info('به زودی بارگذاری رسانه اضافه می‌شود')
+        setExpanded(false)
+      },
+    },
+  ]
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
+      {/* Expanded action buttons */}
+      <div
+        className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${
+          expanded ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-2 pointer-events-none'
+        }`}
+      >
+        {actions.map((action, i) => (
+          <button
+            key={action.label}
+            onClick={action.onClick}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-l ${action.gradient} text-white shadow-lg ${action.shadow} hover:scale-105 active:scale-[0.97] transition-all duration-200 animate-in`}
+            style={{ animationDelay: `${i * 60}ms`, animationFillMode: 'both' }}
+          >
+            {action.icon}
+            <span className="text-sm font-medium whitespace-nowrap">{action.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Main toggle button */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={`flex items-center gap-2 px-5 py-3 rounded-2xl bg-background border-2 border-violet-300 dark:border-violet-700 shadow-xl shadow-violet-500/15 hover:shadow-2xl hover:shadow-violet-500/25 transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] ${
+          expanded ? 'bg-violet-600 dark:bg-violet-500 border-violet-600 dark:border-violet-500 text-white' : 'text-foreground'
+        }`}
+      >
+        <Zap className={`h-5 w-5 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`} />
+        <span className="text-sm font-bold">{labels.floatingBarTitle}</span>
+        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${expanded ? 'rotate-180' : ''}`} />
+      </button>
+    </div>
+  )
+}
+
 // ────────────────────── Main Component ───────────────────────────
 
 export default function DashboardPage() {
@@ -1265,12 +1645,9 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <CrossModuleSyncStatus />
-            <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4" />
-              <PersianDate />
-            </div>
+            <PersianClockWidget />
             <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 w-fit shadow-sm gap-1">
               <Activity className="h-3 w-3" />
               آنلاین
@@ -1281,6 +1658,9 @@ export default function DashboardPage() {
 
       {/* Onboarding Tip Banner */}
       <OnboardingTipBanner />
+
+      {/* Quick Stats Summary with Animated Counters & CSS Bar Charts */}
+      <DashboardQuickStatsSummary statsData={statsData ?? null} />
 
       {/* Quick Stats Row */}
       <QuickStatsRow />
@@ -1365,28 +1745,10 @@ export default function DashboardPage() {
           </div>
         </Section>
 
-        {/* Recent Activities */}
+        {/* Recent Activities — Enhanced Timeline */}
         <Section title={labels.recentActivities} defaultOpen={true} delay={150}>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {activitiesData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
-                <Activity className="h-10 w-10 mb-2 opacity-20" />
-                <p className="text-sm">{labels.noActivities}</p>
-              </div>
-            ) : (
-              activitiesData.slice(0, 8).map((a) => (
-                <div key={a.id} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-violet-500/5 transition-all duration-200 hover-lift">
-                  <div className="rounded-lg bg-violet-100 dark:bg-violet-900/30 p-1.5 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5">
-                    <Activity className="h-3.5 w-3.5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{a.action}</p>
-                    <p className="text-xs text-muted-foreground truncate">{a.details}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">{formatRelativeTime(a.createdAt)}</span>
-                </div>
-              ))
-            )}
+          <div className="max-h-80 overflow-y-auto">
+            <EnhancedActivityTimeline activities={activitiesData} />
           </div>
         </Section>
 
@@ -1735,6 +2097,9 @@ export default function DashboardPage() {
         {/* Theme Customizer Widget */}
         <ThemeCustomizerWidget />
       </div>
+
+      {/* Floating Action Bar */}
+      <FloatingActionBar />
     </div>
   )
 }

@@ -43,7 +43,7 @@ import {
   TriangleAlert, UserCircle, FileCheck, CircleDollarSign, ArrowLeftRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useRegisterStoreData, ContactCrossRef, ProductCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
+import { useRegisterStoreData, ContactCrossRef, ModuleBadge, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
 import { useCrossModuleStore } from '@/lib/cross-module-store'
 import { useCMSData } from './useCMSData'
 import { useEnsureData } from './useEnsureData'
