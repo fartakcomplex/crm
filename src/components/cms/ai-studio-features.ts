@@ -89,7 +89,7 @@ function getIcon(iconComp: React.ElementType): React.ElementType {
   return iconComp
 }
 
-// ─── Build Prompt ────────────────────────────────────────────────────────────────
+// ─── Build Prompt (for text generation) ──────────────────────────────────────────
 
 export function buildPrompt(feature: AIFeature, data: Record<string, string>): string {
   let prompt = `لطفاً ${feature.title} تولید کن.\n\n`
@@ -104,6 +104,111 @@ export function buildPrompt(feature: AIFeature, data: Record<string, string>): s
   prompt += '\nلطفاً خروجی را به زبان فارسی و با فرمت خوانا و حرفه‌ای ارائه بده. از ایموجی و فرمت‌بندی مناسب استفاده کن.'
 
   return prompt
+}
+
+// ─── Build Image Prompt (for image generation) ──────────────────────────────
+// Creates a proper VISUAL prompt instead of text-generation instructions.
+// Persian text values are kept raw — the backend auto-translates to English.
+
+const styleMapEn: Record<string, string> = {
+  'مدرن': 'modern', 'مینیمال': 'minimalist', 'واقع‌گرایانه': 'photorealistic',
+  'کارتونی': 'cartoon style', 'آبستره': 'abstract art', 'طبیعت': 'nature-inspired',
+  'تکنولوژی': 'tech futuristic', 'هنری': 'artistic watercolor', 'جذاب': 'eye-catching bold',
+  'وحشتناک': 'dramatic intense', 'آموزشی': 'educational clean', 'سرگرم': 'fun playful',
+  'شرکتی': 'corporate professional', 'استودیو': 'studio photography', 'بیرونی': 'outdoor natural',
+  'داخلی': 'interior lifestyle', 'اداری': 'office professional', 'تبلیغاتی': 'promotional marketing',
+  'فروش غذایی': 'food photography', 'رنگی': 'colorful vibrant', 'اندازه‌ای': 'size comparison',
+  'استفاده': 'in-use lifestyle', 'پرتره': 'portrait', 'عمودی': 'vertical',
+  'افقی': 'horizontal landscape', 'بنر': 'banner wide',
+}
+
+function translateStyle(val: string): string {
+  return styleMapEn[val] || val
+}
+
+export function buildImagePrompt(feature: AIFeature, data: Record<string, string>): string {
+  const parts: string[] = []
+
+  for (const field of feature.inputFields) {
+    const value = data[field.name]?.trim()
+    if (!value) continue
+
+    if (field.type === 'select') {
+      parts.push(translateStyle(value))
+    } else if (field.type === 'textarea') {
+      // For textarea, use first 150 chars max to keep prompt focused
+      parts.push(value.substring(0, 150))
+    } else {
+      parts.push(value)
+    }
+  }
+
+  const subject = parts.join(', ') || 'professional visual design'
+
+  // Feature-specific prompt enhancements
+  const id = feature.id
+  let prefix = ''
+  let suffix = ''
+
+  if (id === 'product-thumbnail' || id === 'product-mockup' || id === 'product-variant') {
+    prefix = 'Professional product photography of'
+    suffix = 'clean isolated background, studio lighting, sharp focus, commercial quality, 8k, photorealistic'
+  } else if (id === 'blog-featured') {
+    prefix = 'Editorial blog header illustration about'
+    suffix = 'visually striking composition, vibrant colors, magazine-quality, modern graphic design, space for text overlay'
+  } else if (id === 'social-image' || id === 'instagram-story') {
+    prefix = 'Eye-catching social media graphic about'
+    suffix = 'modern design, bold colors, trendy visual style, professional marketing visual, high engagement'
+  } else if (id === 'youtube-thumbnail') {
+    prefix = 'Clickable YouTube thumbnail for'
+    suffix = 'high contrast, bold colors, dramatic lighting, attention-grabbing, expressive, professional thumbnail'
+  } else if (id === 'logo-gen') {
+    prefix = 'Professional logo design for'
+    suffix = 'clean modern, vector style, minimalist, memorable, versatile branding design'
+  } else if (id === 'banner-hero') {
+    prefix = 'Website hero banner with'
+    suffix = 'wide landscape format, compelling composition, professional web design, gradient background'
+  } else if (id === 'infographic') {
+    prefix = 'Professional data visualization infographic about'
+    suffix = 'clean charts, modern flat design, organized layout, professional color scheme'
+  } else if (id === 'before-after') {
+    prefix = 'Dramatic before and after comparison of'
+    suffix = 'split view, clear visual contrast, professional layout, inspiring transformation'
+  } else if (id === 'quote-poster') {
+    prefix = 'Beautiful motivational quote poster,'
+    suffix = 'elegant typography, artistic background, clean design, shareable format'
+  } else if (id === 'collage') {
+    prefix = 'Professional photo collage about'
+    suffix = 'balanced composition, modern layout, cohesive color palette, creative grid'
+  } else if (id === 'style-transfer') {
+    prefix = 'Artistic styled image,'
+    suffix = 'creative interpretation, unique visual style, high quality digital art, expressive colors'
+  } else {
+    // Generic fallback for any image feature
+    prefix = 'High quality digital artwork of'
+    suffix = 'high quality, professional, detailed, sharp focus, 8k resolution, visually compelling'
+  }
+
+  return `${prefix} ${subject}, ${suffix}`
+}
+
+// ─── Build Video Prompt (for video generation) ─────────────────────────────
+
+export function buildVideoPrompt(feature: AIFeature, data: Record<string, string>): string {
+  const parts: string[] = []
+
+  for (const field of feature.inputFields) {
+    const value = data[field.name]?.trim()
+    if (!value) continue
+
+    if (field.type === 'text' || field.type === 'textarea') {
+      parts.push(value.substring(0, 120))
+    }
+  }
+
+  const subject = parts.join(', ') || 'cinematic scene'
+
+  return `Cinematic video of ${subject}, smooth camera motion, professional quality, cinematic lighting, 1080p HD`
 }
 
 // ─── 100 AI Features ───────────────────────────────────────────────────────────

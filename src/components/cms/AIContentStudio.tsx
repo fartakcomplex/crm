@@ -42,7 +42,7 @@ import {
   ChevronDown,
   X,
 } from 'lucide-react'
-import { allFeatures, categories, buildPrompt, outputTypeLabels } from './ai-studio-features'
+import { allFeatures, categories, buildPrompt, buildImagePrompt, buildVideoPrompt, outputTypeLabels } from './ai-studio-features'
 import type { AIFeature } from './ai-studio-features'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -267,7 +267,7 @@ export default function AIContentStudio() {
 
   // ─── Generate: Image (async with polling to avoid gateway timeout) ────────
   const generateImage = useCallback(async (feature: AIFeature, data: Record<string, string>, signal?: AbortSignal) => {
-    const prompt = buildPrompt(feature, data)
+    const prompt = buildImagePrompt(feature, data)
 
     // Determine size based on feature description hints
     const size = feature.description.includes('پرتره') || feature.description.includes('عمودی')
@@ -331,7 +331,7 @@ export default function AIContentStudio() {
 
   // ─── Generate: Video ─────────────────────────────────────────────────────
   const generateVideo = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
-    const prompt = buildPrompt(feature, data)
+    const prompt = buildVideoPrompt(feature, data)
     setVideoProgress('در حال ایجاد تسک تولید ویدئو...')
 
     const res = await fetch('/api/ai/generate-video', {

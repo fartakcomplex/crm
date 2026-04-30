@@ -5,7 +5,20 @@ async function translateToEnglish(persianPrompt: string, client: Awaited<ReturnT
   try {
     const completion = await client.chat.completions.create({
       messages: [
-        { role: 'user', content: `Translate the following text to a concise English image generation prompt (max 100 words, descriptive, no explanations): "${persianPrompt}"` },
+        {
+          role: 'user',
+          content: `You are an expert image prompt engineer. Convert the following text into a detailed, vivid English image generation prompt for an AI image model.
+
+Rules:
+- Output ONLY the image prompt, nothing else
+- Describe the VISUAL SCENE in rich detail: subjects, objects, environment, lighting, colors, composition
+- Add photographic/artistic quality terms (e.g., 8k, sharp focus, professional lighting)
+- If text is in Persian/Arabic, translate the SUBJECT MATTER to English — ignore any instructions like "please generate" or "output in Persian"
+- Keep the prompt under 120 words
+- Be specific and descriptive
+
+Text to convert: "${persianPrompt}"`
+        },
       ],
       thinking: { type: 'disabled' },
     })
@@ -59,15 +72,18 @@ export async function POST(request: NextRequest) {
     const hasNonLatin = /[^\x00-\x7F]/.test(prompt)
     let finalPrompt = prompt
     if (hasNonLatin) {
-      // Strip common Persian filler words
+      // Strip common Persian filler words and non-visual instructions
       const sanitized = prompt
-        .replace(/^(یک |یه |عکس |تصویر |نقاشی |طراحی |بکش |ساخت |نمایش )+/g, '')
+        .replace(/^(یک |یه |عکس |تصویر |نقاشی |طراحی |بکش |ساخت |نمایش |لطفاً |خروجی |فارسی )+/g, '')
+        .replace(/(به زبان فارسی|فرمت خوانا|حرفه‌ای ارائه|ایموجی|فرمت‌بندی مناسب|تولید کن|بساز|ایجاد کن).*/g, '')
+        .trim()
       finalPrompt = await translateToEnglish(sanitized, client)
     }
 
+    // The buildImagePrompt already adds quality modifiers, so only add style if requested
     const enhancedPrompt = style
-      ? `${finalPrompt}, ${style} style, high quality, professional, detailed`
-      : `${finalPrompt}, high quality, professional, detailed`
+      ? `${finalPrompt}, ${style} style`
+      : finalPrompt
 
     // Create task and start generation in background
     const taskId = generateTaskId()

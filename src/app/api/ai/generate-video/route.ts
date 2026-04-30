@@ -4,7 +4,20 @@ async function translateToEnglish(persianPrompt: string, client: Awaited<ReturnT
   try {
     const completion = await client.chat.completions.create({
       messages: [
-        { role: 'user', content: `Translate to a concise English video generation prompt (max 80 words, descriptive, no explanations): "${persianPrompt}"` },
+        {
+          role: 'user',
+          content: `You are an expert video prompt engineer. Convert the following text into a detailed English VIDEO generation prompt.
+
+Rules:
+- Output ONLY the video prompt, nothing else
+- Describe the VISUAL SCENE: subjects, actions, environment, camera movement, lighting
+- Add cinematic quality terms (e.g., cinematic lighting, 1080p, smooth camera)
+- If text is in Persian/Arabic, translate the SUBJECT MATTER to English — ignore instructions like "please generate" or "output in Persian"
+- Keep under 80 words
+- Focus on what the camera should SEE and SHOW
+
+Text: "${persianPrompt}"`
+        },
       ],
       thinking: { type: 'disabled' },
     })
@@ -36,7 +49,14 @@ export async function POST(request: NextRequest) {
 
     // Translate Persian to English to reduce filter triggers
     const hasNonLatin = /[^\x00-\x7F]/.test(prompt)
-    const finalPrompt = hasNonLatin ? await translateToEnglish(prompt, client) : prompt
+    let finalPrompt = prompt
+    if (hasNonLatin) {
+      const sanitized = prompt
+        .replace(/^(یک |یه |ویدئو |تصویر |ساخت |نمایش |لطفاً |خروجی |فارسی )+/g, '')
+        .replace(/(به زبان فارسی|فرمت خوانا|حرفه‌ای|ایموجی|فرمت‌بندی|تولید کن|بساز|ایجاد کن).*/g, '')
+        .trim()
+      finalPrompt = await translateToEnglish(sanitized, client)
+    }
 
     const task = await client.video.generations.create({
       prompt: finalPrompt,

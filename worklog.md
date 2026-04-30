@@ -1322,3 +1322,71 @@ Stage Summary:
 - Supports 4 posts + 10 products = 14 content items from CMS
 - Content picker has search, type icons (post/product), and auto-fill logic
 - All existing functionality preserved (manual input still works)
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Fix image generation quality — images are meaningless and irrelevant
+
+Work Log:
+- User reported: "عکسی که تولید میکنه بسیار بی معنی و بی مورد هست" (generated images are meaningless)
+- Root cause analysis: `buildPrompt()` was used for ALL output types including image/video
+  - buildPrompt wraps content in Persian text instructions: "لطفاً خروجی را به زبان فارسی..."
+  - These Persian text-generation instructions get translated to English by the image API
+  - Result: diluted, meaningless image prompts like "Please output in Persian with readable format, professional, detailed"
+  - The actual visual subject gets lost in translation
+
+SOLUTION — 3-part fix:
+
+1. NEW: `buildImagePrompt()` in ai-studio-features.ts
+   - Dedicated visual prompt builder for image generation
+   - Feature-specific prefix/suffix templates for all 15 image features:
+     - product-thumbnail/mockup/variant: "Professional product photography of..."
+     - blog-featured: "Editorial blog header illustration about..."
+     - social-image/instagram-story: "Eye-catching social media graphic about..."
+     - youtube-thumbnail: "Clickable YouTube thumbnail for..."
+     - logo-gen: "Professional logo design for..."
+     - banner-hero: "Website hero banner with..."
+     - infographic: "Professional data visualization infographic about..."
+     - etc.
+   - Persian→English style map (styleMapEn) for select field values:
+     مدرن→modern, مینیمال→minimalist, واقع‌گرایانه→photorealistic, etc.
+   - Textarea content limited to 150 chars (prevents prompt bloat)
+   - Adds appropriate quality modifiers per feature type
+
+2. NEW: `buildVideoPrompt()` in ai-studio-features.ts
+   - Dedicated video prompt builder
+   - Concise format: "Cinematic video of {subject}, smooth camera motion, professional quality, 1080p HD"
+   - Text content limited to 120 chars
+
+3. IMPROVED: Backend translation prompts
+   - generate-image/route.ts: Translation now uses "expert image prompt engineer" system prompt
+     - Rules: describe VISUAL SCENE, add quality terms, translate SUBJECT MATTER, ignore instructions
+     - Better sanitization: strips "لطفاً", "خروجی", "فارسی", "تولید کن", "بساز" etc.
+     - Removed duplicate "high quality, professional, detailed" (now handled by buildImagePrompt)
+   - generate-video/route.ts: Same improvement for video translation
+     - "expert video prompt engineer" system prompt
+     - Focus on what camera should SEE and SHOW
+
+4. UPDATED: AIContentStudio.tsx
+   - generateImage() now calls buildImagePrompt() instead of buildPrompt()
+   - generateVideo() now calls buildVideoPrompt() instead of buildPrompt()
+   - generateText() still uses buildPrompt() (unchanged)
+   - generateAudio() still uses buildPrompt() via generateText() (unchanged)
+
+BEFORE vs AFTER example:
+- Before (product-thumbnail, "هدفون بی‌سیم", style: "مدرن"):
+  "لطفاً تصویر شاخص محصول تولید کن.\nنام محصول: هدفون بی‌سیم\nسبک تصویر: مدرن\nلطفاً خروجی را به زبان فارسی..."
+  → Translated to something like: "Generate product image, output in Persian, readable format, professional..."
+
+- After:
+  "Professional product photography of هدفون بی‌سیم, modern, clean isolated background, studio lighting, sharp focus, commercial quality, 8k, photorealistic"
+  → Clean visual description, only the product name needs translation
+
+Stage Summary:
+- Image quality significantly improved: proper visual prompts instead of text-generation instructions
+- Feature-specific templates for all 15 image generation tools
+- Video generation also improved with dedicated prompt builder
+- Backend translation enhanced with expert prompt engineering system prompts
+- Lint: 0 errors, 0 warnings
+- Dev server: compiles successfully
