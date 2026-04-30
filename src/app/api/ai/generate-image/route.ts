@@ -16,18 +16,22 @@ async function translateToEnglish(persianPrompt: string, client: Awaited<ReturnT
   }
 }
 
-// ─── Sanitize prompt to reduce filter triggers ──────────────────────────────
-function sanitizePrompt(prompt: string): string {
-  // Remove common Persian trigger words that cause false-positive filters
-  const safePrefixes = [
-    'یک ', 'یه ', 'یک‌', 'عکس ', 'تصویر ', 'نقاشی ', 'طراحی ',
-    'بکش ', 'بکشید ', 'ساخت ', 'ساز ', 'نمایش ',
-  ]
-  let sanitized = prompt
-  for (const prefix of safePrefixes) {
-    sanitized = sanitized.replace(new RegExp(`^${prefix}`, 'g'), '')
-  }
-  return sanitized
+// ─── In-memory task store for polling ───────────────────────────────────────
+interface ImageTask {
+  id: string
+  status: 'processing' | 'success' | 'error'
+  imageUrl?: string
+  base64?: string
+  error?: string
+  userMessage?: string
+  createdAt: number
+  usedPrompt?: string
+  translated?: boolean
+}
+const imageTasks = new Map<string, ImageTask>()
+
+function generateTaskId(): string {
+  return `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
 }
 
 export async function POST(request: NextRequest) {
@@ -51,25 +55,32 @@ export async function POST(request: NextRequest) {
     ]
     const selectedSize = validSizes.includes(size) ? size : '1024x1024'
 
-    // Step 1: Detect if prompt is non-English, translate to English
+    // Detect and translate non-English prompts
     const hasNonLatin = /[^\x00-\x7F]/.test(prompt)
     let finalPrompt = prompt
-
     if (hasNonLatin) {
-      const sanitized = sanitizePrompt(prompt)
+      // Strip common Persian filler words
+      const sanitized = prompt
+        .replace(/^(یک |یه |عکس |تصویر |نقاشی |طراحی |بکش |ساخت |نمایش )+/g, '')
       finalPrompt = await translateToEnglish(sanitized, client)
     }
 
-    // Step 2: Enhance with style and quality
     const enhancedPrompt = style
       ? `${finalPrompt}, ${style} style, high quality, professional, detailed`
       : `${finalPrompt}, high quality, professional, detailed`
 
-    // Step 3: Try generating with retry on content filter
-    let lastError: string = ''
-    const maxRetries = 2
+    // Create task and start generation in background
+    const taskId = generateTaskId()
+    imageTasks.set(taskId, {
+      id: taskId,
+      status: 'processing',
+      createdAt: Date.now(),
+      usedPrompt: enhancedPrompt,
+      translated: hasNonLatin,
+    })
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    // Fire and forget — client will poll for result
+    ;(async () => {
       try {
         const response = await client.images.generations.create({
           prompt: enhancedPrompt,
@@ -77,93 +88,127 @@ export async function POST(request: NextRequest) {
         })
 
         const imageBase64 = response.data?.[0]?.base64
+
         if (!imageBase64) {
-          return NextResponse.json(
-            { success: false, error: 'No image data returned', userMessage: '⚠️ خطا در تولید تصویر. لطفاً دوباره تلاش کنید.' },
-            { status: 500 }
-          )
+          const task = imageTasks.get(taskId)
+          if (task) {
+            task.status = 'error'
+            task.error = 'no_data'
+            task.userMessage = '⚠️ خطا در تولید تصویر. داده‌ای از سرویس دریافت نشد.'
+          }
+          return
         }
 
-        const imageUrl = `data:image/png;base64,${imageBase64}`
-
-        return NextResponse.json({
-          success: true,
-          imageUrl,
-          base64: imageBase64,
-          metadata: {
-            originalPrompt: prompt,
-            usedPrompt: enhancedPrompt,
-            translated: hasNonLatin,
-            size: selectedSize,
-            generatedAt: new Date().toISOString(),
-          },
-        })
+        const task = imageTasks.get(taskId)
+        if (task) {
+          task.status = 'success'
+          task.imageUrl = `data:image/png;base64,${imageBase64}`
+          task.base64 = imageBase64
+        }
       } catch (imgErr) {
         const errMsg = imgErr instanceof Error ? imgErr.message : ''
-        lastError = errMsg
+        const task = imageTasks.get(taskId)
 
-        // Content filter: try simplified prompt on retry
-        if ((errMsg.includes('1301') || errMsg.includes('contentFilter')) && attempt < maxRetries) {
-          // Retry with a safer, more generic version
-          const safePrompt = `Beautiful artistic illustration, clean composition, vibrant colors, high quality digital art`
+        // If content filter triggered, try safe fallback
+        if ((errMsg.includes('1301') || errMsg.includes('contentFilter')) && task) {
           try {
+            const safePrompt = 'Beautiful artistic illustration, clean composition, vibrant colors, high quality digital art'
             const response = await client.images.generations.create({
               prompt: safePrompt,
               size: selectedSize,
             })
             const imageBase64 = response.data?.[0]?.base64
             if (imageBase64) {
-              return NextResponse.json({
-                success: true,
-                imageUrl: `data:image/png;base64,${imageBase64}`,
-                base64: imageBase64,
-                metadata: {
-                  originalPrompt: prompt,
-                  usedPrompt: safePrompt,
-                  fallback: true,
-                  size: selectedSize,
-                  generatedAt: new Date().toISOString(),
-                },
-              })
+              task.status = 'success'
+              task.imageUrl = `data:image/png;base64,${imageBase64}`
+              task.base64 = imageBase64
+              task.usedPrompt = safePrompt
+              return
             }
           } catch {
-            // fallback failed too, continue to error
+            // fallback failed
           }
-          break
+          task.status = 'error'
+          task.error = 'content_filter'
+          task.userMessage = '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات را به انگلیسی یا با عبارات عمومی‌تر وارد کنید.'
+        } else if (task) {
+          task.status = 'error'
+          task.error = errMsg
+          task.userMessage = '⚠️ خطا در تولید تصویر. لطفاً دوباره تلاش کنید.'
         }
       }
-    }
+    })()
 
-    // All retries failed
-    if (lastError.includes('1301') || lastError.includes('contentFilter')) {
-      return NextResponse.json({
-        success: false,
-        error: 'content_filter',
-        userMessage: '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات خود را به انگلیسی یا با عبارات عمومی‌تر وارد کنید.',
-      }, { status: 400 })
-    }
+    // Clean up old tasks after 10 minutes
+    setTimeout(() => { imageTasks.delete(taskId) }, 10 * 60 * 1000)
 
+    // Return task ID immediately — client polls GET /api/ai/generate-image?id=xxx
     return NextResponse.json({
-      success: false,
-      error: lastError,
-      userMessage: '⚠️ خطا در تولید تصویر. لطفاً دوباره تلاش کنید.',
-    }, { status: 500 })
+      success: true,
+      taskId,
+      status: 'processing',
+      message: 'تسک تولید تصویر ایجاد شد. در حال پردازش...',
+    })
   } catch (error) {
     console.error('POST /api/ai/generate-image error:', error)
     const msg = error instanceof Error ? error.message : ''
-
-    if (msg.includes('1301') || msg.includes('contentFilter') || msg.includes('敏感')) {
-      return NextResponse.json({
-        success: false,
-        error: 'content_filter',
-        userMessage: '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات خود را تغییر دهید و از عبارات مناسب‌تر استفاده کنید.',
-      }, { status: 400 })
-    }
-
     return NextResponse.json({
       success: false,
-      error: msg || 'Failed to generate image',
-      userMessage: '⚠️ خطا در تولید تصویر. لطفاً دوباره تلاش کنید.',
+      error: msg || 'Failed to start image generation',
+      userMessage: '⚠️ خطا در شروع تولید تصویر. لطفاً دوباره تلاش کنید.',
     }, { status: 500 })
   }
+}
+
+// ─── GET: Poll for task result ──────────────────────────────────────────────
+export async function GET(request: NextRequest) {
+  const taskId = request.nextUrl.searchParams.get('id')
+
+  if (!taskId) {
+    return NextResponse.json({ error: 'Task ID is required' }, { status: 400 })
+  }
+
+  const task = imageTasks.get(taskId)
+
+  if (!task) {
+    return NextResponse.json({ error: 'Task not found or expired' }, { status: 404 })
+  }
+
+  // If still processing, check if it's been too long (5 min)
+  if (task.status === 'processing' && Date.now() - task.createdAt > 5 * 60 * 1000) {
+    imageTasks.delete(taskId)
+    return NextResponse.json({ error: 'Task timed out', userMessage: '⚠️ زمان تولید تصویر به پایان رسید. لطفاً دوباره تلاش کنید.' }, { status: 408 })
+  }
+
+  if (task.status === 'success') {
+    imageTasks.delete(taskId) // clean up
+    return NextResponse.json({
+      success: true,
+      status: 'success',
+      imageUrl: task.imageUrl,
+      base64: task.base64,
+      metadata: {
+        usedPrompt: task.usedPrompt,
+        translated: task.translated,
+        generatedAt: new Date().toISOString(),
+      },
+    })
+  }
+
+  if (task.status === 'error') {
+    imageTasks.delete(taskId) // clean up
+    return NextResponse.json({
+      success: false,
+      status: 'error',
+      error: task.error,
+      userMessage: task.userMessage,
+    }, { status: 400 })
+  }
+
+  // Still processing
+  return NextResponse.json({
+    success: true,
+    status: 'processing',
+    elapsed: Math.round((Date.now() - task.createdAt) / 1000),
+  })
 }

@@ -152,8 +152,8 @@ export default function AIContentStudio() {
     return accumulated
   }, [])
 
-  // ─── Generate: Image ─────────────────────────────────────────────────────
-  const generateImage = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
+  // ─── Generate: Image (async with polling to avoid gateway timeout) ────────
+  const generateImage = useCallback(async (feature: AIFeature, data: Record<string, string>, signal?: AbortSignal) => {
     const prompt = buildPrompt(feature, data)
 
     // Determine size based on feature description hints
@@ -163,6 +163,7 @@ export default function AIContentStudio() {
         ? '1344x768'
         : '1024x1024'
 
+    // Step 1: Start task
     const res = await fetch('/api/ai/generate-image', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -174,11 +175,45 @@ export default function AIContentStudio() {
       throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
     }
 
-    const result = await res.json()
-    if (!result.imageUrl) throw new Error(result.userMessage || result.error || 'تصویری تولید نشد')
+    const taskResult = await res.json()
 
-    setMediaResult({ type: 'image', url: result.imageUrl })
-    return result.imageUrl
+    // Step 2: If already has image (shouldn't happen but just in case)
+    if (taskResult.imageUrl) {
+      setMediaResult({ type: 'image', url: taskResult.imageUrl })
+      return taskResult.imageUrl
+    }
+
+    // Step 3: Poll for result
+    const taskId = taskResult.taskId
+    if (!taskId) throw new Error('تسک تولید تصویر ایجاد نشد')
+
+    setVideoProgress('تصویر در حال تولید... (حدود ۳۰ ثانیه)')
+
+    const maxPolls = 60 // 60 × 3s = 3 min max
+    for (let i = 0; i < maxPolls; i++) {
+      if (signal?.aborted) throw new Error('لغو شد')
+
+      await new Promise(r => setTimeout(r, 3000)) // poll every 3s
+
+      const pollRes = await fetch(`/api/ai/generate-image?id=${taskId}`)
+      const pollData = await pollRes.json()
+
+      if (pollData.status === 'success' && pollData.imageUrl) {
+        setMediaResult({ type: 'image', url: pollData.imageUrl })
+        setVideoProgress('')
+        return pollData.imageUrl
+      }
+
+      if (pollData.status === 'error') {
+        throw new Error(pollData.userMessage || pollData.error || 'خطا در تولید تصویر')
+      }
+
+      // Still processing — update progress
+      const elapsed = pollData.elapsed || Math.round((i + 1) * 3)
+      setVideoProgress(`تصویر در حال تولید... ${elapsed} ثانیه گذشت`)
+    }
+
+    throw new Error('زمان تولید تصویر به پایان رسید. لطفاً دوباره تلاش کنید.')
   }, [])
 
   // ─── Generate: Video ─────────────────────────────────────────────────────
@@ -684,9 +719,19 @@ export default function AIContentStudio() {
 
                 {/* Image loading */}
                 {isGenerating && selectedFeature.outputType === 'image' && videoProgress && (
-                  <div className="flex flex-col items-center gap-2 text-violet-500">
-                    <ImageIcon className="h-8 w-8 animate-pulse" />
-                    <span className="text-xs text-muted-foreground">{videoProgress}</span>
+                  <div className="flex flex-col items-center gap-3 py-4">
+                    <ImageIcon className="h-8 w-8 text-violet-500 animate-pulse" />
+                    <div className="text-center">
+                      <p className="text-sm text-violet-600 dark:text-violet-400 font-medium">
+                        {videoProgress}
+                      </p>
+                      <div className="mt-3 w-64 h-2 bg-violet-100 dark:bg-violet-900/30 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ width: '70%' }} />
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        تولید تصویر معمولاً ۲۰ تا ۴۰ ثانیه طول می‌کشد
+                      </p>
+                    </div>
                   </div>
                 )}
 
