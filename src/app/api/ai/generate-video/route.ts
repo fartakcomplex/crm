@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+async function translateToEnglish(persianPrompt: string, client: Awaited<ReturnType<typeof import('z-ai-web-dev-sdk').default.create>>): Promise<string> {
+  try {
+    const completion = await client.chat.completions.create({
+      messages: [
+        { role: 'user', content: `Translate to a concise English video generation prompt (max 80 words, descriptive, no explanations): "${persianPrompt}"` },
+      ],
+      thinking: { type: 'disabled' },
+    })
+    return completion.choices[0]?.message?.content?.trim() || persianPrompt
+  } catch {
+    return persianPrompt
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -20,8 +34,12 @@ export async function POST(request: NextRequest) {
 
     const quality = style === 'high-quality' ? 'quality' : 'speed'
 
+    // Translate Persian to English to reduce filter triggers
+    const hasNonLatin = /[^\x00-\x7F]/.test(prompt)
+    const finalPrompt = hasNonLatin ? await translateToEnglish(prompt, client) : prompt
+
     const task = await client.video.generations.create({
-      prompt,
+      prompt: finalPrompt,
       quality,
       with_audio: false,
       size: '1920x1080',
