@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
     // Fire and forget — client will poll GET for result
     ;(async () => {
       try {
+        console.log(`[video-gen] Starting video generation for task ${taskId}`)
         const task = await client.video.generations.create({
           prompt: finalPrompt,
           quality,
@@ -100,7 +101,10 @@ export async function POST(request: NextRequest) {
           duration: selectedDuration,
         })
 
+        console.log(`[video-gen] SDK returned task:`, JSON.stringify(task).substring(0, 500))
+
         if (!task?.id) {
+          console.log(`[video-gen] No task.id returned`)
           const storedTask = videoTasks.get(taskId)
           if (storedTask) {
             storedTask.status = 'error'
@@ -110,21 +114,65 @@ export async function POST(request: NextRequest) {
           return
         }
 
+        // Check if result is already embedded (some SDKs return result directly)
+        const initialTask = task as Record<string, unknown>
+        const possibleUrls = [
+          initialTask.video_result?.[0]?.url,
+          initialTask.video_url,
+          initialTask.url,
+          initialTask.video,
+        ].filter(Boolean)
+
+        if (possibleUrls.length > 0) {
+          console.log(`[video-gen] Got direct URL from SDK response`)
+          const storedTask = videoTasks.get(taskId)
+          if (storedTask) {
+            storedTask.status = 'success'
+            storedTask.videoUrl = possibleUrls[0] as string
+          }
+          return
+        }
+
         // Poll for results (max 60 attempts × 5s = 5 minutes)
         const maxPolls = 60
         const pollInterval = 5000
         let pollCount = 0
-        let result = task as Record<string, unknown>
+        let result = initialTask
+
+        // If initial status is not PROCESSING, query once immediately
+        let currentStatus = String(result.task_status || '').toUpperCase()
+        console.log(`[video-gen] Initial task_status: "${currentStatus}"`)
 
         while (
-          result.task_status === 'PROCESSING' &&
+          (currentStatus === 'PROCESSING' || currentStatus === 'PENDING' || currentStatus === '' || currentStatus === 'UNDEFINED') &&
           pollCount < maxPolls
         ) {
           pollCount++
           await new Promise((resolve) => setTimeout(resolve, pollInterval))
           try {
-            result = await client.async.result.query(task.id)
-          } catch {
+            result = await client.async.result.query(task.id) as Record<string, unknown>
+            currentStatus = String(result.task_status || '').toUpperCase()
+            console.log(`[video-gen] Poll ${pollCount}: status="${currentStatus}"`)
+
+            // Check if video URL appeared in polling result
+            const pollUrls = [
+              result.video_result?.[0]?.url,
+              result.video_url,
+              result.url,
+              result.video,
+            ].filter(Boolean)
+
+            if (pollUrls.length > 0 || currentStatus === 'SUCCESS' || currentStatus === 'COMPLETED') {
+              console.log(`[video-gen] Got URL or success status at poll ${pollCount}`)
+              const storedTask = videoTasks.get(taskId)
+              if (storedTask) {
+                storedTask.status = 'success'
+                storedTask.videoUrl = (pollUrls[0] || result.video_url || result.url || '') as string
+              }
+              return
+            }
+          } catch (pollErr) {
+            console.log(`[video-gen] Poll ${pollCount} error:`, pollErr)
             // Continue polling even if one query fails
             await new Promise((resolve) => setTimeout(resolve, 2000))
           }
@@ -132,34 +180,29 @@ export async function POST(request: NextRequest) {
 
         const storedTask = videoTasks.get(taskId)
 
-        if (result.task_status === 'SUCCESS') {
-          const videoUrl =
-            result.video_result?.[0]?.url ||
-            result.video_url ||
-            result.url ||
-            result.video ||
-            null
+        // Final check — try one more time
+        if (storedTask && storedTask.status === 'processing') {
+          const finalResult = await client.async.result.query(task.id).catch(() => null) as Record<string, unknown> | null
+          const finalUrls = [
+            finalResult?.video_result?.[0]?.url,
+            finalResult?.video_url,
+            finalResult?.url,
+            finalResult?.video,
+          ].filter(Boolean)
+          const finalStatus = String(finalResult?.task_status || '').toUpperCase()
 
-          if (!videoUrl || storedTask?.status === 'error') {
-            if (storedTask && !videoUrl) {
-              storedTask.status = 'error'
-              storedTask.error = 'no_url'
-              storedTask.userMessage = '⚠️ ویدئو تولید شد اما URL یافت نشد.'
-            }
+          if (finalUrls.length > 0 || finalStatus === 'SUCCESS' || finalStatus === 'COMPLETED') {
+            storedTask.status = 'success'
+            storedTask.videoUrl = (finalUrls[0] || finalResult?.video_url || finalResult?.url || '') as string
+            console.log(`[video-gen] Final poll succeeded`)
             return
           }
 
-          if (storedTask) {
-            storedTask.status = 'success'
-            storedTask.videoUrl = videoUrl as string
-          }
-        } else {
-          // FAILED or TIMEOUT or UNKNOWN
-          if (storedTask) {
-            storedTask.status = 'error'
-            storedTask.error = result.task_status || 'failed'
-            storedTask.userMessage = `⚠️ تولید ویدئو ناموفق بود: ${result.task_status === 'TIMEOUT' ? 'زمان به پایان رسید' : result.task_status || 'خطای ناشناخته'}`
-          }
+          // Really failed
+          console.log(`[video-gen] Final poll failed: status="${finalStatus}", polls=${pollCount}`)
+          storedTask.status = 'error'
+          storedTask.error = finalStatus || `timeout_${pollCount}`
+          storedTask.userMessage = `⚠️ تولید ویدئو ناموفق بود: ${finalStatus === 'TIMEOUT' ? 'زمان به پایان رسید' : finalStatus || 'خطای ناشناخته'} (${pollCount} تلاش)`
         }
       } catch (vidErr) {
         const errMsg = vidErr instanceof Error ? vidErr.message : ''

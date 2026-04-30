@@ -11,6 +11,7 @@ import {
   FileMinus, History, CalendarClock, SplitSquareHorizontal,
   GraduationCap, Cpu, Share2, PenLine, Mail, Hash, Video,
   BarChart3, Wand2, Download, Film, Code, Link, Music, Flame, Check, Workflow,
+  Package, UtensilsCrossed,
 } from 'lucide-react'
 import React from 'react'
 
@@ -80,6 +81,7 @@ const iconFallback: Record<string, React.ElementType> = {
   FileMinus, History, CalendarClock, SplitSquareHorizontal,
   GraduationCap, Cpu, Share2, PenLine, Mail, Hash, Video,
   BarChart3, Wand2, Download,
+  Package, UtensilsCrossed,
 }
 
 function getIcon(iconComp: React.ElementType): React.ElementType {
@@ -190,6 +192,41 @@ const styleMapEn: Record<string, string> = {
   'جدی و رسمی': 'serious formal', 'صمیمی و گرم': 'warm friendly',
   'حماسی و الهام‌بخش': 'epic inspiring', 'آرام و مینیمال': 'calm minimal',
   'پرانرژی و هیجان‌انگیز': 'energetic exciting',
+  // Video-specific styles
+  'سینمایی و دراماتیک': 'cinematic dramatic', 'مستند و واقعی': 'documentary realistic',
+  'انیمیشن و کارتونی': 'animated cartoonish', 'ورزشی و پرانرژی': 'sports high-energy',
+  'موسیقی و رقص': 'music dance rhythm', 'آموزشی و گام‌به‌گام': 'tutorial step-by-step',
+  'تبلیغاتی و بازرگانی': 'commercial advertising', 'سینمایی اکشن': 'cinematic action',
+  'طبیعت‌گردی و ماجراجویانه': 'nature adventure', 'عاشقانه و رمانتیک': 'romantic dreamy',
+  'کمدی و طنز': 'comedy humorous', 'هیجان‌انگیز و ترسناک': 'thriller suspense',
+  'علمی‌تخیلی': 'sci-fi futuristic', 'نورپردازی گرم و طلایی': 'warm golden lighting',
+  'نورپردازی سرد و آبی': 'cool blue lighting', 'نورپردازی طبیعی': 'natural daylight',
+  'نورپردازی استودیویی': 'studio lighting', 'نورپردازی نئونی': 'neon lighting',
+  'نورپردازی دراماتیک سایه‌روشن': 'dramatic chiaroscuro', 'نورپردازی ملایم و نرم': 'soft diffused lighting',
+  'نورپردازی پشت‌سوژه': 'backlight rim light', 'نورپردازی شب و تاریک': 'dark night mood',
+  'لحن جدی و رسمی': 'serious formal tone', 'لحن صمیمی و دوستانه': 'friendly casual tone',
+  'لحن حماسی و بزرگ': 'epic grand tone', 'لحن آرام و ملایم': 'calm soothing tone',
+  'لحن پرانرژی و هیجان‌انگیز': 'energetic exciting tone', 'لحن آموزشی و روشن': 'educational clear tone',
+  'لحن طنز و شوخی': 'humorous witty tone', 'لحن احساسی و عمیق': 'emotional deep tone',
+  'لحن خبری و حرفه‌ای': 'news professional tone', 'لحن الهام‌بخش و انگیزشی': 'inspirational motivational tone',
+  'لحن ماجراجویانه': 'adventurous tone', 'لحن لوکس و پریمیوم': 'luxury premium tone',
+  'لحن مدرن مینیمال': 'modern minimalist tone', 'لحن حرفه‌ای و رستورانی': 'professional restaurant tone',
+  'لحن صمیمی و خانگی': 'warm homemade tone',
+  'انگلیسی': 'English', 'فارسی': 'Persian', 'عربی': 'Arabic', 'فرانسوی': 'French',
+  'اسپانیایی': 'Spanish', 'ترکی': 'Turkish', 'هندی': 'Hindi', 'چینی': 'Chinese',
+  'ژاپنی': 'Japanese', 'کره‌ای': 'Korean', 'آلمانی': 'German', 'روسی': 'Russian',
+  'ایتالیایی': 'Italian', 'پرتغالی': 'Portuguese',
+  'حرکت دوربین آهسته': 'slow camera movement', 'حرکت دوربین سریع': 'fast camera movement',
+  'دوربین ثابت': 'static camera', 'حرکت درون': 'dolly in', 'حرکت بیرون': 'dolly out',
+  'حرکت افقی': 'pan horizontal', 'نمای هوایی': 'aerial drone shot', 'نمای اول شخص': 'first person POV',
+  'نمای سوم شخص': 'third person view', 'زوم تدریجی': 'slow zoom',
+  'پرتره ویدئویی': 'video portrait talking head', 'چهره و بدن کامل': 'full body shot',
+  'صحنه وسیع': 'wide establishing shot', 'کلوزآپ صورت': 'extreme close-up face',
+  'کلوزآپ شیء': 'extreme close-up object', 'نمای نیم‌بازه': 'medium shot',
+  'سه‌بعدی و حرفه‌ای': '3D professional', 'مینیمال و مدرن': 'minimalist modern',
+  'نئونی و آینده‌نگر': 'neon futuristic', 'پارتیکل و درخشان': 'particle glow',
+  'آبستره و هنری': 'abstract artistic', 'متحرک و پرانرژی': 'dynamic energetic',
+  'کلاسیک و شیک': 'classic elegant', 'گرادیانت و رنگی': 'colorful gradient',
 }
 
 function translateStyle(val: string): string {
@@ -266,34 +303,63 @@ export function buildImagePrompt(feature: AIFeature, data: Record<string, string
 
 export function buildVideoPrompt(feature: AIFeature, data: Record<string, string>): string {
   const parts: string[] = []
+  const metaParts: string[] = [] // lighting, tone, camera — appended separately
 
   for (const field of feature.inputFields) {
     const value = data[field.name]?.trim()
     if (!value) continue
 
-    if (field.type === 'select') {
+    // Core subject fields go into parts, meta fields go into metaParts
+    const metaFields = ['tone', 'videoType', 'lighting', 'camera', 'framing', 'language']
+    if (field.type === 'select' && metaFields.includes(field.name)) {
+      metaParts.push(translateStyle(value))
+    } else if (field.type === 'select') {
       parts.push(translateStyle(value))
     } else if (field.type === 'text' || field.type === 'textarea') {
+      // Truncate text to 120 chars for prompt
       parts.push(value.substring(0, 120))
     }
   }
 
   const subject = parts.join(', ') || 'cinematic scene'
+  const meta = metaParts.length > 0 ? `, ${metaParts.join(', ')}` : ''
 
   // Feature-specific video prompt enhancements
   const id = feature.id
   let prefix = 'Cinematic video of'
   let suffix = 'smooth camera motion, professional quality, cinematic lighting, 1080p HD'
 
-  if (id === 'video-voiceover') {
+  if (id === 'video-voiceover' || id === 'tutorial-voiceover') {
+    // These are text→audio, not video generation
     prefix = 'Professional voiceover narration for video about'
     suffix = 'clear pronunciation, professional tone, natural pacing, broadcast quality'
-  } else if (id === 'tutorial-voiceover') {
-    prefix = 'Educational tutorial voiceover explaining'
-    suffix = 'clear enunciation, engaging tone, step-by-step pacing, instructional quality'
+  } else if (id === 'cinematic-video') {
+    prefix = 'Cinematic short film about'
+    suffix = 'cinematic storytelling, film grain, dramatic composition, professional cinematography, 1080p'
+  } else if (id === 'product-video') {
+    prefix = 'Professional product showcase video of'
+    suffix = 'studio lighting, smooth rotation, premium presentation, clean background, commercial quality'
+  } else if (id === 'promo-video') {
+    prefix = 'Eye-catching promotional video advertisement for'
+    suffix = 'dynamic transitions, bold visuals, energetic pacing, brand colors, call to action'
+  } else if (id === 'nature-video') {
+    prefix = 'Breathtaking nature footage of'
+    suffix = 'aerial drone shots, time-lapse, vivid colors, peaceful atmosphere, 4K quality'
+  } else if (id === 'ai-avatar') {
+    prefix = 'AI-generated human avatar video, person speaking naturally about'
+    suffix = 'realistic human face, natural lip sync, professional appearance, eye contact'
+  } else if (id === 'logo-animation') {
+    prefix = 'Professional 3D logo animation reveal of'
+    suffix = 'dynamic motion, glowing effects, particle effects, seamless loop, 1080p'
+  } else if (id === 'text-animation') {
+    prefix = 'Animated kinetic typography video with text'
+    suffix = 'dynamic text animation, bold fonts, smooth transitions, professional motion graphics'
+  } else if (id === 'food-video') {
+    prefix = 'Appetizing food and cooking video of'
+    suffix = 'steam rising, sizzling sounds implied, close-up food shots, mouth-watering presentation, warm colors'
   }
 
-  return `${prefix} ${subject}, ${suffix}`
+  return `${prefix} ${subject}${meta}, ${suffix}`
 }
 
 // ─── 100 AI Features ───────────────────────────────────────────────────────────
@@ -557,8 +623,102 @@ export const allFeatures: AIFeature[] = [
   },
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // دسته ۳: تولید ویدئو (15 features)
+  // دسته ۳: تولید ویدئو (15 features — 8 real video gen + 7 script tools)
   // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── ابزارهای تولید ویدئوی واقعی (outputType: 'video') ──
+  {
+    id: 'cinematic-video', title: 'تولید ویدئوی سینمایی', description: 'ویدئوی سینمایی حرفه‌ای با تنظیمات کامل.',
+    icon: Clapperboard, category: 'video-gen', gradient: 'from-red-500 to-rose-500', iconBg: 'bg-red-100 dark:bg-red-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'topic', label: 'موضوع ویدئو', type: 'textarea', placeholder: 'توضیح صحنه‌ای که می‌خواهید تولید شود' },
+      { name: 'tone', label: 'لحن', type: 'select', options: ['لحن جدی و رسمی', 'لحن صمیمی و دوستانه', 'لحن حماسی و بزرگ', 'لحن آرام و ملایم', 'لحن پرانرژی و هیجان‌انگیز', 'لحن آموزشی و روشن', 'لحن طنز و شوخی', 'لحن احساسی و عمیق', 'لحن الهام‌بخش و انگیزشی', 'لحن خبری و حرفه‌ای'] },
+      { name: 'videoType', label: 'نوع ویدئو', type: 'select', options: ['سینمایی و دراماتیک', 'مستند و واقعی', 'انیمیشن و کارتونی', 'ورزشی و پرانرژی', 'تبلیغاتی و بازرگانی', 'علمی‌تخیلی', 'کمدی و طنز', 'هیجان‌انگیز و ترسناک', 'عاشقانه و رمانتیک', 'طبیعت‌گردی و ماجراجویانه'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی گرم و طلایی', 'نورپردازی سرد و آبی', 'نورپردازی طبیعی', 'نورپردازی استودیویی', 'نورپردازی نئونی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی پشت‌سوژه', 'نورپردازی شب و تاریک'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['حرکت دوربین آهسته', 'حرکت دوربین سریع', 'دوربین ثابت', 'حرکت درون', 'حرکت بیرون', 'حرکت افقی', 'نمای هوایی', 'نمای اول شخص', 'نمای سوم شخص', 'زوم تدریجی'] },
+      { name: 'language', label: 'زبان محتوا', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'هندی', 'چینی', 'ژاپنی', 'کره‌ای', 'آلمانی', 'روسی'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'product-video', title: 'تولید ویدئوی محصول', description: 'ویدئوی حرفه‌ای نمایش محصول با نورپردازی و زاویه دلخواه.',
+    icon: Package, category: 'video-gen', gradient: 'from-amber-500 to-orange-500', iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'productName', label: 'نام محصول', type: 'text', placeholder: 'نام محصول' },
+      { name: 'features', label: 'ویژگی‌های کلیدی', type: 'textarea', placeholder: 'ویژگی‌های اصلی محصول' },
+      { name: 'tone', label: 'لحن', type: 'select', options: ['لحن لوکس و پریمیوم', 'لحن صمیمی و دوستانه', 'لحن جدی و رسمی', 'لحن پرانرژی و هیجان‌انگیز', 'لحن الهام‌بخش و انگیزشی', 'لحن آموزشی و روشن', 'لحن طنز و شوخی', 'لحن خبری و حرفه‌ای'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی گرم و طلایی', 'نورپردازی نئونی', 'نورپردازی طبیعی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی'] },
+      { name: 'framing', label: 'نوع نمای تصویر', type: 'select', options: ['کلوزآپ شیء', 'چهره و بدن کامل', 'صحنه وسیع', 'نمای نیم‌بازه', 'پرتره ویدئویی', 'نمای هوایی'] },
+      { name: 'language', label: 'زبان محتوا', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'چینی', 'ژاپنی'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'promo-video', title: 'تولید ویدئوی تبلیغاتی', description: 'ویدئوی تبلیغاتی جذاب برای برند یا کمپین.',
+    icon: Megaphone, category: 'video-gen', gradient: 'from-rose-500 to-pink-500', iconBg: 'bg-rose-100 dark:bg-rose-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'brand', label: 'نام برند/محصول', type: 'text', placeholder: 'نام برند یا محصول' },
+      { name: 'message', label: 'پیام تبلیغاتی', type: 'textarea', placeholder: 'پیام اصلی تبلیغ' },
+      { name: 'tone', label: 'لحن', type: 'select', options: ['لحن پرانرژی و هیجان‌انگیز', 'لحن الهام‌بخش و انگیزشی', 'لحن لوکس و پریمیوم', 'لحن صمیمی و دوستانه', 'لحن طنز و شوخی', 'لحن احساسی و عمیق', 'لحن حماسی و بزرگ', 'لحن خبری و حرفه‌ای'] },
+      { name: 'videoType', label: 'نوع ویدئو', type: 'select', options: ['تبلیغاتی و بازرگانی', 'سینمایی و دراماتیک', 'ورزشی و پرانرژی', 'علمی‌تخیلی', 'کمدی و طنز', 'عاشقانه و رمانتیک', 'انیمیشن و کارتونی'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی', 'نورپردازی شب و تاریک'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['حرکت دوربین سریع', 'حرکت دوربین آهسته', 'نمای هوایی', 'حرکت درون', 'حرکت افقی', 'زوم تدریجی', 'نمای اول شخص'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'nature-video', title: 'ویدئوی طبیعت و منظره', description: 'ویدئوی خیره‌کننده از طبیعت و مناظر.',
+    icon: Compass, category: 'video-gen', gradient: 'from-emerald-500 to-green-500', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'scene', label: 'صحنه', type: 'textarea', placeholder: 'توصیف منظره (مثال: کوهستان با غروب آفتاب)' },
+      { name: 'tone', label: 'حال و هوا', type: 'select', options: ['لحن آرام و ملایم', 'لحن حماسی و بزرگ', 'لحن احساسی و عمیق', 'لحن ماجراجویانه', 'لحن پرانرژی و هیجان‌انگیز', 'لحن الهام‌بخش و انگیزشی'] },
+      { name: 'videoType', label: 'نوع', type: 'select', options: ['طبیعت‌گردی و ماجراجویانه', 'مستند و واقعی', 'سینمایی و دراماتیک', 'علمی‌تخیلی', 'عاشقانه و رمانتیک'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی طبیعی', 'نورپردازی گرم و طلایی', 'نورپردازی شب و تاریک', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['نمای هوایی', 'حرکت دوربین آهسته', 'حرکت افقی', 'حرکت درون', 'زوم تدریجی', 'دوربین ثابت', 'حرکت دوربین سریع'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'ai-avatar', title: 'آواتار هوش مصنوعی', description: 'ویدئو با آواتار انسانی واقعی که صحبت می‌کند.',
+    icon: Users, category: 'video-gen', gradient: 'from-violet-500 to-purple-500', iconBg: 'bg-violet-100 dark:bg-violet-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'script', label: 'متن صحبت', type: 'textarea', placeholder: 'متنی که آواتار می‌خواند' },
+      { name: 'tone', label: 'لحن صحبت', type: 'select', options: ['لحن جدی و رسمی', 'لحن صمیمی و دوستانه', 'لحن آموزشی و روشن', 'لحن خبری و حرفه‌ای', 'لحن پرانرژی و هیجان‌انگیز', 'لحن الهام‌بخش و انگیزشی', 'لحن احساسی و عمیق'] },
+      { name: 'framing', label: 'نوع نمای تصویر', type: 'select', options: ['پرتره ویدئویی', 'نمای نیم‌بازه', 'چهره و بدن کامل'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی طبیعی', 'نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی ملایم و نرم', 'نورپردازی دراماتیک سایه‌روشن'] },
+      { name: 'language', label: 'زبان صحبت', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'هندی', 'چینی', 'ژاپنی', 'کره‌ای'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'logo-animation', title: 'انیمیشن لوگو', description: 'انیمیشن حرفه‌ای برای لوگو یا برند.',
+    icon: Sparkle, category: 'video-gen', gradient: 'from-fuchsia-500 to-pink-500', iconBg: 'bg-fuchsia-100 dark:bg-fuchsia-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'brandName', label: 'نام برند/لوگو', type: 'text', placeholder: 'نام برند یا توضیف لوگو' },
+      { name: 'style', label: 'سبک انیمیشن', type: 'select', options: ['سه‌بعدی و حرفه‌ای', 'مینیمال و مدرن', 'نئونی و آینده‌نگر', 'پارتیکل و درخشان', 'آبستره و هنری', 'متحرک و پرانرژی', 'کلاسیک و شیک', 'گرادیانت و رنگی'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی استودیویی', 'نورپردازی سرد و آبی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['زوم تدریجی', 'حرکت درون', 'حرکت بیرون', 'حرکت افقی', 'دوربین ثابت', 'حرکت دوربین آهسته'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'text-animation', title: 'انیمیشن متن (تیتراژ)', description: 'انیمیشن متحرک متن و تیتراژ حرفه‌ای.',
+    icon: Type, category: 'video-gen', gradient: 'from-cyan-500 to-blue-500', iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'text', label: 'متن', type: 'textarea', placeholder: 'متنی که انیمیشن می‌خورد' },
+      { name: 'tone', label: 'سبک', type: 'select', options: ['لحن حماسی و بزرگ', 'لحن مدرن مینیمال', 'لحن پرانرژی و هیجان‌انگیز', 'لحن احساسی و عمیق', 'لحن لوکس و پریمیوم', 'لحن طنز و شوخی', 'لحن آرام و ملایم'] },
+      { name: 'lighting', label: 'نورپردازی پس‌زمینه', type: 'select', options: ['نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی شب و تاریک', 'نورپردازی سرد و آبی', 'نورپردازی ملایم و نرم', 'گرادیانت رنگی'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['زوم تدریجی', 'حرکت دوربین آهسته', 'حرکت دوربین سریع', 'دوربین ثابت', 'حرکت افقی'] },
+    ], outputType: 'video',
+  },
+  {
+    id: 'food-video', title: 'ویدئوی غذا و آشپزی', description: 'ویدئوی جذاب و خوشمزه از غذاهای مختلف.',
+    icon: UtensilsCrossed, category: 'video-gen', gradient: 'from-orange-500 to-red-500', iconBg: 'bg-orange-100 dark:bg-orange-900/30',
+    hasBackend: true, inputFields: [
+      { name: 'dish', label: 'نام غذا/خوراکی', type: 'text', placeholder: 'نام غذا' },
+      { name: 'description', label: 'توضیحات', type: 'textarea', placeholder: 'توضیحات بیشتر (اختیاری)' },
+      { name: 'tone', label: 'لحن', type: 'select', options: ['لحن لوکس و پریمیوم', 'لحن صمیمی و خانگی', 'لحن پرانرژی و هیجان‌انگیز', 'لحن آموزشی و روشن', 'لحن حرفه‌ای و رستورانی'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی گرم و طلایی', 'نورپردازی طبیعی', 'نورپردازی استودیویی', 'نورپردازی ملایم و نرم', 'نورپردازی دراماتیک سایه‌روشن'] },
+      { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['کلوزآپ شیء', 'حرکت دوربین آهسته', 'حرکت افقی', 'حرکت درون', 'نمای هوایی', 'دوربین ثابت'] },
+      { name: 'language', label: 'زبان', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'ترکی', 'فرانسوی', 'اسپانیایی', 'ژاپنی', 'کره‌ای'] },
+    ], outputType: 'video',
+  },
+
+  // ── ابزارهای اسکریپت‌نویسی ویدئو (outputType: 'text') ──
   {
     id: 'youtube-script', title: 'اسکریپت ویدئو یوتیوب', description: 'اسکریپت کامل و جذاب برای ویدئوی یوتیوب.',
     icon: Clapperboard, category: 'video-gen', gradient: 'from-red-500 to-rose-500', iconBg: 'bg-red-100 dark:bg-red-900/30',

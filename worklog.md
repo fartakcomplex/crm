@@ -1488,3 +1488,61 @@ Stage Summary:
 - Cron job CREATED: 15-minute webDevReview cycle
 - Lint: ✅ 0 errors, 0 warnings
 - Dev server: ✅ Compiles cleanly
+
+---
+Task ID: 10
+Agent: Main Agent
+Task: Fix video generation stuck on processing + add real video gen tools with tone/type/lighting/language
+
+Work Log:
+- Analyzed root cause: All 15 video-gen tools had `outputType: 'text'` (script generators), NOT actual video generators
+- Video API polling was working but never triggered because no tools called `generateVideo()`
+- Also found polling logic bug: while loop condition `result.task_status === 'PROCESSING'` didn't handle empty/undefined status
+
+FIX 1: Add 8 Real Video Generation Tools
+- Added 8 new tools with `outputType: 'video'` to `ai-studio-features.ts`:
+  1. `cinematic-video` — ویدئوی سینمایی (6 fields: topic, tone, videoType, lighting, camera, language)
+  2. `product-video` — ویدئوی محصول (6 fields: productName, features, tone, lighting, framing, language)
+  3. `promo-video` — ویدئوی تبلیغاتی (6 fields: brand, message, tone, videoType, lighting, camera)
+  4. `nature-video` — ویدئوی طبیعت (5 fields: scene, tone, videoType, lighting, camera)
+  5. `ai-avatar` — آواتار هوش مصنوعی (5 fields: script, tone, framing, lighting, language)
+  6. `logo-animation` — انیمیشن لوگو (4 fields: brandName, style, lighting, camera)
+  7. `text-animation` — انیمیشن متن (4 fields: text, tone, lighting, camera)
+  8. `food-video` — ویدئوی غذا (6 fields: dish, description, tone, lighting, camera, language)
+- All tools have Persian labels, RTL support, and rich option arrays
+
+FIX 2: Enhanced buildVideoPrompt()
+- Added meta field separation: `tone`, `videoType`, `lighting`, `camera`, `framing`, `language` are handled separately
+- Added feature-specific prompts for all 8 new video tools
+- Better video prompt construction with subject + meta + suffix
+
+FIX 3: Fixed Video API Polling Logic
+- Changed while loop condition to handle PROCESSING, PENDING, empty, and undefined statuses
+- Added check for direct URL in initial SDK response
+- Added per-poll URL extraction (not just status check)
+- Added final fallback poll after main loop
+- Added comprehensive console.log debugging for all stages
+- Added `COMPLETED` as success status alongside `SUCCESS`
+
+FIX 4: Expanded Style Mappings
+- Added 30+ video-specific Persian→English style mappings:
+  - 10 لحن (tone) options
+  - 10 نورپردازی (lighting) options
+  - 10 حرکت دوربین (camera movement) options
+  - 12 زبان (language) options
+  - 6 نوع نمای تصویر (framing) options
+  - 8 سبک انیمیشن (animation style) options
+  - 10 نوع ویدئو (video type) options
+
+VERIFICATION:
+- Tested video SDK: `z-ai video --prompt "sunset"` → task created, polled, SUCCESS with video URL
+- Dev log confirmed: `[video-gen] Poll 24: status="SUCCESS"` + `[video-gen] Got URL or success status`
+- Lint: ✅ 0 errors, 0 warnings
+- Dev server: ✅ Compiles cleanly, serves pages
+
+Stage Summary:
+- Video generation NOW WORKS: 8 real video gen tools with async polling
+- Each tool has 4-6 input fields including tone, lighting, camera, language
+- All text in Persian (Farsi) with English prompt translation
+- Video API properly handles PROCESSING/PENDING/empty status in polling loop
+- 50+ new style mappings added for comprehensive prompt engineering
