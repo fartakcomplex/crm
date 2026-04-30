@@ -275,10 +275,12 @@ export async function POST(request: NextRequest) {
           return
         }
 
-        // Poll for results (max 60 attempts × 5s = 5 minutes)
-        const maxPolls = 60
-        const pollInterval = 5000
+        // Poll for results with exponential backoff to avoid 429 rate limits
+        // Video typically takes 1-3 min, so start with 15s interval
+        const maxPolls = 40
+        const baseInterval = 15000 // 15 seconds base
         let pollCount = 0
+        let consecutiveRateLimits = 0
         let result = initialTask
 
         // If initial status is not PROCESSING, query once immediately
@@ -290,11 +292,24 @@ export async function POST(request: NextRequest) {
           pollCount < maxPolls
         ) {
           pollCount++
-          await new Promise((resolve) => setTimeout(resolve, pollInterval))
+
+          // Calculate wait time: base + exponential backoff on rate limits
+          let waitTime = baseInterval
+          if (consecutiveRateLimits > 0) {
+            // Exponential backoff: 30s, 60s, 90s, 120s (capped at 120s)
+            waitTime = Math.min(30000 * consecutiveRateLimits, 120000)
+            console.log(`[video-gen] Backoff: ${consecutiveRateLimits} consecutive 429s, waiting ${waitTime / 1000}s`)
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, waitTime))
+
           try {
             result = await client.async.result.query(task.id) as Record<string, unknown>
             currentStatus = String(result.task_status || '').toUpperCase()
             console.log(`[video-gen] Poll ${pollCount}: status="${currentStatus}"`)
+
+            // Reset backoff on successful poll
+            consecutiveRateLimits = 0
 
             // Check if video URL appeared in polling result
             const { videoUrls: pollUrls, audioUrl: pollAudio } = extractUrls(result)
@@ -310,16 +325,29 @@ export async function POST(request: NextRequest) {
               return
             }
           } catch (pollErr) {
-            console.log(`[video-gen] Poll ${pollCount} error:`, pollErr)
-            // Continue polling even if one query fails
-            await new Promise((resolve) => setTimeout(resolve, 2000))
+            const errMsg = pollErr instanceof Error ? pollErr.message : String(pollErr)
+            console.log(`[video-gen] Poll ${pollCount} error:`, errMsg)
+
+            // Detect 429 rate limit and apply backoff
+            if (errMsg.includes('429') || errMsg.includes('Too many requests') || errMsg.includes('rate')) {
+              consecutiveRateLimits++
+              // Extra penalty wait for rate limit
+              await new Promise((resolve) => setTimeout(resolve, 10000))
+            } else {
+              // Non-429 error: small delay and reset backoff
+              consecutiveRateLimits = 0
+              await new Promise((resolve) => setTimeout(resolve, 5000))
+            }
           }
         }
 
         const storedTask = videoTasks.get(taskId)
 
-        // Final check — try one more time
+        // Final check — wait longer then try once more
         if (storedTask && storedTask.status === 'processing') {
+          console.log(`[video-gen] All polls exhausted, waiting 30s for final check...`)
+          await new Promise((resolve) => setTimeout(resolve, 30000))
+
           const finalResult = await client.async.result.query(task.id).catch(() => null) as Record<string, unknown> | null
           const { videoUrls: finalUrls, audioUrl: finalAudio } = extractUrls(finalResult ?? {})
           const finalStatus = String(finalResult?.task_status || '').toUpperCase()
@@ -332,11 +360,18 @@ export async function POST(request: NextRequest) {
             return
           }
 
-          // Really failed
-          console.log(`[video-gen] Final poll failed: status="${finalStatus}", polls=${pollCount}`)
-          storedTask.status = 'error'
-          storedTask.error = finalStatus || `timeout_${pollCount}`
-          storedTask.userMessage = `⚠️ تولید ویدئو ناموفق بود: ${finalStatus === 'TIMEOUT' ? 'زمان به پایان رسید' : finalStatus || 'خطای ناشناخته'} (${pollCount} تلاش)`
+          // If still rate-limited, set a retry-after message instead of hard failure
+          if (!finalResult) {
+            console.log(`[video-gen] Final poll also rate-limited, marking as retryable`)
+            storedTask.status = 'error'
+            storedTask.error = 'rate_limited'
+            storedTask.userMessage = '⚠️ سرور تولید ویدئو در حال بارگذاری بالاست. لطفاً ۲ الی ۳ دقیقه دیگر دوباره تلاش کنید.'
+          } else {
+            console.log(`[video-gen] Final poll failed: status="${finalStatus}", polls=${pollCount}`)
+            storedTask.status = 'error'
+            storedTask.error = finalStatus || `timeout_${pollCount}`
+            storedTask.userMessage = `⚠️ تولید ویدئو ناموفق بود: ${finalStatus === 'TIMEOUT' ? 'زمان به پایان رسید' : finalStatus || 'خطای ناشناخته'} (${pollCount} تلاش)`
+          }
         }
       } catch (vidErr) {
         const errMsg = vidErr instanceof Error ? vidErr.message : ''
@@ -390,8 +425,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Task not found or expired' }, { status: 404 })
   }
 
-  // If still processing, check if it's been too long (8 min for video)
-  if (task.status === 'processing' && Date.now() - task.createdAt > 8 * 60 * 1000) {
+  // If still processing, check if it's been too long (15 min for video with backoff)
+  if (task.status === 'processing' && Date.now() - task.createdAt > 15 * 60 * 1000) {
     videoTasks.delete(taskId)
     return NextResponse.json({ error: 'Task timed out', userMessage: '⚠️ زمان تولید ویدئو به پایان رسید. لطفاً دوباره تلاش کنید.' }, { status: 408 })
   }

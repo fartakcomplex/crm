@@ -429,12 +429,12 @@ export default function AIContentStudio() {
 
     setVideoProgress('ویدئو در حال پردازش... (این فرآیند ممکن است ۱ تا ۵ دقیقه طول بکشد)')
 
-    // Step 2: Poll GET every 4 seconds until done
-    const maxAttempts = 120 // 120 × 4s = 8 minutes
+    // Step 2: Poll GET every 8 seconds (backend does 15s polling with backoff, client checks more often)
+    const maxAttempts = 120 // 120 × 8s = 16 minutes (matches backend 15 min timeout)
     for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 4000))
+      await new Promise(r => setTimeout(r, 8000))
 
-      const elapsed = ((i + 1) * 4)
+      const elapsed = ((i + 1) * 8)
       const mins = Math.floor(elapsed / 60)
       const secs = elapsed % 60
       setVideoProgress(`در حال تولید ویدئو... ${mins > 0 ? `${mins} دقیقه و ` : ''}${secs} ثانیه گذشته`)
