@@ -1224,3 +1224,40 @@ Stage Summary:
 - Fix: Proper SSE parsing of Uint8Array response in chat route
 - AI Studio now generates content in real-time with streaming
 - All 100 AI tools should work correctly
+---
+Task ID: 11
+Agent: Main Agent
+Task: Add real image/video/audio generation to AI Studio (was text-only before)
+
+Work Log:
+- User reported: "Why is everything just text? Shouldn't image generation produce images and video produce videos?"
+- Root cause: AIContentStudio component routed ALL 100 features through /api/ai/chat (text only), ignoring outputType
+- API routes for image, video, and TTS already existed and worked:
+  - /api/ai/generate-image — generates real PNG images via ZAI SDK (tested, 188KB base64)
+  - /api/ai/generate-video — generates videos via async polling
+  - /api/ai/generate-tts — generates WAV audio
+- Complete rewrite of AIContentStudio.tsx with multi-modal support:
+  - generateText(): SSE streaming via /api/ai/chat (text outputType)
+  - generateImage(): POST to /api/ai/generate-image, displays real <img> with base64
+  - generateVideo(): POST to /api/ai/generate-video, displays <video> player with progress bar
+  - generateAudio(): Generates text first, then converts to speech via /api/ai/generate-tts, shows <audio> player
+- UI enhancements:
+  - Dialog resizes based on output type (image: max-w-2xl, video: max-w-3xl, text: max-w-lg)
+  - Output type badge shown in dialog header (image/video/audio/text icons)
+  - Generate button text changes: "تولید تصویر" / "تولید ویدئو" / "تولید صدا" / "تولید"
+  - Specific loading animations per type (🎨 image, 🎬 video, 🔊 audio, ✨ text)
+  - Video progress bar with estimated time message (1-5 minutes)
+  - Audio shows generated text while converting, then audio player
+  - Regenerate button for all media types
+  - Download button works for all types (image PNG, video opens in new tab, audio WAV, text TXT)
+- Image size selection based on feature description hints (portrait/landscape/square)
+- Lint: 0 errors
+- Image generation API tested: successfully generates 188KB PNG images
+
+Stage Summary:
+- AI Studio now generates REAL images, videos, and audio — not just text descriptions
+- 14 image tools → actual PNG images
+- 3 video tools → actual MP4 videos (with progress indicator)
+- 2 audio tools → actual WAV audio files (text-to-speech)
+- 81 text tools → streaming text (as before)
+- All 100 AI tools now produce the correct output format
