@@ -42,7 +42,7 @@ import {
   ChevronDown,
   X,
 } from 'lucide-react'
-import { allFeatures, categories, buildPrompt, buildImagePrompt, buildVideoPrompt, outputTypeLabels } from './ai-studio-features'
+import { allFeatures, categories, buildPrompt, buildImagePrompt, buildVideoPrompt, buildTTSParams, buildVideoParams, outputTypeLabels } from './ai-studio-features'
 import type { AIFeature } from './ai-studio-features'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -84,6 +84,8 @@ export default function AIContentStudio() {
   const [contentSearch, setContentSearch] = useState('')
   const [showContentPicker, setShowContentPicker] = useState(false)
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null)
+  const [isResearching, setIsResearching] = useState(false)
+  const [researchInfo, setResearchInfo] = useState<string>('')
 
   // Fetch posts & products when dialog opens
   useEffect(() => {
@@ -170,6 +172,8 @@ export default function AIContentStudio() {
     setSelectedContent(null)
     setShowContentPicker(false)
     setContentSearch('')
+    setResearchInfo('')
+    setIsResearching(false)
     setDialogOpen(true)
   }, [])
 
@@ -265,9 +269,60 @@ export default function AIContentStudio() {
     return accumulated
   }, [])
 
+  // ─── Research: Web search before media generation ──────────────────────────
+  const researchContent = useCallback(async (title: string, content?: string, type: 'image' | 'video' | 'audio' = 'image'): Promise<string> => {
+    setIsResearching(true)
+    setResearchInfo('در حال تحقیق درباره موضوع...')
+
+    try {
+      const res = await fetch('/api/ai/research', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, content: content?.substring(0, 500), type }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
+      }
+
+      const data = await res.json()
+
+      if (data.researchContext) {
+        setResearchInfo(`تحقیق انجام شد — ${data.searchResults?.length || 0} منبع بررسی شد`)
+        return data.researchContext
+      }
+
+      return ''
+    } catch (err) {
+      // Research failure is not critical — continue without it
+      const message = err instanceof Error ? err.message : ''
+      setResearchInfo(`تحقیق انجام نشد — ${message}`)
+      return ''
+    } finally {
+      setIsResearching(false)
+    }
+  }, [])
+
   // ─── Generate: Image (async with polling to avoid gateway timeout) ────────
   const generateImage = useCallback(async (feature: AIFeature, data: Record<string, string>, signal?: AbortSignal) => {
-    const prompt = buildImagePrompt(feature, data)
+    // Step 0: Research if content is available
+    let researchContext = ''
+    const titleField = feature.inputFields.find(f => f.name === 'title' || f.name === 'productName' || f.name === 'topic' || f.name === 'headline' || f.name === 'name')
+    const contentField = feature.inputFields.find(f => f.type === 'textarea')
+
+    if (selectedContent || (titleField && data[titleField.name])) {
+      const researchTitle = selectedContent?.title || data[titleField.name] || ''
+      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField.name] : '')
+      if (researchTitle.trim()) {
+        researchContext = await researchContent(researchTitle, researchContent_text || undefined, 'image')
+      }
+    }
+
+    let prompt = buildImagePrompt(feature, data)
+    if (researchContext) {
+      prompt = `${researchContext}, ${prompt}`
+    }
 
     // Determine size based on feature description hints
     const size = feature.description.includes('پرتره') || feature.description.includes('عمودی')
@@ -327,18 +382,41 @@ export default function AIContentStudio() {
     }
 
     throw new Error('زمان تولید تصویر به پایان رسید. لطفاً دوباره تلاش کنید.')
-  }, [])
+  }, [researchContent, selectedContent])
 
   // ─── Generate: Video (async polling — same pattern as image) ────────────
   const generateVideo = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
+    // Step 0: Research if content is available
+    let researchContext = ''
+    const titleField = feature.inputFields.find(f => f.name === 'topic' || f.name === 'productName' || f.name === 'brand' || f.name === 'scene' || f.name === 'dish' || f.name === 'brandName' || f.name === 'text' || f.name === 'name')
+    const contentField = feature.inputFields.find(f => f.type === 'textarea')
+
+    if (selectedContent || (titleField && data[titleField.name])) {
+      const researchTitle = selectedContent?.title || data[titleField.name] || ''
+      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField.name] : '')
+      if (researchTitle.trim()) {
+        researchContext = await researchContent(researchTitle, researchContent_text || undefined, 'video')
+      }
+    }
+
     const prompt = buildVideoPrompt(feature, data)
+    const finalPrompt = researchContext ? `${researchContext}, ${prompt}` : prompt
+    const videoParams = buildVideoParams(feature, data)
+
     setVideoProgress('در حال ایجاد تسک تولید ویدئو...')
 
     // Step 1: POST to create task
     const res = await fetch('/api/ai/generate-video', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, duration: 5, style: 'speed' }),
+      body: JSON.stringify({
+        prompt: finalPrompt,
+        duration: videoParams.duration,
+        style: 'speed',
+        withAudio: videoParams.withAudio,
+        platform: videoParams.platform,
+        dialogue: videoParams.dialogue,
+      }),
     })
 
     if (!res.ok) {
@@ -391,25 +469,54 @@ export default function AIContentStudio() {
     }
 
     throw new Error('زمان تولید ویدئو به پایان رسید. لطفاً دوباره تلاش کنید.')
-  }, [])
+  }, [researchContent, selectedContent])
 
   // ─── Generate: Audio ─────────────────────────────────────────────────────
   const generateAudio = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
-    const prompt = buildPrompt(feature, data)
+    // Build TTS params from feature + form data
+    const ttsParams = buildTTSParams(feature, data)
 
-    // First generate text content, then convert to speech
-    const textContent = await generateText(feature, data)
+    if (!ttsParams.text.trim()) {
+      // If buildTTSParams didn't find text, use generateText first then TTS
+      const textContent = await generateText(feature, data)
+      setVideoProgress('در حال تبدیل متن به صدا...')
 
-    // Now use TTS
-    setVideoProgress('در حال تبدیل متن به صدا...')
+      const res = await fetch('/api/ai/generate-tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          text: textContent,
+          voice: ttsParams.voice,
+          tone: ttsParams.tone,
+          language: ttsParams.language,
+          addHarakat: ttsParams.addHarakat,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      setMediaResult({ type: 'audio', url, blob })
+      setVideoProgress('')
+      return url
+    }
+
+    // Direct TTS from form text
+    setVideoProgress('در حال تحلیل متن و اضافه کردن حرکت‌گذاری...')
 
     const res = await fetch('/api/ai/generate-tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        text: textContent,
-        voice: 'tongtong',
-        speed: 1.0,
+        text: ttsParams.text,
+        voice: ttsParams.voice,
+        tone: ttsParams.tone,
+        language: ttsParams.language,
+        addHarakat: ttsParams.addHarakat,
       }),
     })
 
@@ -475,7 +582,7 @@ export default function AIContentStudio() {
     } finally {
       setIsGenerating(false)
     }
-  }, [selectedFeature, formData, generateText, generateImage, generateVideo, generateAudio, toast])
+  }, [selectedFeature, formData, generateText, generateImage, generateVideo, generateAudio, researchContent, toast])
 
   const handleCopy = useCallback(async () => {
     if (!generatedResult) return
@@ -973,6 +1080,17 @@ export default function AIContentStudio() {
                       <span className="text-xs text-muted-foreground text-center max-w-xs">
                         {videoProgress}
                       </span>
+                    )}
+                    {isResearching && (
+                      <div className="text-center text-sm text-muted-foreground animate-pulse">
+                        <Search className="h-4 w-4 inline-block ml-2" />
+                        {researchInfo || 'در حال تحقیق...'}
+                      </div>
+                    )}
+                    {!isResearching && researchInfo && (
+                      <div className="text-center text-xs text-emerald-600 dark:text-emerald-400">
+                        ✅ {researchInfo}
+                      </div>
                     )}
                   </div>
                 )}

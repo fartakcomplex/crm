@@ -227,6 +227,52 @@ const styleMapEn: Record<string, string> = {
   'نئونی و آینده‌نگر': 'neon futuristic', 'پارتیکل و درخشان': 'particle glow',
   'آبستره و هنری': 'abstract artistic', 'متحرک و پرانرژی': 'dynamic energetic',
   'کلاسیک و شیک': 'classic elegant', 'گرادیانت و رنگی': 'colorful gradient',
+  // Platform sizes
+  'یوتیوب (۱۶:۹)': 'YouTube 16:9',
+  'اینستاگرام ریلز (۹:۱۶)': 'Instagram Reels 9:16',
+  'اینستاگرام استوری (۹:۱۶)': 'Instagram Story 9:16',
+  'تیک‌تاک (۹:۱۶)': 'TikTok 9:16',
+  'فیس‌بوک (۱۶:۹)': 'Facebook 16:9',
+  'توییتر (۱۶:۹)': 'Twitter 16:9',
+  'لینکدین (۱۶:۹)': 'LinkedIn 16:9',
+  'بنر وبسایت (۱۶:۹)': 'Website Banner 16:9',
+  'مربع (۱:۱)': 'Square 1:1',
+  'عمودی کامل (۹:۱۶)': 'Vertical Full 9:16',
+  // Video durations
+  '۳ ثانیه': '3 seconds',
+  '۵ ثانیه': '5 seconds',
+  '۷ ثانیه': '7 seconds',
+  '۱۰ ثانیه': '10 seconds',
+  // Audio tones
+  'دراماتیک و حماسی': 'dramatic epic',
+  'آرام و ملایم': 'calm soothing',
+  'عادی و طبیعی': 'normal natural',
+  'پرانرژی و سریع': 'energetic fast',
+  'سریع و تند': 'fast upbeat',
+  'آهسته و با تأنی': 'slow deliberate',
+  'آموزشی و واضح': 'educational clear',
+  'خبری و رسمی': 'news formal',
+  'داستان‌سرایی': 'storytelling narrative',
+  'تبلیغاتی': 'commercial advertising',
+  // TTS languages/dialects
+  'فارسی معیار (تهرانی)': 'fa-standard',
+  'دری افغانی': 'fa-afghan',
+  'تاجیکی': 'fa-tajik',
+  'عربی فصحی': 'ar-standard',
+  'عربی مصری': 'ar-egyptian',
+  'عربی شامی': 'ar-levantine',
+  'انگلیسی آمریکایی': 'en-american',
+  'انگلیسی بریتانیایی': 'en-british',
+  'ترکی استانبولی': 'tr-standard',
+  'اردو': 'ur-standard',
+  // TTS voice models
+  'صدای طبیعی': 'tongtong',
+  'مرد صمیمی و گرم': 'male-warm',
+  'زن صمیمی و گرم': 'female-warm',
+  'کودک': 'child',
+  'زن جوان و شاد': 'young-female',
+  'پسر نوجوان': 'teen-boy',
+  'دختر نوجوان': 'teen-girl',
 }
 
 function translateStyle(val: string): string {
@@ -310,7 +356,7 @@ export function buildVideoPrompt(feature: AIFeature, data: Record<string, string
     if (!value) continue
 
     // Core subject fields go into parts, meta fields go into metaParts
-    const metaFields = ['tone', 'videoType', 'lighting', 'camera', 'framing', 'language']
+    const metaFields = ['tone', 'videoType', 'lighting', 'camera', 'framing', 'language', 'platform', 'duration']
     if (field.type === 'select' && metaFields.includes(field.name)) {
       metaParts.push(translateStyle(value))
     } else if (field.type === 'select') {
@@ -360,6 +406,91 @@ export function buildVideoPrompt(feature: AIFeature, data: Record<string, string
   }
 
   return `${prefix} ${subject}${meta}, ${suffix}`
+}
+
+// ─── Build TTS Params (for audio/TTS generation) ──────────────────────────
+
+export function buildTTSParams(feature: AIFeature, data: Record<string, string>): {
+  text: string
+  voice: string
+  speed?: number
+  tone?: string
+  language?: string
+  addHarakat: boolean
+} {
+  // Extract text from textarea fields
+  let text = ''
+  for (const field of feature.inputFields) {
+    const value = data[field.name]?.trim()
+    if (value && (field.type === 'textarea' || field.type === 'text') && !['tone', 'language', 'voiceStyle', 'platform', 'duration'].includes(field.name)) {
+      text = value
+      break
+    }
+  }
+
+  const voiceValue = data['voiceStyle'] || 'tongtong'
+  const voice = styleMapEn[voiceValue] || voiceValue || 'tongtong'
+  const toneValue = data['tone'] || 'normal'
+  const language = data['language'] || ''
+
+  return {
+    text,
+    voice,
+    tone: styleMapEn[toneValue] || toneValue,
+    language: styleMapEn[language] || language,
+    addHarakat: true,
+  }
+}
+
+// ─── Build Video Params (for video generation) ──────────────────────────────
+
+export function buildVideoParams(feature: AIFeature, data: Record<string, string>): {
+  platform: string
+  duration: number
+  withAudio: boolean
+  dialogue?: string
+} {
+  const platformValue = data['platform'] || ''
+  const durationValue = data['duration'] || '۵ ثانیه'
+
+  // Parse platform from Persian name
+  const platformMap: Record<string, string> = {
+    'یوتیوب (۱۶:۹)': 'youtube',
+    'اینستاگرام ریلز (۹:۱۶)': 'instagram-reel',
+    'اینستاگرام استوری (۹:۱۶)': 'instagram-story',
+    'تیک‌تاک (۹:۱۶)': 'tiktok',
+    'فیس‌بوک (۱۶:۹)': 'facebook',
+    'توییتر (۱۶:۹)': 'twitter',
+    'لینکدین (۱۶:۹)': 'linkedin',
+    'بنر وبسایت (۱۶:۹)': 'website-banner',
+    'مربع (۱:۱)': 'custom',
+  }
+
+  const durationMap: Record<string, number> = {
+    '۳ ثانیه': 3,
+    '۵ ثانیه': 5,
+    '۷ ثانیه': 7,
+    '۱۰ ثانیه': 10,
+  }
+
+  // Extract dialogue text (for AI avatar and other dialogue-based tools)
+  let dialogue = ''
+  if (feature.id === 'ai-avatar' || feature.id === 'text-animation') {
+    for (const field of feature.inputFields) {
+      const value = data[field.name]?.trim()
+      if (value && field.type === 'textarea') {
+        dialogue = value
+        break
+      }
+    }
+  }
+
+  return {
+    platform: platformMap[platformValue] || 'youtube',
+    duration: durationMap[durationValue] || 5,
+    withAudio: true,
+    dialogue: dialogue || undefined,
+  }
 }
 
 // ─── 100 AI Features ───────────────────────────────────────────────────────────
@@ -637,6 +768,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی گرم و طلایی', 'نورپردازی سرد و آبی', 'نورپردازی طبیعی', 'نورپردازی استودیویی', 'نورپردازی نئونی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی پشت‌سوژه', 'نورپردازی شب و تاریک'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['حرکت دوربین آهسته', 'حرکت دوربین سریع', 'دوربین ثابت', 'حرکت درون', 'حرکت بیرون', 'حرکت افقی', 'نمای هوایی', 'نمای اول شخص', 'نمای سوم شخص', 'زوم تدریجی'] },
       { name: 'language', label: 'زبان محتوا', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'هندی', 'چینی', 'ژاپنی', 'کره‌ای', 'آلمانی', 'روسی'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -649,6 +782,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی گرم و طلایی', 'نورپردازی نئونی', 'نورپردازی طبیعی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی'] },
       { name: 'framing', label: 'نوع نمای تصویر', type: 'select', options: ['کلوزآپ شیء', 'چهره و بدن کامل', 'صحنه وسیع', 'نمای نیم‌بازه', 'پرتره ویدئویی', 'نمای هوایی'] },
       { name: 'language', label: 'زبان محتوا', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'چینی', 'ژاپنی'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -661,6 +796,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'videoType', label: 'نوع ویدئو', type: 'select', options: ['تبلیغاتی و بازرگانی', 'سینمایی و دراماتیک', 'ورزشی و پرانرژی', 'علمی‌تخیلی', 'کمدی و طنز', 'عاشقانه و رمانتیک', 'انیمیشن و کارتونی'] },
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی', 'نورپردازی شب و تاریک'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['حرکت دوربین سریع', 'حرکت دوربین آهسته', 'نمای هوایی', 'حرکت درون', 'حرکت افقی', 'زوم تدریجی', 'نمای اول شخص'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -672,6 +809,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'videoType', label: 'نوع', type: 'select', options: ['طبیعت‌گردی و ماجراجویانه', 'مستند و واقعی', 'سینمایی و دراماتیک', 'علمی‌تخیلی', 'عاشقانه و رمانتیک'] },
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی طبیعی', 'نورپردازی گرم و طلایی', 'نورپردازی شب و تاریک', 'نورپردازی ملایم و نرم', 'نورپردازی سرد و آبی'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['نمای هوایی', 'حرکت دوربین آهسته', 'حرکت افقی', 'حرکت درون', 'زوم تدریجی', 'دوربین ثابت', 'حرکت دوربین سریع'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -683,6 +822,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'framing', label: 'نوع نمای تصویر', type: 'select', options: ['پرتره ویدئویی', 'نمای نیم‌بازه', 'چهره و بدن کامل'] },
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی استودیویی', 'نورپردازی طبیعی', 'نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی ملایم و نرم', 'نورپردازی دراماتیک سایه‌روشن'] },
       { name: 'language', label: 'زبان صحبت', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'فرانسوی', 'اسپانیایی', 'ترکی', 'هندی', 'چینی', 'ژاپنی', 'کره‌ای'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -693,6 +834,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'style', label: 'سبک انیمیشن', type: 'select', options: ['سه‌بعدی و حرفه‌ای', 'مینیمال و مدرن', 'نئونی و آینده‌نگر', 'پارتیکل و درخشان', 'آبستره و هنری', 'متحرک و پرانرژی', 'کلاسیک و شیک', 'گرادیانت و رنگی'] },
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی استودیویی', 'نورپردازی سرد و آبی', 'نورپردازی دراماتیک سایه‌روشن', 'نورپردازی ملایم و نرم'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['زوم تدریجی', 'حرکت درون', 'حرکت بیرون', 'حرکت افقی', 'دوربین ثابت', 'حرکت دوربین آهسته'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -703,6 +846,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'tone', label: 'سبک', type: 'select', options: ['لحن حماسی و بزرگ', 'لحن مدرن مینیمال', 'لحن پرانرژی و هیجان‌انگیز', 'لحن احساسی و عمیق', 'لحن لوکس و پریمیوم', 'لحن طنز و شوخی', 'لحن آرام و ملایم'] },
       { name: 'lighting', label: 'نورپردازی پس‌زمینه', type: 'select', options: ['نورپردازی نئونی', 'نورپردازی گرم و طلایی', 'نورپردازی شب و تاریک', 'نورپردازی سرد و آبی', 'نورپردازی ملایم و نرم', 'گرادیانت رنگی'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['زوم تدریجی', 'حرکت دوربین آهسته', 'حرکت دوربین سریع', 'دوربین ثابت', 'حرکت افقی'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
   {
@@ -715,6 +860,8 @@ export const allFeatures: AIFeature[] = [
       { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['نورپردازی گرم و طلایی', 'نورپردازی طبیعی', 'نورپردازی استودیویی', 'نورپردازی ملایم و نرم', 'نورپردازی دراماتیک سایه‌روشن'] },
       { name: 'camera', label: 'حرکت دوربین', type: 'select', options: ['کلوزآپ شیء', 'حرکت دوربین آهسته', 'حرکت افقی', 'حرکت درون', 'نمای هوایی', 'دوربین ثابت'] },
       { name: 'language', label: 'زبان', type: 'select', options: ['انگلیسی', 'فارسی', 'عربی', 'ترکی', 'فرانسوی', 'اسپانیایی', 'ژاپنی', 'کره‌ای'] },
+      { name: 'platform', label: 'پلتفرم / ابعاد', type: 'select', options: ['یوتیوب (۱۶:۹)', 'اینستاگرام ریلز (۹:۱۶)', 'اینستاگرام استوری (۹:۱۶)', 'تیک‌تاک (۹:۱۶)', 'فیس‌بوک (۱۶:۹)', 'توییتر (۱۶:۹)', 'لینکدین (۱۶:۹)', 'بنر وبسایت (۱۶:۹)', 'مربع (۱:۱)'] },
+      { name: 'duration', label: 'مدت زمان ویدئو', type: 'select', options: ['۳ ثانیه', '۵ ثانیه', '۷ ثانیه', '۱۰ ثانیه'] },
     ], outputType: 'video',
   },
 
@@ -748,7 +895,9 @@ export const allFeatures: AIFeature[] = [
     icon: Mic, category: 'video-gen', gradient: 'from-emerald-500 to-teal-500', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
     hasBackend: true, inputFields: [
       { name: 'script', label: 'متن ویدئو', type: 'textarea', placeholder: 'متن ویدئو را وارد کنید' },
-      { name: 'voiceStyle', label: 'نوع صدا', type: 'select', options: ['مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی', 'زن صمیمی', 'گزارشگر', 'نریاتور', 'مرد مسن', 'زن جوان و شاد', 'پسر نوجوان', 'دختر نوجوان'] },
+      { name: 'voiceStyle', label: 'مدل صدا', type: 'select', options: ['صدای طبیعی', 'مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی و گرم', 'زن صمیمی و گرم', 'گزارشگر خبری', 'نریاتور داستان', 'استاد دانشگاه', 'معلم مهربان', 'کودک', 'مرد مسن', 'زن جوان و شاد', 'پسر نوجوان', 'دختر نوجوان', 'مربی ورزشی', 'مجری تلویزیون'] },
+      { name: 'tone', label: 'لحن خوانش', type: 'select', options: ['دراماتیک و حماسی', 'آرام و ملایم', 'عادی و طبیعی', 'پرانرژی و سریع', 'سریع و تند', 'آهسته و با تأنی', 'آموزشی و واضح', 'خبری و رسمی', 'داستان‌سرایی', 'تبلیغاتی'] },
+      { name: 'language', label: 'زبان / گویش', type: 'select', options: ['فارسی معیار (تهرانی)', 'دری افغانی', 'تاجیکی', 'عربی فصحی', 'عربی مصری', 'عربی شامی', 'انگلیسی آمریکایی', 'انگلیسی بریتانیایی', 'ترکی استانبولی', 'اردو'] },
     ], outputType: 'audio',
   },
   {
@@ -1179,7 +1328,9 @@ export const allFeatures: AIFeature[] = [
     icon: Mic, category: 'audio', gradient: 'from-violet-500 to-purple-500', iconBg: 'bg-violet-100 dark:bg-violet-900/30',
     hasBackend: true, inputFields: [
       { name: 'tutorialText', label: 'متن آموزشی', type: 'textarea', placeholder: 'متن آموزش' },
-      { name: 'voiceStyle', label: 'نوع صدا', type: 'select', options: ['مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی', 'زن صمیمی', 'گزارشگر خبری', 'نریاتور داستان', 'استاد دانشگاه', 'معلم مهربان', 'مربی ورزشی', 'مجری تلویزیون'] },
+      { name: 'voiceStyle', label: 'مدل صدا', type: 'select', options: ['صدای طبیعی', 'مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی و گرم', 'زن صمیمی و گرم', 'گزارشگر خبری', 'نریاتور داستان', 'استاد دانشگاه', 'معلم مهربان', 'کودک', 'مرد مسن', 'زن جوان و شاد', 'پسر نوجوان', 'دختر نوجوان', 'مربی ورزشی', 'مجری تلویزیون'] },
+      { name: 'tone', label: 'لحن خوانش', type: 'select', options: ['دراماتیک و حماسی', 'آرام و ملایم', 'عادی و طبیعی', 'پرانرژی و سریع', 'سریع و تند', 'آهسته و با تأنی', 'آموزشی و واضح', 'خبری و رسمی', 'داستان‌سرایی', 'تبلیغاتی'] },
+      { name: 'language', label: 'زبان / گویش', type: 'select', options: ['فارسی معیار (تهرانی)', 'دری افغانی', 'تاجیکی', 'عربی فصحی', 'عربی مصری', 'عربی شامی', 'انگلیسی آمریکایی', 'انگلیسی بریتانیایی', 'ترکی استانبولی', 'اردو'] },
     ], outputType: 'audio',
   },
   {
