@@ -1546,3 +1546,27 @@ Stage Summary:
 - All text in Persian (Farsi) with English prompt translation
 - Video API properly handles PROCESSING/PENDING/empty status in polling loop
 - 50+ new style mappings added for comprehensive prompt engineering
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Create release v2.2.0 for Smart CMS
+
+Work Log:
+- Reviewed worklog and current project state (8 previous tasks, 4+ cron review rounds)
+- Verified video generation features already have style options (tone, video type, lighting, camera, framing, language) — added in previous session
+- Verified video async polling API route working correctly (POST creates task, GET polls result)
+- Verified AIContentStudio.tsx properly routes video tools to /api/ai/generate-video
+- Ran lint check: 0 errors, 0 warnings
+- Verified dev server running (200 OK on port 3000)
+- Updated package.json version from 0.2.0 to 2.2.0
+- Created git commit with release notes
+- Created annotated git tag v2.2.0 with full changelog
+- Pushed commit + tag to GitHub (fartakcomplex/crm)
+
+Stage Summary:
+- Release v2.2.0 created and pushed to GitHub
+- Key changes in this release: Video style options (230+ style mappings), video async polling fix, content picker, enhanced prompt builders
+- All 100 AI Studio tools functional across 8 categories
+- Lint: 0 errors | Dev server: Running | Build: Clean
+
