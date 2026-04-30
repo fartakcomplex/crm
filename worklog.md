@@ -1291,3 +1291,34 @@ Stage Summary:
 - Retry with safe fallback prompt if translation still triggers filter
 - Image generation success rate improved significantly
 - Video API also uses same translation pattern
+---
+Task ID: 13
+Agent: Main Agent
+Task: Add "Select from existing content" feature to AI Studio
+
+Work Log:
+- User requested: ability to select posts/products from CMS lists instead of typing titles manually
+- Added ContentItem type: { id, title, content, excerpt, description, type: 'post' | 'product' }
+- Added content picker state: contentItems, contentLoading, contentSearch, showContentPicker, selectedContent
+- useEffect to fetch /api/posts and /api/products when dialog opens
+- handleSelectContent callback: auto-fills form fields with selected content
+  - First text field → item title
+  - First textarea field → item excerpt/content (max 500 chars)
+  - Last field → full content (max 1000 chars) as fallback
+- UI: Content picker section added at top of dialog, before manual input fields
+  - Button showing count of available items ("انتخاب از X مقاله و محصول")
+  - Dropdown with search, scrollable list, post (BookOpen) / product (Package) icons
+  - Selected content shown as colored badge with type indicator
+  - "پاک کردن" (clear) button to remove selection and reset form
+  - Divider "یا دستی وارد کنید" separating picker from manual input
+- Posts API returns { posts: [...] } with title, content, excerpt fields
+- Products API returns { products: [...] } with name, description fields
+- Lint: 0 errors
+- Server: Compiles successfully
+
+Stage Summary:
+- AI Studio now has "انتخاب از محتوای موجود" feature at top of every tool dialog
+- Users can pick from existing posts and products to auto-fill prompt fields
+- Supports 4 posts + 10 products = 14 content items from CMS
+- Content picker has search, type icons (post/product), and auto-fill logic
+- All existing functionality preserved (manual input still works)

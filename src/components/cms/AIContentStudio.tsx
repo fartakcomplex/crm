@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useCallback, useRef } from 'react'
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,6 +37,10 @@ import {
   Video,
   Volume2,
   RotateCcw,
+  BookOpen,
+  Package,
+  ChevronDown,
+  X,
 } from 'lucide-react'
 import { allFeatures, categories, buildPrompt, outputTypeLabels } from './ai-studio-features'
 import type { AIFeature } from './ai-studio-features'
@@ -47,6 +51,15 @@ interface MediaResult {
   type: 'image' | 'video' | 'audio'
   url: string
   blob?: Blob
+}
+
+interface ContentItem {
+  id: string
+  title: string
+  content: string
+  excerpt?: string
+  description?: string
+  type: 'post' | 'product'
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
@@ -64,6 +77,65 @@ export default function AIContentStudio() {
   const [mediaResult, setMediaResult] = useState<MediaResult | null>(null)
   const [videoProgress, setVideoProgress] = useState<string>('')
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  // ─── Content Picker State ────────────────────────────────────────────────
+  const [contentItems, setContentItems] = useState<ContentItem[]>([])
+  const [contentLoading, setContentLoading] = useState(false)
+  const [contentSearch, setContentSearch] = useState('')
+  const [showContentPicker, setShowContentPicker] = useState(false)
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null)
+
+  // Fetch posts & products when dialog opens
+  useEffect(() => {
+    if (!dialogOpen) return
+
+    const fetchContent = async () => {
+      setContentLoading(true)
+      try {
+        const [postsRes, productsRes] = await Promise.all([
+          fetch('/api/posts').catch(() => null),
+          fetch('/api/products').catch(() => null),
+        ])
+
+        const items: ContentItem[] = []
+
+        if (postsRes?.ok) {
+          const postsData = await postsRes.json()
+          const posts = postsData.posts || postsData.data || postsData || []
+          for (const p of (Array.isArray(posts) ? posts : [])) {
+            items.push({
+              id: p.id,
+              title: p.title || '',
+              content: p.content || p.excerpt || '',
+              excerpt: p.excerpt || '',
+              type: 'post',
+            })
+          }
+        }
+
+        if (productsRes?.ok) {
+          const prodsData = await productsRes.json()
+          const prods = prodsData.products || prodsData.data || prodsData || []
+          for (const p of (Array.isArray(prods) ? prods : [])) {
+            items.push({
+              id: p.id,
+              title: p.name || p.title || '',
+              content: p.description || p.content || '',
+              type: 'product',
+            })
+          }
+        }
+
+        setContentItems(items)
+      } catch {
+        // silent fail — content picker is optional
+      } finally {
+        setContentLoading(false)
+      }
+    }
+
+    fetchContent()
+  }, [dialogOpen])
 
   // Feature counts per category
   const categoryCounts = useMemo(() => {
@@ -95,8 +167,49 @@ export default function AIContentStudio() {
     setCopied(false)
     setMediaResult(null)
     setVideoProgress('')
+    setSelectedContent(null)
+    setShowContentPicker(false)
+    setContentSearch('')
     setDialogOpen(true)
   }, [])
+
+  // ─── Content Picker: Auto-fill form from selected content ────────────────
+  const handleSelectContent = useCallback((item: ContentItem) => {
+    setSelectedContent(item)
+    setShowContentPicker(false)
+    setContentSearch('')
+
+    // Auto-fill the first text/textarea field with content
+    if (selectedFeature) {
+      const newFormData: Record<string, string> = {}
+      const fields = selectedFeature.inputFields
+
+      for (const field of fields) {
+        if (field.type === 'text' || field.type === 'textarea') {
+          if (!newFormData[field.name]) {
+            newFormData[field.name] = item.title
+            // Put content/excerpt in the next available textarea
+            continue
+          }
+        }
+        if (field.type === 'textarea' && !newFormData[field.name]) {
+          newFormData[field.name] = item.excerpt || item.content?.substring(0, 500) || ''
+        }
+      }
+
+      // If no textarea field was filled with content, put it in the last text/textarea
+      const hasContent = Object.values(newFormData).some(v => v.includes(item.excerpt || ''))
+      if (!hasContent && fields.length > 0) {
+        const lastField = fields[fields.length - 1]
+        if (lastField.type === 'textarea' || lastField.type === 'text') {
+          newFormData[lastField.name] = (item.excerpt || item.content || '').substring(0, 1000)
+        }
+      }
+
+      setFormData(newFormData)
+      toast.success(`${item.type === 'post' ? 'مقاله' : 'محصول'} "${item.title}" انتخاب شد ✅`)
+    }
+  }, [selectedFeature, toast])
 
   // ─── Generate: Text (streaming) ──────────────────────────────────────────
   const generateText = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
@@ -401,6 +514,16 @@ export default function AIContentStudio() {
       ? 'max-w-3xl'
       : 'max-w-lg'
 
+  // Filtered content items for picker
+  const filteredContent = useMemo(() => {
+    if (!contentSearch.trim()) return contentItems
+    const q = contentSearch.trim().toLowerCase()
+    return contentItems.filter(item =>
+      item.title.toLowerCase().includes(q) ||
+      item.content?.toLowerCase().includes(q)
+    )
+  }, [contentItems, contentSearch])
+
   return (
     <div dir="rtl" className="space-y-6 p-4 md:p-6 page-enter">
       {/* ── Header ──────────────────────────────────────────────────────────── */}
@@ -590,6 +713,143 @@ export default function AIContentStudio() {
               </DialogHeader>
 
               <div className="flex-1 overflow-y-auto space-y-4 -mx-6 px-6">
+
+                {/* ── Content Picker Section ──────────────────────────────────── */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4 text-violet-500" />
+                      <span className="text-sm font-semibold text-foreground">
+                        انتخاب از محتوای موجود
+                      </span>
+                    </div>
+                    {selectedContent && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setSelectedContent(null)
+                          setFormData({})
+                        }}
+                      >
+                        <X className="h-3 w-3" />
+                        پاک کردن
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Selected content badge */}
+                  {selectedContent ? (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 border border-violet-200/40 dark:border-violet-800/30">
+                      {selectedContent.type === 'post' ? (
+                        <BookOpen className="h-4 w-4 text-violet-500 shrink-0" />
+                      ) : (
+                        <Package className="h-4 w-4 text-emerald-500 shrink-0" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">
+                          {selectedContent.title}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {selectedContent.type === 'post' ? 'مقاله' : 'محصول'} — عنوان و متن به فیلدها منتقل شد
+                        </p>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] px-1.5 py-0 h-4 shrink-0 ${
+                          selectedContent.type === 'post'
+                            ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300'
+                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                        }`}
+                      >
+                        {selectedContent.type === 'post' ? 'مقاله' : 'محصول'}
+                      </Badge>
+                    </div>
+                  ) : (
+                    /* Content picker dropdown */
+                    <div className="relative">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2 text-xs justify-between h-9"
+                        onClick={() => setShowContentPicker(!showContentPicker)}
+                        disabled={contentLoading}
+                      >
+                        <div className="flex items-center gap-2">
+                          {contentLoading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Search className="h-3.5 w-3.5" />
+                          )}
+                          <span>
+                            {contentLoading
+                              ? 'در حال بارگذاری...'
+                              : `انتخاب از ${contentItems.length} مقاله و محصول`}
+                          </span>
+                        </div>
+                        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showContentPicker ? 'rotate-180' : ''}`} />
+                      </Button>
+
+                      {showContentPicker && (
+                        <div className="absolute top-full left-0 right-0 mt-1 z-50 bg-background border border-border rounded-lg shadow-lg max-h-72 overflow-hidden flex flex-col">
+                          {/* Search inside picker */}
+                          <div className="p-2 border-b border-border">
+                            <div className="relative">
+                              <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                              <Input
+                                value={contentSearch}
+                                onChange={(e) => setContentSearch(e.target.value)}
+                                placeholder="جستجوی عنوان..."
+                                className="pr-8 h-8 text-xs"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+
+                          {/* Items list */}
+                          <div className="overflow-y-auto max-h-56 cms-scrollbar">
+                            {filteredContent.length === 0 ? (
+                              <div className="p-4 text-center text-xs text-muted-foreground">
+                                موردی یافت نشد
+                              </div>
+                            ) : (
+                              filteredContent.map((item) => (
+                                <button
+                                  key={item.id}
+                                  className="w-full flex items-start gap-2.5 px-3 py-2.5 text-right hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
+                                  onClick={() => handleSelectContent(item)}
+                                >
+                                  {item.type === 'post' ? (
+                                    <BookOpen className="h-4 w-4 text-violet-400 mt-0.5 shrink-0" />
+                                  ) : (
+                                    <Package className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-foreground truncate">
+                                      {item.title}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                      {item.type === 'post' ? 'مقاله' : 'محصول'} — {item.content?.substring(0, 60)}...
+                                    </p>
+                                  </div>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[10px] text-muted-foreground px-1">یا دستی وارد کنید</span>
+                  <div className="flex-1 h-px bg-border" />
+                </div>
+
                 {/* Input fields */}
                 {selectedFeature.inputFields.map((field) => (
                   <div key={field.name} className="space-y-1.5">
