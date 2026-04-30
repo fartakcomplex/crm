@@ -120,6 +120,20 @@ const styleMapEn: Record<string, string> = {
   'فروش غذایی': 'food photography', 'رنگی': 'colorful vibrant', 'اندازه‌ای': 'size comparison',
   'استفاده': 'in-use lifestyle', 'پرتره': 'portrait', 'عمودی': 'vertical',
   'افقی': 'horizontal landscape', 'بنر': 'banner wide',
+  'هنری': 'artistic', 'انتزاعی': 'abstract', 'رترو وینتیج': 'retro vintage',
+  'لوکس و لاکچری': 'luxury premium', 'صنعتی و تکنیکال': 'industrial technical',
+  'آینده‌نگرانه': 'futuristic sci-fi', 'آبرنگ': 'watercolor',
+  'آیلاستریشن دیجیتال': 'digital illustration', 'گرافیکی فلت': 'flat graphic design',
+  'سه‌بعدی': '3D render', 'کلاژ': 'collage art', 'عکاسی ماکرو': 'macro photography',
+  'وینتیج و کلاسیک': 'vintage classic', 'فضایی و آینده‌نگر': 'space futuristic',
+  'گرادیانت رنگی': 'colorful gradient', 'تاریک و سینمایی': 'dark cinematic',
+  'هندسی': 'geometric', 'حروف‌نامی': 'lettermark typography', 'خطاطی': 'calligraphy',
+  'آیکن‌محور': 'icon-based', 'پیکسل آرت': 'pixel art', 'واترکالر ژاپنی': 'Japanese watercolor',
+  'کوبیسم (پیکاسو)': 'cubism Picasso', 'پست‌امپرسیونیسم (ون‌گوگ)': 'post-impressionism Van Gogh',
+  'مانگا و انیمه': 'manga anime', 'پاپ آرت': 'pop art', 'سریالیسم': 'surrealism',
+  'آرت دکو': 'art deco', 'سیاه‌قلم': 'charcoal drawing', 'اکسل': 'pencil sketch',
+  'نئونی': 'neon glow', 'پاستلی': 'pastel soft', 'رنگین‌کمانی': 'rainbow colorful',
+  'تیره و طلایی': 'dark gold', 'تایپوگرافی': 'typography art', 'گرادیانت': 'gradient',
 }
 
 function translateStyle(val: string): string {
@@ -347,7 +361,8 @@ export const allFeatures: AIFeature[] = [
     icon: Camera, category: 'image-gen', gradient: 'from-cyan-500 to-blue-500', iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
     hasBackend: true, inputFields: [
       { name: 'productName', label: 'نام محصول', type: 'text', placeholder: 'نام محصول' },
-      { name: 'style', label: 'سبک تصویر', type: 'select', options: ['مدرن', 'مینیمال', 'واقع‌گرایانه', 'کارتونی'] },
+      { name: 'style', label: 'سبک تصویر', type: 'select', options: ['مدرن', 'مینیمال', 'واقع‌گرایانه', 'کارتونی', 'هنری', 'انتزاعی', 'رترو وینتیج', 'لوکس و لاکچری', 'صنعتی و تکنیکال', 'آینده‌نگرانه'] },
+      { name: 'lighting', label: 'نورپردازی', type: 'select', options: ['استودیویی', 'طبیعی', 'نئون', 'دراماتیک', 'نرم و ملایم', 'رنگی و جشنواره‌ای'] },
     ], outputType: 'image',
   },
   {
@@ -355,7 +370,8 @@ export const allFeatures: AIFeature[] = [
     icon: Image, category: 'image-gen', gradient: 'from-teal-500 to-cyan-500', iconBg: 'bg-teal-100 dark:bg-teal-900/30',
     hasBackend: true, inputFields: [
       { name: 'title', label: 'عنوان مقاله', type: 'text', placeholder: 'عنوان مقاله' },
-      { name: 'style', label: 'سبک', type: 'select', options: ['آبستره', 'طبیعت', 'تکنولوژی', 'هنری'] },
+      { name: 'style', label: 'سبک', type: 'select', options: ['آبستره', 'طبیعت', 'تکنولوژی', 'هنری', 'عکاسی ماکرو', 'آبرنگ', 'آیلاستریشن دیجیتال', 'گرافیکی فلت', 'سه‌بعدی', 'کلاژ'] },
+      { name: 'mood', label: 'حال و هوا', type: 'select', options: ['جدی و رسمی', 'صمیمی و گرم', 'حماسی و الهام‌بخش', 'آرام و مینیمال', 'پرانرژی و هیجان‌انگیز'] },
     ], outputType: 'image',
   },
   {
@@ -363,7 +379,8 @@ export const allFeatures: AIFeature[] = [
     icon: Palette, category: 'image-gen', gradient: 'from-pink-500 to-rose-500', iconBg: 'bg-pink-100 dark:bg-pink-900/30',
     hasBackend: true, inputFields: [
       { name: 'topic', label: 'موضوع تصویر', type: 'text', placeholder: 'موضوع تصویر' },
-      { name: 'platform', label: 'پلتفرم', type: 'select', options: ['اینستاگرام', 'لینکدین', 'توییتر'] },
+      { name: 'platform', label: 'پلتفرم', type: 'select', options: ['اینستاگرام فید', 'اینستاگرام استوری', 'لینکدین', 'توییتر', 'فیس‌بوک', 'پینترست', 'تیک‌تاک'] },
+      { name: 'style', label: 'سبک طراحی', type: 'select', options: ['مدرن مینیمال', 'گرادیانت رنگی', 'تایپوگرافی', 'عکاسی', 'کارتونی', 'سه‌بعدی', 'پوستر وینتیج', 'موشن گرافیک'] },
     ], outputType: 'image',
   },
   {
@@ -371,7 +388,7 @@ export const allFeatures: AIFeature[] = [
     icon: Tv, category: 'image-gen', gradient: 'from-red-500 to-orange-500', iconBg: 'bg-red-100 dark:bg-red-900/30',
     hasBackend: true, inputFields: [
       { name: 'title', label: 'عنوان ویدئو', type: 'text', placeholder: 'عنوان ویدئو' },
-      { name: 'style', label: 'سبک', type: 'select', options: ['جذاب', 'وحشتناک', 'آموزشی', 'سرگرم'] },
+      { name: 'style', label: 'سبک', type: 'select', options: ['جذاب و کلیک‌خور', 'دراماتیک و هیجان‌انگیز', 'آموزشی و تمیز', 'سرگرم‌کننده', 'ترسناک و مرموز', 'حرفه‌ای و شرکتی', 'طنز و خنده‌دار', 'لوکس و پریمیوم'] },
     ], outputType: 'image',
   },
   {
@@ -379,7 +396,8 @@ export const allFeatures: AIFeature[] = [
     icon: LayoutTemplate, category: 'image-gen', gradient: 'from-fuchsia-500 to-pink-500', iconBg: 'bg-fuchsia-100 dark:bg-fuchsia-900/30',
     hasBackend: true, inputFields: [
       { name: 'topic', label: 'موضوع', type: 'text', placeholder: 'موضوع استوری' },
-      { name: 'type', label: 'نوع', type: 'select', options: ['تبلیغاتی', 'آموزشی', 'سرگرمی', 'فروش غذایی'] },
+      { name: 'type', label: 'نوع', type: 'select', options: ['تبلیغاتی', 'آموزشی', 'سرگرمی', 'فروش غذایی', 'مجله‌ای', 'سوال و جواب', 'معرفی محصول', 'پشت صحنه', 'آمار و چارت', 'داستان‌سرایی'] },
+      { name: 'colorTheme', label: 'رنگ‌بندی', type: 'select', options: ['گرادیانت بنفش', 'گرادیانت آبی', 'گرادیانت صورتی', 'پاستلی ملایم', 'تیره و مدرن', 'روشن و تابستانی', 'سیاه و سفید', 'نئونی'] },
     ], outputType: 'image',
   },
   {
@@ -387,7 +405,8 @@ export const allFeatures: AIFeature[] = [
     icon: BarChart2, category: 'image-gen', gradient: 'from-emerald-500 to-teal-500', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
     hasBackend: true, inputFields: [
       { name: 'data', label: 'داده‌ها', type: 'textarea', placeholder: 'داده‌های عددی را وارد کنید' },
-      { name: 'style', label: 'سبک', type: 'select', options: ['شرکتی', 'مدرن', 'مینیمال'] },
+      { name: 'style', label: 'سبک', type: 'select', options: ['شرکتی', 'مدرن', 'مینیمال', 'آیلاستریشن', 'فلت دیزاین', 'آیکن‌محور', 'سایه‌دار سه‌بعدی'] },
+      { name: 'colorScheme', label: 'رنگ‌بندی', type: 'select', options: ['آبی یکنواخت', 'گرادیانت بنفش', 'رنگین‌کمانی', 'سبز و سفید', 'تیره و طلایی', 'پاستلی'] },
     ], outputType: 'image',
   },
   {
@@ -395,7 +414,8 @@ export const allFeatures: AIFeature[] = [
     icon: Sparkle, category: 'image-gen', gradient: 'from-violet-500 to-purple-500', iconBg: 'bg-violet-100 dark:bg-violet-900/30',
     hasBackend: true, inputFields: [
       { name: 'brandName', label: 'نام برند', type: 'text', placeholder: 'نام برند' },
-      { name: 'industry', label: 'صنعت', type: 'select', options: ['فناوری', 'غذا', 'مodes', 'آموزش', 'بهداشت'] },
+      { name: 'industry', label: 'صنعت', type: 'select', options: ['فناوری', 'غذا و نوشیدنی', 'مد و پوشاک', 'آموزش', 'بهداشت و سلامت', 'مالی و بانکی', 'سفر و گردشگری', 'ورزش و فیتنس', 'هنر و فرهنگ', 'خودرو'] },
+      { name: 'style', label: 'سبک لوگو', type: 'select', options: ['مینیمال', 'کلاسیک', 'مدرن', 'هندسی', 'حروف‌نامی', 'آیکن‌محور', 'سه‌بعدی', 'خطاطی'] },
     ], outputType: 'image',
   },
   {
@@ -403,7 +423,7 @@ export const allFeatures: AIFeature[] = [
     icon: Frame, category: 'image-gen', gradient: 'from-amber-500 to-orange-500', iconBg: 'bg-amber-100 dark:bg-amber-900/30',
     hasBackend: true, inputFields: [
       { name: 'headline', label: 'عنوان اصلی', type: 'text', placeholder: 'عنوان اصلی بنر' },
-      { name: 'style', label: 'سبک', type: 'select', options: ['مدرن', 'تکنولوژی', 'طبیعت', 'مینیمال'] },
+      { name: 'style', label: 'سبک', type: 'select', options: ['مدرن', 'تکنولوژی', 'طبیعت', 'مینیمال', 'فضایی و آینده‌نگر', 'گرادیانت رنگی', 'وینتیج و کلاسیک', 'تمیز شرکتی', 'هنری و خلاقانه', 'تاریک و سینمایی'] },
     ], outputType: 'image',
   },
   {
@@ -411,7 +431,8 @@ export const allFeatures: AIFeature[] = [
     icon: Layers, category: 'image-gen', gradient: 'from-indigo-500 to-blue-500', iconBg: 'bg-indigo-100 dark:bg-indigo-900/30',
     hasBackend: true, inputFields: [
       { name: 'product', label: 'نام محصول', type: 'text', placeholder: 'نام محصول' },
-      { name: 'scene', label: 'محیط', type: 'select', options: ['استودیو', 'بیرونی', 'داخلی', 'اداری'] },
+      { name: 'scene', label: 'محیط', type: 'select', options: ['استودیو سفید', 'آشپزخانه مدرن', 'اتاق نشیمن لوکس', 'دفتر کار شرکتی', 'فضای باز و بیرونی', 'کافه و رستوران', 'ژیمناستوری و ورزش', 'طبیعت و باغ'] },
+      { name: 'angle', label: 'زاویه دوربین', type: 'select', options: ['از بالا (بالدون)', 'از جلو', 'زاویه ۴۵ درجه', 'نمای نزدیک', 'نمای باز محیطی'] },
     ], outputType: 'image',
   },
   {
@@ -425,7 +446,8 @@ export const allFeatures: AIFeature[] = [
     id: 'style-transfer', title: 'انتقال سبک تصویر', description: 'سبک هنری خاص به تصاویر اضافه کنید.',
     icon: Palette, category: 'image-gen', gradient: 'from-purple-500 to-violet-500', iconBg: 'bg-purple-100 dark:bg-purple-900/30',
     hasBackend: true, inputFields: [
-      { name: 'description', label: 'توضیحات سبک', type: 'text', placeholder: 'سبک مورد نظر (مثال: نقاشی آبرنگ)' },
+      { name: 'artStyle', label: 'سبک هنری', type: 'select', options: ['آبرنگ', 'نقاشی رنگ روغن', 'اکسل', 'کوبیسم (پیکاسو)', 'پست‌امپرسیونیسم (ون‌گوگ)', 'مانگا و انیمه', 'پاپ آرت', 'رئالیسم کلاسیک', 'سریالیسم', 'آرت دکو', 'سیاه‌قلم', 'پیکسل آرت', 'واترکالر ژاپنی'] },
+      { name: 'description', label: 'توضیحات تصویر', type: 'text', placeholder: 'موضوع تصویر (مثال: منظره کوهستان)' },
     ], outputType: 'image',
   },
   {
@@ -433,6 +455,7 @@ export const allFeatures: AIFeature[] = [
     icon: ArrowLeftRight, category: 'image-gen', gradient: 'from-sky-500 to-indigo-500', iconBg: 'bg-sky-100 dark:bg-sky-900/30',
     hasBackend: true, inputFields: [
       { name: 'topic', label: 'موضوع', type: 'text', placeholder: 'مثال: بازسازی ساختمان' },
+      { name: 'category', label: 'حوزه', type: 'select', options: ['بازسازی ساختمان', 'لاغری و تناسب اندام', 'طراحی داخلی', 'باغبانی و فضای سبز', 'بهداشت و زیبایی', 'آموزش و پیشرفت', 'طراحی محصول', 'مد و استایل'] },
     ], outputType: 'image',
   },
   {
@@ -441,6 +464,7 @@ export const allFeatures: AIFeature[] = [
     hasBackend: true, inputFields: [
       { name: 'quote', label: 'نقل‌قول', type: 'textarea', placeholder: 'نقل‌قول مورد نظر' },
       { name: 'author', label: 'نویسنده', type: 'text', placeholder: 'نام نویسنده' },
+      { name: 'style', label: 'سبک پوستر', type: 'select', options: ['مینیمال', 'تایپوگرافی', 'طبیعت', 'فضایی', 'هندسی', 'وینتیج', 'تاریک و حماسی', 'آبرنگی', 'گرادیانت'] },
     ], outputType: 'image',
   },
   {
@@ -448,7 +472,7 @@ export const allFeatures: AIFeature[] = [
     icon: Layers3, category: 'image-gen', gradient: 'from-teal-500 to-emerald-500', iconBg: 'bg-teal-100 dark:bg-teal-900/30',
     hasBackend: true, inputFields: [
       { name: 'product', label: 'نام محصول', type: 'text', placeholder: 'نام محصول' },
-      { name: 'variant', label: 'نوع واریانت', type: 'select', options: ['رنگی', 'اندازه‌ای', 'استفاده'] },
+      { name: 'variant', label: 'نوع واریانت', type: 'select', options: ['رنگ‌های مختلف', 'اندازه‌های مختلف', 'مصارف مختلف', 'ویرایش‌های محدود', 'زمان‌های مختلف', 'مجموعه فصلی'] },
     ], outputType: 'image',
   },
   {
@@ -456,7 +480,8 @@ export const allFeatures: AIFeature[] = [
     icon: Grid3X3, category: 'image-gen', gradient: 'from-orange-500 to-amber-500', iconBg: 'bg-orange-100 dark:bg-amber-900/30',
     hasBackend: true, inputFields: [
       { name: 'topic', label: 'موضوع کلاژ', type: 'text', placeholder: 'موضوع کلاژ' },
-      { name: 'count', label: 'تعداد تصاویر', type: 'select', options: ['۴ تصویر', '۶ تصویر', '۹ تصویر'] },
+      { name: 'count', label: 'تعداد تصاویر', type: 'select', options: ['۴ تصویر', '۶ تصویر', '۹ تصویر', '۱۲ تصویر'] },
+      { name: 'layout', label: 'چیدمان', type: 'select', options: ['شبکه‌ای مربعی', 'شبکه‌ای مستطیلی', 'دایره‌ای', 'آزاد و هنری', 'موزاییکی', 'افقی اسکرولی'] },
     ], outputType: 'image',
   },
 
@@ -492,6 +517,7 @@ export const allFeatures: AIFeature[] = [
     icon: Mic, category: 'video-gen', gradient: 'from-emerald-500 to-teal-500', iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
     hasBackend: true, inputFields: [
       { name: 'script', label: 'متن ویدئو', type: 'textarea', placeholder: 'متن ویدئو را وارد کنید' },
+      { name: 'voiceStyle', label: 'نوع صدا', type: 'select', options: ['مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی', 'زن صمیمی', 'گزارشگر', 'نریاتور'] },
     ], outputType: 'audio',
   },
   {
@@ -906,6 +932,7 @@ export const allFeatures: AIFeature[] = [
     hasBackend: true, inputFields: [
       { name: 'blogTitle', label: 'عنوان مقاله', type: 'text', placeholder: 'عنوان' },
       { name: 'content', label: 'خلاصه مقاله', type: 'textarea', placeholder: 'خلاصه' },
+      { name: 'podcastStyle', label: 'سبک پادکست', type: 'select', options: ['رسمی و خبری', 'صمیمی و محاوره‌ای', 'آموزشی', 'داستان‌سرایی', 'تحلیلی و تخصصی'] },
     ], outputType: 'text',
   },
   {
@@ -921,6 +948,7 @@ export const allFeatures: AIFeature[] = [
     icon: Mic, category: 'audio', gradient: 'from-violet-500 to-purple-500', iconBg: 'bg-violet-100 dark:bg-violet-900/30',
     hasBackend: true, inputFields: [
       { name: 'tutorialText', label: 'متن آموزشی', type: 'textarea', placeholder: 'متن آموزش' },
+      { name: 'voiceStyle', label: 'نوع صدا', type: 'select', options: ['مرد حرفه‌ای', 'زن حرفه‌ای', 'مرد صمیمی', 'زن صمیمی', 'گزارشگر خبری', 'نریاتور داستان'] },
     ], outputType: 'audio',
   },
   {
@@ -928,13 +956,15 @@ export const allFeatures: AIFeature[] = [
     icon: Volume2, category: 'audio', gradient: 'from-cyan-500 to-teal-500', iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
     hasBackend: true, inputFields: [
       { name: 'text', label: 'متن فارسی', type: 'textarea', placeholder: 'متن فارسی' },
+      { name: 'voiceStyle', label: 'نوع صدا', type: 'select', options: ['مرد', 'زن', 'کودک', 'مرد مسن', 'زن مسن'] },
     ], outputType: 'text',
   },
   {
     id: 'music-mood', title: 'پیشنهاد موسیقی پس‌زمینه', description: 'پیشنهاد موسیقی مناسب پس‌زمینه محتوا.',
     icon: Music, category: 'audio', gradient: 'from-amber-500 to-orange-500', iconBg: 'bg-amber-100 dark:bg-amber-900/30',
     hasBackend: true, inputFields: [
-      { name: 'mood', label: 'حال و محتوا', type: 'text', placeholder: 'مثال: خوشحال و امیدوار' },
+      { name: 'mood', label: 'حال و هوا', type: 'select', options: ['خوشحال و پرانرژی', 'آرام و آرامش‌بخش', 'حماسی و حماسی', 'غمگین و احساسی', 'مرموز و تاریک', 'رمانتیک و عاشقانه', 'تمرکزی و کاری', 'جشن و شادی', 'سینمایی و پرصلابت'] },
+      { name: 'genre', label: 'ژانر موسیقی', type: 'select', options: ['پاپ', 'جاز', 'کلاسیک', 'الکترونیک', 'آکوستیک', 'هیپ‌هاپ', 'راک', 'آمبینت', 'لاتین'] },
     ], outputType: 'text',
   },
 

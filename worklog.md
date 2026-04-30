@@ -1390,3 +1390,41 @@ Stage Summary:
 - Backend translation enhanced with expert prompt engineering system prompts
 - Lint: 0 errors, 0 warnings
 - Dev server: compiles successfully
+
+## [Edit] ai-studio-features.ts — Expanded Options for Image, Video, and Audio Features
+
+### Changes Summary:
+
+#### styleMapEn (English translations)
+- Added 34 new Persian→English style translations for image prompt building, covering art styles, colors, layouts, and moods.
+
+#### Image Features (14 edits)
+
+1. **product-thumbnail**: Added 'آینده‌نگرانه' to style (now 10), added 'رنگی و جشنواره‌ای' to lighting (now 6)
+2. **blog-featured**: Already had 10 styles + 5 moods ✅
+3. **social-image**: Already had 7 platforms + 8 styles ✅
+4. **youtube-thumbnail**: Already had 8 styles ✅
+5. **instagram-story**: Already had 10 types + 8 color themes ✅
+6. **infographic**: Fixed broken `colorScheme` syntax (missing `[`), fixed 'یکنواخت آبی' → 'آبی یکنواخت'
+7. **logo-gen**: Already had 10 industries + 8 styles ✅
+8. **banner-hero**: Already had 10 styles ✅
+9. **product-mockup**: Fixed broken `angle` syntax (missing `[`)
+10. **style-transfer**: Added `artStyle` select (13 options), changed label to 'توضیحات تصویر' and placeholder
+11. **before-after**: Added `category` select (8 options)
+12. **quote-poster**: Added `style` select (9 options)
+13. **product-variant**: Expanded variant options from 3 to 6
+14. **collage**: Expanded count options from 3 to 4, added `layout` select (6 options)
+
+#### Audio Features (5 edits)
+
+15. **tutorial-voiceover**: Added `voiceStyle` select (6 options)
+16. **video-voiceover**: Added `voiceStyle` select (6 options)
+17. **blog-to-podcast**: Added `podcastStyle` select (5 options)
+18. **pronunciation**: Added `voiceStyle` select (5 options)
+19. **music-mood**: Changed `mood` from text to select (9 options), added `genre` select (9 options)
+
+#### Bug Fixes
+- Fixed infographic `colorScheme` options: was `options: 'string'` (missing `[`), fixed to proper array syntax
+- Fixed product-mockup `angle` options: was `options: 'string'` (missing `[`), fixed to proper array syntax
+
+Lint: ✅ Passed with no errors.
