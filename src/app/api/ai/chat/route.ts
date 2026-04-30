@@ -66,21 +66,49 @@ Always provide actionable, specific, and well-structured responses. Use markdown
       })
 
       const encoder = new TextEncoder()
+
       const readable = new ReadableStream({
         async start(controller) {
           try {
-            for await (const chunk of completion) {
-              const delta = chunk.choices[0]?.delta?.content
-              if (delta) {
-                const data = JSON.stringify({ content: delta })
-                controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+            // ZAI SDK returns Uint8Array chunks containing raw SSE data
+            for await (const rawChunk of completion) {
+              // Decode Uint8Array to string
+              const chunkStr = typeof rawChunk === 'string'
+                ? rawChunk
+                : new TextDecoder().decode(rawChunk as Uint8Array, { stream: true })
+
+              // Parse SSE format: "data: {json}\n\n"
+              const lines = chunkStr.split('\n')
+              for (const line of lines) {
+                const trimmed = line.trim()
+                if (!trimmed.startsWith('data: ')) continue
+
+                const payload = trimmed.slice(6)
+                if (payload === '[DONE]') {
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+                  continue
+                }
+
+                try {
+                  const parsed = JSON.parse(payload)
+                  const delta = parsed.choices?.[0]?.delta?.content
+                  if (delta) {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`)
+                    )
+                  }
+                } catch {
+                  // skip malformed SSE lines
+                }
               }
             }
             controller.enqueue(encoder.encode('data: [DONE]\n\n'))
             controller.close()
           } catch (err) {
             const errMsg = err instanceof Error ? err.message : 'Stream error'
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`))
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`)
+            )
             controller.close()
           }
         },
