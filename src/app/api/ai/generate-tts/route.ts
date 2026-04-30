@@ -46,11 +46,16 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('POST /api/ai/generate-tts error:', error)
-    const message = error instanceof Error ? error.message : 'Failed to generate speech'
+    const msg = error instanceof Error ? error.message : ''
+
+    const errBody = msg.includes('1301') || msg.includes('contentFilter') || msg.includes('敏感')
+      ? { success: false, error: 'content_filter', userMessage: '⚠️ متأسفانه متن شما توسط سیستم ایمنی فیلتر شد. لطفاً از عبارات مناسب‌تر استفاده کنید.' }
+      : { success: false, error: msg || 'Failed to generate speech', userMessage: '⚠️ خطا در تولید صدا. لطفاً دوباره تلاش کنید.' }
+
     return new Response(
-      JSON.stringify({ success: false, error: message }),
+      JSON.stringify(errBody),
       {
-        status: 500,
+        status: msg.includes('1301') || msg.includes('contentFilter') ? 400 : 500,
         headers: { 'Content-Type': 'application/json' },
       }
     )

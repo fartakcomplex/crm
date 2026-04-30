@@ -171,11 +171,11 @@ export default function AIContentStudio() {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || `خطای سرور: ${res.status}`)
+      throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
     }
 
     const result = await res.json()
-    if (!result.imageUrl) throw new Error('تصویری تولید نشد')
+    if (!result.imageUrl) throw new Error(result.userMessage || result.error || 'تصویری تولید نشد')
 
     setMediaResult({ type: 'image', url: result.imageUrl })
     return result.imageUrl
@@ -194,13 +194,13 @@ export default function AIContentStudio() {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || `خطای سرور: ${res.status}`)
+      throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
     }
 
     setVideoProgress('ویدئو در حال پردازش... (این فرآیند ممکن است ۱ تا ۵ دقیقه طول بکشد)')
 
     const result = await res.json()
-    if (!result.videoUrl) throw new Error(result.error || 'ویدئویی تولید نشد')
+    if (!result.videoUrl) throw new Error(result.userMessage || result.error || 'ویدئویی تولید نشد')
 
     setMediaResult({ type: 'video', url: result.videoUrl })
     setVideoProgress('')
@@ -229,7 +229,7 @@ export default function AIContentStudio() {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
-      throw new Error(err.error || `خطای سرور: ${res.status}`)
+      throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
     }
 
     const blob = await res.blob()

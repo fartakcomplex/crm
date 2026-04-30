@@ -143,7 +143,15 @@ Always provide actionable, specific, and well-structured responses. Use markdown
     })
   } catch (error) {
     console.error('POST /api/ai/chat error:', error)
-    const message = error instanceof Error ? error.message : 'Failed to process chat request'
-    return NextResponse.json({ error: message }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Failed to process chat request'
+
+    if (msg.includes('1301') || msg.includes('contentFilter') || msg.includes('敏感')) {
+      return NextResponse.json({
+        error: 'content_filter',
+        userMessage: '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات خود را تغییر دهید.',
+      }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: msg, userMessage: '⚠️ خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.' }, { status: 500 })
   }
 }

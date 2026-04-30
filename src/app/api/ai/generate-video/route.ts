@@ -94,7 +94,20 @@ export async function POST(request: NextRequest) {
     )
   } catch (error) {
     console.error('POST /api/ai/generate-video error:', error)
-    const message = error instanceof Error ? error.message : 'Failed to generate video'
-    return NextResponse.json({ success: false, error: message }, { status: 500 })
+    const msg = error instanceof Error ? error.message : ''
+
+    if (msg.includes('1301') || msg.includes('contentFilter') || msg.includes('敏感')) {
+      return NextResponse.json({
+        success: false,
+        error: 'content_filter',
+        userMessage: '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات خود را تغییر دهید و از عبارات مناسب‌تر استفاده کنید.',
+      }, { status: 400 })
+    }
+
+    return NextResponse.json({
+      success: false,
+      error: msg || 'Failed to generate video',
+      userMessage: '⚠️ خطا در تولید ویدئو. لطفاً دوباره تلاش کنید.',
+    }, { status: 500 })
   }
 }
