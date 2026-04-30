@@ -1570,3 +1570,30 @@ Stage Summary:
 - All 100 AI Studio tools functional across 8 categories
 - Lint: 0 errors | Dev server: Running | Build: Clean
 
+
+---
+Task ID: 10
+Agent: Main Agent + 5 Sub-agents
+Task: AI Studio Research Engine + Enhanced Video/Audio Generation (v2.3.0)
+
+Work Log:
+- Analyzed user requirements: web research before generation, video with audio, proper Persian pronunciation, enhanced TTS voices, platform-aware dimensions, precise duration
+- Launched 5 parallel sub-agents for backend APIs and frontend updates
+- Created /api/ai/research/route.ts — web research with translate→search→summarize flow
+- Enhanced /api/ai/generate-video/route.ts — with_audio, 9 platform presets, 3/5/7/10s duration, harakat engine
+- Enhanced /api/ai/generate-tts/route.ts — 16 voices, 10 languages/dialects, 10 tones, harakat engine, 3 formats
+- Updated ai-studio-features.ts — platform/duration fields for 8 video tools, voice/tone/language for TTS tools, 47 new styleMapEn entries, buildTTSParams(), buildVideoParams()
+- Updated AIContentStudio.tsx — research flow before media generation, new params passed to APIs, research progress UI
+- Lint: 0 errors | Dev server: 200 OK
+- Committed and tagged v2.3.0, pushed to GitHub
+
+Stage Summary:
+- 5 files changed, 1191 insertions, 87 deletions
+- 1 new API route (research), 2 enhanced API routes (video, TTS)
+- Persian harakat engine: LLM-powered diacritics for proper pronunciation in videos and TTS
+- Web research: translates Persian→English, searches web, LLM creates visual/audio context
+- Video: audio enabled by default, 9 platform presets, 4 duration options
+- TTS: 16 voice models, 10 languages/dialects, 10 tone presets, 3 output formats
+- All changes backward-compatible
+- Release v2.3.0 pushed to GitHub
+
