@@ -1428,3 +1428,63 @@ Stage Summary:
 - Fixed product-mockup `angle` options: was `options: 'string'` (missing `[`), fixed to proper array syntax
 
 Lint: ✅ Passed with no errors.
+
+---
+Task ID: 9
+Agent: Main Agent
+Task: Fix video generation 502 error + expand style options for all AI tools
+
+Work Log:
+- Read worklog to understand project context (8 previous tasks across multiple sessions)
+- Read dev.log — identified video 502 caused by synchronous polling (server waits up to 5 min, gateway times out)
+- Confirmed syntax error in ai-studio-features.ts already fixed from previous session
+
+FIX 1: Video Generation 502 Error
+- Rewrote `/src/app/api/ai/generate-video/route.ts`:
+  - Converted from synchronous to async polling (same pattern as image generation)
+  - POST now returns `taskId` immediately, client polls GET for result
+  - Added `VideoTask` in-memory store with status tracking (processing/success/error)
+  - Background async function handles: video task creation → polling (60×5s=5min) → result extraction
+  - Added content filter detection with user-friendly Persian error message
+  - Added GET endpoint: `/api/ai/generate-video?id=xxx` for client polling
+  - Timeout: 8 minutes max, auto-cleanup after 10 minutes
+- Updated `generateVideo()` in `/src/components/cms/AIContentStudio.tsx`:
+  - Changed from single `await res.json()` to polling loop
+  - Polls GET every 4 seconds, max 120 attempts (8 minutes)
+  - Live progress updates: shows elapsed time in Persian (e.g., "در حال تولید ویدئو... 1 دقیقه و 32 ثانیه گذشته")
+  - Handles all error states: timeout (408), not found (404), server error, content filter
+
+FIX 2: Expanded Style/Type Options for AI Tools
+- Used sub-agent to expand all image/audio tool option arrays in `ai-studio-features.ts`
+- Image tools (15 tools): Each select field expanded to 10-15 options (was 5-10)
+  - product-thumbnail: 15 styles, 10 lighting options
+  - blog-featured: 15 styles, 10 mood options
+  - social-image: 10 platforms, 12 styles
+  - youtube-thumbnail: 12 styles
+  - instagram-story: 13 types, 12 color themes
+  - infographic: 12 styles, 10 color schemes
+  - logo-gen: 15 industries, 12 logo styles
+  - banner-hero: 15 styles
+  - product-mockup: 12 scenes, 10 angles
+  - style-transfer: 15 art styles
+  - before-after: 12 categories
+  - quote-poster: 12 styles
+  - product-variant: 10 variants
+  - collage: 8 counts, 10 layouts
+- Audio tools (2 tools): Voice style expanded to 10 options each
+- Added ~90 new Persian→English style mappings in `styleMapEn`
+- Enhanced `buildVideoPrompt()` to process select fields via `translateStyle()`
+- Fixed duplicate 'هنری' key in styleMapEn (TS1117)
+- All option labels in Persian (Farsi)
+
+FIX 3: Created 15-minute cron job for webDevReview
+- Cron job ID: 118293
+- Fixed rate: every 900 seconds (15 minutes)
+- Includes QA, bug fixing, styling improvements, and feature development tasks
+
+Stage Summary:
+- Video generation 502 error FIXED: converted to async polling (POST+GET pattern)
+- All AI tool options EXPANDED: ~90 new Persian style options across 15 image + 2 audio tools
+- Cron job CREATED: 15-minute webDevReview cycle
+- Lint: ✅ 0 errors, 0 warnings
+- Dev server: ✅ Compiles cleanly

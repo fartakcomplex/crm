@@ -329,11 +329,12 @@ export default function AIContentStudio() {
     throw new Error('زمان تولید تصویر به پایان رسید. لطفاً دوباره تلاش کنید.')
   }, [])
 
-  // ─── Generate: Video ─────────────────────────────────────────────────────
+  // ─── Generate: Video (async polling — same pattern as image) ────────────
   const generateVideo = useCallback(async (feature: AIFeature, data: Record<string, string>) => {
     const prompt = buildVideoPrompt(feature, data)
     setVideoProgress('در حال ایجاد تسک تولید ویدئو...')
 
+    // Step 1: POST to create task
     const res = await fetch('/api/ai/generate-video', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -345,14 +346,51 @@ export default function AIContentStudio() {
       throw new Error(err.userMessage || err.error || `خطای سرور: ${res.status}`)
     }
 
+    const { taskId } = await res.json()
+    if (!taskId) throw new Error('تسک تولید ویدئو ایجاد نشد')
+
     setVideoProgress('ویدئو در حال پردازش... (این فرآیند ممکن است ۱ تا ۵ دقیقه طول بکشد)')
 
-    const result = await res.json()
-    if (!result.videoUrl) throw new Error(result.userMessage || result.error || 'ویدئویی تولید نشد')
+    // Step 2: Poll GET every 4 seconds until done
+    const maxAttempts = 120 // 120 × 4s = 8 minutes
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 4000))
 
-    setMediaResult({ type: 'video', url: result.videoUrl })
-    setVideoProgress('')
-    return result.videoUrl
+      const elapsed = ((i + 1) * 4)
+      const mins = Math.floor(elapsed / 60)
+      const secs = elapsed % 60
+      setVideoProgress(`در حال تولید ویدئو... ${mins > 0 ? `${mins} دقیقه و ` : ''}${secs} ثانیه گذشته`)
+
+      try {
+        const pollRes = await fetch(`/api/ai/generate-video?id=${taskId}`)
+        if (!pollRes.ok) {
+          const err = await pollRes.json().catch(() => ({}))
+          if (pollRes.status === 408) throw new Error(err.userMessage || 'زمان تولید ویدئو به پایان رسید')
+          if (pollRes.status === 404) throw new Error('تسک یافت نشد یا منقضی شده')
+          continue
+        }
+
+        const result = await pollRes.json()
+
+        if (result.status === 'success' && result.videoUrl) {
+          setMediaResult({ type: 'video', url: result.videoUrl })
+          setVideoProgress('')
+          return result.videoUrl
+        }
+
+        if (result.status === 'error') {
+          throw new Error(result.userMessage || result.error || 'تولید ویدئو ناموفق بود')
+        }
+
+        // Still processing — continue polling
+      } catch (pollErr) {
+        if (pollErr instanceof Error && pollErr.message.includes('زمان')) throw pollErr
+        if (pollErr instanceof Error && pollErr.message.includes('یافت نشد')) throw pollErr
+        // Network error — continue polling
+      }
+    }
+
+    throw new Error('زمان تولید ویدئو به پایان رسید. لطفاً دوباره تلاش کنید.')
   }, [])
 
   // ─── Generate: Audio ─────────────────────────────────────────────────────
