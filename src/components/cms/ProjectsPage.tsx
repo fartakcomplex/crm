@@ -289,11 +289,11 @@ export default function ProjectsPage() {
             return (
               <Card
                 key={project.id}
-                className="overflow-hidden group hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in border-0"
+                className="overflow-hidden group hover-lift shine-effect shadow-sm hover:shadow-xl hover:shadow-sky-500/5 transition-all duration-300 animate-in border-0"
                 style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
               >
                 {/* Header bar */}
-                <div className={`h-1.5 bg-gradient-to-r ${gradient} transition-all duration-500`} />
+                <div className={`h-2 bg-gradient-to-r ${gradient} transition-all duration-500 shadow-sm`} />
                 <CardContent className="p-5 space-y-3.5">
                   {/* Title + badges */}
                   <div className="flex items-start justify-between gap-2">
@@ -305,7 +305,8 @@ export default function ProjectsPage() {
 
                   {/* Badges row */}
                   <div className="flex flex-wrap gap-1.5">
-                    <Badge className={`${sc.bg} ${sc.text} border-0 text-[10px] shadow-sm`}>
+                    <Badge className={`${sc.bg} ${sc.text} border-0 text-[10px] shadow-sm badge-gradient gap-1 ${project.status === 'active' ? 'badge-gradient-success' : project.status === 'completed' ? 'badge-gradient-success' : project.status === 'on-hold' ? 'badge-gradient-amber' : project.status === 'cancelled' ? 'badge-gradient-danger' : 'badge-gradient-info'}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${project.status === 'active' ? 'bg-green-500' : project.status === 'completed' ? 'bg-green-500' : project.status === 'on-hold' ? 'bg-orange-500' : project.status === 'cancelled' ? 'bg-red-500' : 'bg-blue-500'}`} />
                       {statusLabels[project.status] ?? project.status}
                     </Badge>
                     <Badge className={`border text-[10px] shadow-sm bg-gradient-to-r ${prioGrad}`} style={{ borderWidth: 0 }}>
@@ -320,9 +321,9 @@ export default function ProjectsPage() {
                       <span className="text-muted-foreground">{labels.progress}</span>
                       <span className="font-bold text-sky-600 dark:text-sky-400 tabular-nums">{project.progress}%</span>
                     </div>
-                    <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                    <div className="h-3 bg-muted rounded-full overflow-hidden shadow-inner">
                       <div
-                        className={`h-full rounded-full bg-gradient-to-r ${gradient} transition-all duration-1000 ease-out`}
+                        className={`h-full rounded-full bg-gradient-to-r from-violet-500 via-purple-500 to-fuchsia-500 transition-all duration-1000 ease-out shadow-sm shadow-violet-500/20`}
                         style={{ width: `${project.progress}%` }}
                       />
                     </div>

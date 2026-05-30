@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useSyncExternalStore, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Sun, Moon, CloudSun, CalendarDays, Quote, Sparkles } from 'lucide-react'
 
@@ -49,12 +49,9 @@ interface TimeConfig {
   darkGradient: string
   iconBg: string
   iconColor: string
-  accentColor: string
 }
 
-function getTimeConfig(): TimeConfig {
-  const hour = new Date().getHours()
-
+function getTimeConfig(hour: number): TimeConfig {
   if (hour >= 5 && hour < 12) {
     return {
       greeting: 'صبح بخیر',
@@ -63,7 +60,6 @@ function getTimeConfig(): TimeConfig {
       darkGradient: 'dark:from-amber-600/30 dark:via-orange-600/20 dark:to-rose-600/30',
       iconBg: 'bg-amber-100 dark:bg-amber-900/30',
       iconColor: 'text-amber-600 dark:text-amber-400',
-      accentColor: '#f59e0b',
     }
   } else if (hour >= 12 && hour < 17) {
     return {
@@ -73,7 +69,6 @@ function getTimeConfig(): TimeConfig {
       darkGradient: 'dark:from-violet-600/30 dark:via-purple-600/20 dark:to-fuchsia-600/30',
       iconBg: 'bg-violet-100 dark:bg-violet-900/30',
       iconColor: 'text-violet-600 dark:text-violet-400',
-      accentColor: '#8b5cf6',
     }
   } else {
     return {
@@ -83,21 +78,8 @@ function getTimeConfig(): TimeConfig {
       darkGradient: 'dark:from-indigo-600/30 dark:via-violet-600/20 dark:to-purple-600/30',
       iconBg: 'bg-indigo-100 dark:bg-indigo-900/30',
       iconColor: 'text-indigo-600 dark:text-indigo-400',
-      accentColor: '#6366f1',
     }
   }
-}
-
-// ──────────────── External Store for Real-time Clock ────────────────
-
-const emptySubscribe = (_callback: () => void) => () => {}
-
-function getNowSnapshot(): number {
-  return Date.now()
-}
-
-function getNowServerSnapshot(): number {
-  return 0
 }
 
 // ──────────────── Quote Selection (changes daily) ────────────────
@@ -110,53 +92,45 @@ function getDailyQuote() {
   return MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length]
 }
 
-// ──────────────── Jalali Date Formatter ────────────────
-
-function getJalaliDate(): { fullDate: string; weekday: string; shortDate: string } {
-  const now = new Date()
-  const fullDate = now.toLocaleDateString('fa-IR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-  const weekday = now.toLocaleDateString('fa-IR', { weekday: 'long' })
-  const shortDate = now.toLocaleDateString('fa-IR', {
-    month: 'long',
-    day: 'numeric',
-  })
-
-  return { fullDate, weekday, shortDate }
-}
-
-function getTimeString(): string {
-  const now = new Date()
-  return now.toLocaleTimeString('fa-IR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
-}
-
 // ──────────────── Main Component ────────────────
 
 export default function DashboardGreetingWidget() {
-  // Real-time clock using useSyncExternalStore (following existing pattern)
-  const now = useSyncExternalStore(emptySubscribe, getNowSnapshot, getNowServerSnapshot)
+  const [now, setNow] = useState(() => Date.now())
 
-  // Memoize daily quote (only computed once)
+  // Update time every second — no infinite loop because setState batches updates
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Derive values from `now` (only changes every second)
+  const timeString = useMemo(() => {
+    return new Date(now).toLocaleTimeString('fa-IR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  }, [now])
+
+  const dateInfo = useMemo(() => {
+    const d = new Date(now)
+    return {
+      fullDate: d.toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' }),
+      weekday: d.toLocaleDateString('fa-IR', { weekday: 'long' }),
+      shortDate: d.toLocaleDateString('fa-IR', { month: 'long', day: 'numeric' }),
+    }
+  }, [now])
+
+  const timeConfig = useMemo(() => getTimeConfig(new Date(now).getHours()), [now])
+
+  // Daily quote — stable for the whole day
   const dailyQuote = useMemo(() => getDailyQuote(), [])
 
-  // Derive time-dependent values directly from `now`
-  const timeString = useMemo(() => getTimeString(), [now])
-  const dateInfo = useMemo(() => getJalaliDate(), [now])
-  const timeConfig = useMemo(() => getTimeConfig(), [now])
-
   // Quote animation state
-  const [quoteVisible, setQuoteVisible] = useState(true)
+  const [quoteVisible, setQuoteVisible] = useState(false)
 
   useEffect(() => {
-    // Subtle quote entrance animation
-    const timer = setTimeout(() => setQuoteVisible(true), 300)
+    const timer = setTimeout(() => setQuoteVisible(true), 400)
     return () => clearTimeout(timer)
   }, [])
 

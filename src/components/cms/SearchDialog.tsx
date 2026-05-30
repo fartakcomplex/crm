@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
@@ -48,6 +49,7 @@ const iconMap: Record<string, React.ReactNode> = {
   media: <ImageIcon className="h-4 w-4" />,
   comment: <MessageCircle className="h-4 w-4" />,
   team: <Users className="h-4 w-4" />,
+  task: <CheckSquare className="h-4 w-4" />,
 }
 
 const typeLabels: Record<string, string> = {
@@ -58,6 +60,7 @@ const typeLabels: Record<string, string> = {
   media: 'رسانه',
   comment: 'نظر',
   team: 'تیم',
+  task: 'وظیفه',
 }
 
 const typeTabs: Record<string, string> = {
@@ -68,6 +71,7 @@ const typeTabs: Record<string, string> = {
   media: 'media',
   comment: 'comments',
   team: 'team',
+  task: 'tasks',
 }
 
 const typeDotColors: Record<string, string> = {
@@ -78,6 +82,7 @@ const typeDotColors: Record<string, string> = {
   media: 'bg-emerald-500',
   comment: 'bg-amber-500',
   team: 'bg-rose-500',
+  task: 'bg-teal-500',
 }
 
 const statusMeta: Record<string, Record<string, string>> = {
@@ -88,6 +93,7 @@ const statusMeta: Record<string, Record<string, string>> = {
   media: { image: 'تصویر', video: 'ویدیو', document: 'سند' },
   comment: { approved: 'تأیید شده', pending: 'در انتظار', spam: 'هرزنامه' },
   team: {},
+  task: { todo: 'انجام نشده', in_progress: 'در حال انجام', done: 'انجام شده' },
 }
 
 // Quick Access Actions
@@ -222,8 +228,11 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
   const [recentSearches, setRecentSearches] = useState<string[]>([])
   const [recentTabs, setRecentTabs] = useState<CMSTab[]>([])
   const [isFocused, setIsFocused] = useState(false)
+  const [activeFilterType, setActiveFilterType] = useState<string>('all')
   const inputRef = useRef<HTMLInputElement>(null)
   const resultsEndRef = useRef<HTMLDivElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [debouncedQuery, setDebouncedQuery] = useState('')
 
   // Sync state when dialog opens
   const [prevOpen, setPrevOpen] = useState(open)
@@ -233,6 +242,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
       setRecentSearches(getRecentSearches())
       setRecentTabs(getRecentTabs())
       setQuery('')
+      setActiveFilterType('all')
       setSelectedIndex(-1)
     }
   }
@@ -247,6 +257,51 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
       return () => clearTimeout(timer)
     }
   }, [open])
+
+  // Debounce query for API search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query)
+    }, 300)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [query])
+
+  // Reset filter when search is cleared
+  useEffect(() => {
+    if (!query.trim()) setActiveFilterType('all')
+  }, [query])
+
+  // API search query
+  const { data: apiResults, isLoading: isApiLoading } = useQuery({
+    queryKey: ['search', debouncedQuery, activeFilterType],
+    queryFn: async () => {
+      if (!debouncedQuery.trim()) return null
+      const params = new URLSearchParams({
+        q: debouncedQuery,
+        type: activeFilterType,
+        limit: '20',
+      })
+      const res = await fetch(`/api/search?${params.toString()}`)
+      if (!res.ok) throw new Error('Search failed')
+      return res.json() as Promise<{
+        success: boolean
+        results: Array<{
+          id: string
+          type: string
+          typeLabel: string
+          title: string
+          description: string
+          status: string
+          statusLabel: string
+          createdAt: string
+        }>
+        total: number
+      }>
+    },
+    enabled: debouncedQuery.trim().length > 0,
+    staleTime: 5000,
+  })
 
   // ─── Build command palette items (when search is empty) ─────────────
 
@@ -299,10 +354,23 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
     return items
   }, [recentTabs])
 
-  // ─── Build search results (when query is non-empty) ─────────────────
+  // ─── Build search results: prefer API results, fallback to client-side ─
 
   const entityResults = useMemo<SearchResult[]>(() => {
     if (!query.trim()) return []
+
+    // Use API results if available
+    if (apiResults?.results && apiResults.results.length > 0) {
+      return apiResults.results.map((r) => ({
+        id: r.id,
+        type: r.type,
+        title: r.title,
+        subtitle: r.description,
+        meta: `${r.typeLabel} · ${r.statusLabel}`,
+      }))
+    }
+
+    // Fallback: client-side search from CMS context
     const q = query.toLowerCase()
     const items: SearchResult[] = []
 
@@ -333,7 +401,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
     if (team.data) addItems(team.data as unknown as Array<Record<string, unknown>>, 'team', 'name', 'department')
 
     return items.slice(0, 20)
-  }, [query, posts.data, users.data, customers.data, projects.data, media.data, comments.data, team.data])
+  }, [query, apiResults, posts.data, users.data, customers.data, projects.data, media.data, comments.data, team.data])
 
   // Search module/quick actions
   const commandSearchResults = useMemo<CommandItem[]>(() => {
@@ -349,23 +417,12 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
 
   const allFlatItems = useMemo(() => {
     if (query.trim()) {
-      // When searching, combine command search results and entity results
       return [
-        ...commandSearchResults.map(item => ({
-          kind: 'command' as const,
-          item,
-        })),
-        ...entityResults.map(result => ({
-          kind: 'entity' as const,
-          item: result,
-        })),
+        ...commandSearchResults.map(item => ({ kind: 'command' as const, item })),
+        ...entityResults.map(result => ({ kind: 'entity' as const, item: result })),
       ]
     }
-    // When empty, show command palette items
-    return commandItems.map(item => ({
-      kind: 'command' as const,
-      item,
-    }))
+    return commandItems.map(item => ({ kind: 'command' as const, item }))
   }, [query, commandSearchResults, entityResults, commandItems])
 
   // Reset selected index when query changes
@@ -375,7 +432,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
     setSelectedIndex(-1)
   }
 
-  const isLoading = posts.isLoading || users.isLoading || customers.isLoading || projects.isLoading
+  const isLoading = posts.isLoading || users.isLoading || customers.isLoading || projects.isLoading || isApiLoading
 
   // ─── Handlers ─────────────────────────────────────────────────────────
 
@@ -463,6 +520,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
     media: 'badge-gradient-rose',
     comment: 'badge-gradient-amber',
     team: 'badge-gradient-violet',
+    task: 'badge-gradient-cyan',
   }
 
   // Track running index for flat list navigation
@@ -486,7 +544,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
   return (
     <Dialog open={open} onOpenChange={(newOpen) => {
       onOpenChange(newOpen)
-      if (!newOpen) setQuery('')
+      if (!newOpen) { setQuery(''); setActiveFilterType('all') }
       setIsFocused(false)
     }}>
       <DialogContent className="glass-card sm:max-w-2xl p-0 gap-0 overflow-hidden" dir="rtl">
@@ -528,6 +586,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
               <button
                 onClick={() => {
                   setQuery('')
+                  setActiveFilterType('all')
                   setTimeout(() => inputRef.current?.focus(), 0)
                 }}
                 className="ml-3 p-1 rounded-md hover:bg-muted/80 transition-colors"
@@ -537,6 +596,36 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
               </button>
             )}
           </div>
+
+          {/* Type Filter Chips */}
+          {isSearching && (
+            <div className="flex items-center gap-1.5 flex-wrap mt-3">
+              <button
+                className={`text-[10px] px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                  activeFilterType === 'all'
+                    ? 'bg-violet-100 text-violet-700 border-violet-300 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700'
+                    : 'bg-background text-muted-foreground border-border hover:border-violet-200'
+                }`}
+                onClick={() => setActiveFilterType('all')}
+              >
+                همه ({apiResults?.total ?? entityResults.length})
+              </button>
+              {['post', 'user', 'customer', 'project', 'task'].map((type) => (
+                <button
+                  key={type}
+                  className={`text-[10px] px-2.5 py-1 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
+                    activeFilterType === type
+                      ? 'bg-violet-100 text-violet-700 border-violet-300 dark:bg-violet-900/30 dark:text-violet-300 dark:border-violet-700'
+                      : 'bg-background text-muted-foreground border-border hover:border-violet-200'
+                  }`}
+                  onClick={() => setActiveFilterType(activeFilterType === type ? 'all' : type)}
+                >
+                  <span className={`${typeDotColors[type] || ''}`} style={{ width: 6, height: 6, borderRadius: '50%', display: 'inline-block' }} />
+                  {typeLabels[type]}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ─── Content Area ───────────────────────────────────────── */}
@@ -546,7 +635,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
           {isLoading && isSearching ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              <span className="mr-2 text-sm text-muted-foreground">در حال بارگذاری...</span>
+              <span className="mr-2 text-sm text-muted-foreground">در حال جستجو...</span>
             </div>
           ) : isSearching ? (
             <>
@@ -673,7 +762,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
                     </div>
                     <button
                       onClick={handleClearHistory}
-                      className="text-[11px] text-muted-foreground hover:text-destructive transition-colors"
+                      className="text-[11px] text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
                     >
                       پاک کردن تاریخچه
                     </button>
@@ -683,7 +772,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
                       <button
                         key={search}
                         onClick={() => handleRecentClick(search)}
-                        className="inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs text-foreground hover:bg-accent/50 transition-colors group"
+                        className="inline-flex items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1.5 text-xs text-foreground hover:bg-accent/50 transition-colors group cursor-pointer"
                       >
                         <Clock className="h-3 w-3 text-muted-foreground" />
                         <span>{search}</span>
@@ -691,7 +780,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
                           role="button"
                           tabIndex={0}
                           onClick={(e) => handleRemoveRecent(search, e)}
-                          className="opacity-0 group-hover:opacity-100 ml-0.5 hover:text-destructive transition-opacity"
+                          className="opacity-0 group-hover:opacity-100 ml-0.5 hover:text-destructive transition-opacity cursor-pointer"
                           aria-label={`حذف ${search}`}
                         >
                           <X className="h-3 w-3" />
@@ -758,6 +847,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
                           className={`
                             inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs transition-all duration-200
                             border ${isActive ? 'border-violet-500/40 bg-violet-500/5' : 'bg-background/80 hover:bg-accent/50'}
+                            cursor-pointer
                           `}
                           onClick={() => handleSelectCommand(commandItems.find(ci => ci.id === `recent-${tab.id}`)!)}
                           onMouseEnter={() => setSelectedIndex(idx)}
@@ -789,7 +879,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
                         key={tab.id}
                         className={`
                           flex items-center gap-2 rounded-lg px-2.5 py-2 text-right transition-all duration-200
-                          card-elevated hover-lift
+                          card-elevated hover-lift cursor-pointer
                           ${isActive
                             ? 'bg-accent/80 ring-1 ring-violet-500/30 shadow-sm'
                             : 'hover:bg-accent/40'

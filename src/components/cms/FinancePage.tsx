@@ -806,7 +806,7 @@ export default function FinancePage() {
               {/* Cash Flow Mini Chart + Quick Actions + Savings Goal */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {/* Cash Flow */}
-                <Card className="glass-card-violet shadow-sm animate-in" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
+                <Card className="glass-card-violet shadow-sm animate-in chart-glass" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
                   <CardHeader className="pb-2 pt-4 px-5">
                     <div className="flex items-center gap-2">
                       <Activity className="h-4 w-4 text-violet-500" />
@@ -843,7 +843,7 @@ export default function FinancePage() {
                 </Card>
 
                 {/* Quick Actions */}
-                <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+                <Card className="glass-card shadow-sm animate-in chart-glass" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
                   <CardHeader className="pb-2 pt-4 px-5">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-violet-500" />
@@ -897,7 +897,7 @@ export default function FinancePage() {
               </div>
 
               {/* Monthly Trend Chart */}
-              <Card className="glass-card-violet shadow-sm animate-in" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
+              <Card className="glass-card-violet shadow-sm animate-in chart-glass" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
@@ -950,12 +950,12 @@ export default function FinancePage() {
 
               {/* Income vs Expense Breakdown */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+                <Card className="glass-card shadow-sm animate-in chart-glass" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
                   <CardContent className="p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <ArrowUpRight className="h-4 w-4 text-emerald-500" />
                       <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-300">درآمدها</h3>
-                      <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[10px]">
+                      <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border-0 text-[10px] badge-gradient-emerald">
                         {formatAmount(totalIncome)} {labels.toman}
                       </Badge>
                     </div>
@@ -981,12 +981,12 @@ export default function FinancePage() {
                     </div>
                   </CardContent>
                 </Card>
-                <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+                <Card className="glass-card shadow-sm animate-in chart-glass" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
                   <CardContent className="p-5">
                     <div className="flex items-center gap-2 mb-4">
                       <ArrowDownRight className="h-4 w-4 text-red-500" />
                       <h3 className="text-sm font-bold text-red-700 dark:text-red-300">هزینه‌ها</h3>
-                      <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-0 text-[10px]">
+                      <Badge className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-0 text-[10px] badge-gradient-rose">
                         {formatAmount(totalExpense)} {labels.toman}
                       </Badge>
                     </div>

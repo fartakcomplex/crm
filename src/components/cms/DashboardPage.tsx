@@ -209,7 +209,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
 
   return (
     <Card
-      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-lg transition-all duration-300 animate-in`}
+      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-animated-border stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-xl transition-all duration-300 animate-in`}
       style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}
     >
       {/* Shine overlay */}
@@ -217,7 +217,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out" />
       </div>
       <CardContent className="p-4 flex items-center gap-3 relative z-10">
-        <div className="bg-white/20 rounded-lg p-2.5 backdrop-blur-sm drop-shadow-sm">{icon}</div>
+        <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10">{icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-sm opacity-80">{label}</p>
           <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
@@ -245,11 +245,11 @@ function Section({ title, defaultOpen, children, delay }: {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in" style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
+      <Card className="glass-card card-gradient-border hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-300 animate-in" style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-violet-500/5 transition-colors rounded-t-lg py-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base text-violet-700 dark:text-violet-300">{title}</CardTitle>
+              <CardTitle className="text-base text-violet-700 dark:text-violet-300 font-semibold">{title}</CardTitle>
               <ChevronDown className={`h-5 w-5 text-violet-500 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
             </div>
           </CardHeader>
@@ -372,17 +372,22 @@ function DashboardSkeleton() {
   return (
     <div className="space-y-6 p-4 md:p-6 animate-in">
       <div className="flex items-center gap-3">
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-5 w-20" />
+        <Skeleton className="h-8 w-40 loading-shimmer" />
+        <Skeleton className="h-5 w-20 loading-shimmer" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 rounded-xl" />
+          <Skeleton key={i} className="h-20 rounded-xl loading-shimmer" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 rounded-xl" />
+          <div key={i} className="rounded-xl p-4 glass-card chart-shimmer animate-in" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-32 loading-shimmer" />
+              <Skeleton className="h-40 w-full loading-shimmer" />
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -15,6 +15,21 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
   StickyNote,
   Plus,
   Trash2,
@@ -23,9 +38,11 @@ import {
   ChevronDown,
   ChevronUp,
   Palette,
+  GripVertical,
+  Clock,
 } from 'lucide-react'
 
-// ─── Types ───────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────────
 
 interface Note {
   id: string
@@ -34,42 +51,61 @@ interface Note {
   color: NoteColor
   pinned: boolean
   createdAt: string
+  order: number
 }
 
-type NoteColor = 'yellow' | 'blue' | 'green' | 'pink'
+type NoteColor = 'yellow' | 'blue' | 'green' | 'pink' | 'purple' | 'orange'
 
 const STORAGE_KEY = 'cms-quick-notes'
 
-const COLOR_MAP: Record<NoteColor, { border: string; bg: string; dot: string; label: string }> = {
+const COLOR_MAP: Record<NoteColor, { border: string; bg: string; dot: string; label: string; ring: string }> = {
   yellow: {
     border: 'border-r-amber-400',
     bg: 'bg-amber-50 dark:bg-amber-950/30',
     dot: 'bg-amber-400',
     label: 'زرد',
+    ring: 'ring-amber-400',
   },
   blue: {
     border: 'border-r-blue-400',
     bg: 'bg-blue-50 dark:bg-blue-950/30',
     dot: 'bg-blue-400',
     label: 'آبی',
+    ring: 'ring-blue-400',
   },
   green: {
     border: 'border-r-emerald-400',
     bg: 'bg-emerald-50 dark:bg-emerald-950/30',
     dot: 'bg-emerald-400',
     label: 'سبز',
+    ring: 'ring-emerald-400',
   },
   pink: {
     border: 'border-r-pink-400',
     bg: 'bg-pink-50 dark:bg-pink-950/30',
     dot: 'bg-pink-400',
     label: 'صورتی',
+    ring: 'ring-pink-400',
+  },
+  purple: {
+    border: 'border-r-violet-400',
+    bg: 'bg-violet-50 dark:bg-violet-950/30',
+    dot: 'bg-violet-400',
+    label: 'بنفش',
+    ring: 'ring-violet-400',
+  },
+  orange: {
+    border: 'border-r-orange-400',
+    bg: 'bg-orange-50 dark:bg-orange-950/30',
+    dot: 'bg-orange-400',
+    label: 'نارنجی',
+    ring: 'ring-orange-400',
   },
 }
 
-const COLOR_OPTIONS: NoteColor[] = ['yellow', 'blue', 'green', 'pink']
+const COLOR_OPTIONS: NoteColor[] = ['yellow', 'blue', 'green', 'pink', 'purple', 'orange']
 
-// ─── External Store (hydration-safe) ──────────────────────────────────
+// ─── External Store (hydration-safe) ──────────────────────────────────────────
 
 let noteStoreListeners: Array<() => void> = []
 let noteStoreCache: Note[] | null = null
@@ -111,7 +147,127 @@ function persistNotes(notes: Note[]): void {
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────
+// ─── Sortable Note Card ────────────────────────────────────────────────────────
+
+function SortableNoteCard({
+  note,
+  index,
+  onTogglePin,
+  onDelete,
+  onChangeColor,
+}: {
+  note: Note
+  index: number
+  onTogglePin: (id: string) => void
+  onDelete: (id: string) => void
+  onChangeColor: (id: string, color: NoteColor) => void
+}) {
+  const colorStyle = COLOR_MAP[note.color]
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: note.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 'auto' as const,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-lg border-r-4 ${colorStyle.border} ${colorStyle.bg} p-3 hover-lift card-press group animate-in relative`}
+    >
+      {/* Pin indicator */}
+      {note.pinned && (
+        <div className="absolute -top-1 -left-1">
+          <div className="h-5 w-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+            <Pin className="h-2.5 w-2.5 text-white" />
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-start gap-1.5">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="drag-handle flex items-center justify-center h-7 w-5 shrink-0 mt-0.5 touch-none"
+          aria-label="جابجایی یادداشت"
+        >
+          <GripVertical className="h-3.5 w-3.5 text-muted-foreground/50" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          {note.title && (
+            <h4 className="text-sm font-medium truncate">
+              {note.title}
+            </h4>
+          )}
+          {note.content && (
+            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+              {note.content}
+            </p>
+          )}
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <Clock className="h-2.5 w-2.5 text-muted-foreground/50" />
+            <span className="text-[10px] text-muted-foreground/70">
+              {formatRelativeDate(note.createdAt)}
+            </span>
+            <span className={`w-1.5 h-1.5 rounded-full ${colorStyle.dot}`} />
+            <span className="text-[10px] text-muted-foreground/50">{colorStyle.label}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          {/* Color picker (inline mini) */}
+          <div className="relative">
+            <button
+              className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-white/60 dark:hover:bg-black/20 transition-colors cursor-pointer"
+              onClick={() => {
+                const currentIdx = COLOR_OPTIONS.indexOf(note.color)
+                const nextColor = COLOR_OPTIONS[(currentIdx + 1) % COLOR_OPTIONS.length]
+                onChangeColor(note.id, nextColor)
+              }}
+              title="تغییر رنگ"
+            >
+              <Palette className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          </div>
+          <button
+            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-white/60 dark:hover:bg-black/20 transition-colors cursor-pointer"
+            onClick={() => onTogglePin(note.id)}
+            title={note.pinned ? 'حذف سنجاق' : 'سنجاق کردن'}
+          >
+            {note.pinned ? (
+              <PinOff className="h-3.5 w-3.5 text-amber-500" />
+            ) : (
+              <Pin className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+          </button>
+          <button
+            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
+            onClick={() => onDelete(note.id)}
+            title="حذف"
+          >
+            <Trash2 className="h-3.5 w-3.5 text-red-400" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────────
 
 function generateId(): string {
   return `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -130,7 +286,17 @@ function formatRelativeDate(dateStr: string): string {
   return 'همین الان'
 }
 
-// ─── Component ───────────────────────────────────────────────────────────
+function formatCreationDate(dateStr: string): string {
+  const d = new Date(dateStr)
+  return new Intl.DateTimeFormat('fa-IR', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d)
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────────
 
 export function NotesWidget() {
   const notes = useSyncExternalStore(subscribeToNotes, getNoteSnapshot, getNoteServerSnapshot)
@@ -139,6 +305,15 @@ export function NotesWidget() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [selectedColor, setSelectedColor] = useState<NoteColor>('yellow')
+
+  // DnD sensors with touch support
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+  )
 
   const handleAddNote = useCallback(() => {
     if (!title.trim() && !content.trim()) return
@@ -152,6 +327,7 @@ export function NotesWidget() {
       color: selectedColor,
       pinned: false,
       createdAt: new Date().toISOString(),
+      order: 0,
     }
 
     persistNotes([newNote, ...current].slice(0, 20))
@@ -176,12 +352,45 @@ export function NotesWidget() {
     emitNoteChange()
   }, [])
 
+  const handleChangeColor = useCallback((id: string, color: NoteColor) => {
+    const updated = getNoteSnapshot().map((n) =>
+      n.id === id ? { ...n, color } : n,
+    )
+    persistNotes(updated)
+    emitNoteChange()
+  }, [])
+
   // Sort: pinned first, then by createdAt desc
   const sortedNotes = [...notes].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1
     if (!a.pinned && b.pinned) return 1
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
+
+  // Drag end handler
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    const currentNotes = getNoteSnapshot()
+    const oldIndex = currentNotes.findIndex((n) => n.id === active.id)
+    const newIndex = currentNotes.findIndex((n) => n.id === over.id)
+
+    if (oldIndex === -1 || newIndex === -1) return
+
+    const reordered = arrayMove(currentNotes, oldIndex, newIndex).map((n, i) => ({
+      ...n,
+      order: i,
+    }))
+
+    // Preserve pinned sorting: keep pinned notes at top
+    const pinned = reordered.filter((n) => n.pinned)
+    const unpinned = reordered.filter((n) => !n.pinned)
+    const final = [...pinned, ...unpinned]
+
+    persistNotes(final)
+    emitNoteChange()
+  }, [])
 
   return (
     <div className="glass-card glass-card-amber rounded-xl overflow-hidden animate-in" dir="rtl">
@@ -207,6 +416,12 @@ export function NotesWidget() {
             >
               {notes.length}/۲۰
             </Badge>
+            {notes.filter((n) => n.pinned).length > 0 && (
+              <span className="text-[10px] text-amber-500 flex items-center gap-0.5">
+                <Pin className="h-2.5 w-2.5" />
+                {notes.filter((n) => n.pinned).length}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -245,61 +460,29 @@ export function NotesWidget() {
             </div>
           ) : (
             <ScrollArea className="max-h-72">
-              <div className="p-3 space-y-2 stagger-children">
-                {sortedNotes.map((note, index) => {
-                  const colorStyle = COLOR_MAP[note.color]
-                  return (
-                    <div
-                      key={note.id}
-                      className={`rounded-lg border-r-4 ${colorStyle.border} ${colorStyle.bg} p-3 hover-lift card-press group animate-in`}
-                      style={{ animationDelay: `${index * 40}ms` }}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          {note.title && (
-                            <h4 className="text-sm font-medium truncate">
-                              {note.title}
-                            </h4>
-                          )}
-                          {note.content && (
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                              {note.content}
-                            </p>
-                          )}
-                          <div className="flex items-center gap-1.5 mt-1.5">
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${colorStyle.dot}`}
-                            />
-                            <span className="text-[10px] text-muted-foreground/70">
-                              {formatRelativeDate(note.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                          <button
-                            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-white/60 dark:hover:bg-black/20 transition-colors cursor-pointer"
-                            onClick={() => handleTogglePin(note.id)}
-                            title={note.pinned ? 'حذف سنجاق' : 'سنجاق کردن'}
-                          >
-                            {note.pinned ? (
-                              <PinOff className="h-3.5 w-3.5 text-amber-500" />
-                            ) : (
-                              <Pin className="h-3.5 w-3.5 text-muted-foreground" />
-                            )}
-                          </button>
-                          <button
-                            className="h-7 w-7 rounded-md flex items-center justify-center hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors cursor-pointer"
-                            onClick={() => handleDelete(note.id)}
-                            title="حذف"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={sortedNotes.map((n) => n.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="p-3 space-y-2 stagger-children">
+                    {sortedNotes.map((note, index) => (
+                      <SortableNoteCard
+                        key={note.id}
+                        note={note}
+                        index={index}
+                        onTogglePin={handleTogglePin}
+                        onDelete={handleDelete}
+                        onChangeColor={handleChangeColor}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </ScrollArea>
           )}
         </div>
@@ -356,29 +539,35 @@ export function NotesWidget() {
               />
             </div>
 
-            {/* Color Picker */}
+            {/* Color Picker - Enhanced */}
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center gap-1.5">
                 <Palette className="h-3.5 w-3.5" />
                 رنگ
               </label>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 {COLOR_OPTIONS.map((c) => {
                   const style = COLOR_MAP[c]
                   return (
                     <button
                       key={c}
-                      className={`w-8 h-8 rounded-full ${style.dot} transition-all cursor-pointer ${
+                      className={`w-9 h-9 rounded-full ${style.dot} transition-all cursor-pointer flex items-center justify-center ${
                         selectedColor === c
-                          ? 'ring-2 ring-offset-2 ring-offset-background ring-amber-500 scale-110'
-                          : 'hover:scale-105 opacity-70 hover:opacity-100'
+                          ? `ring-2 ring-offset-2 ring-offset-background ${style.ring} scale-110`
+                          : 'hover:scale-105 opacity-70 hover:opacity-100 ring-1 ring-offset-1 ring-offset-background ring-transparent'
                       }`}
                       onClick={() => setSelectedColor(c)}
                       title={style.label}
-                    />
+                    >
+                      {selectedColor === c && (
+                        <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </button>
                   )
                 })}
-                <span className="text-xs text-muted-foreground mr-1">
+                <span className="text-xs text-muted-foreground mr-1 font-medium">
                   {COLOR_MAP[selectedColor].label}
                 </span>
               </div>

@@ -399,7 +399,7 @@ export default function ContentPage() {
       </Card>
 
       {/* Posts Table */}
-      <Card className="glass-card card-elevated card-gradient-border shadow-sm overflow-hidden">
+      <Card className="glass-card card-elevated card-gradient-border shadow-sm overflow-hidden hover:shadow-lg transition-shadow duration-300">
         {/* Table header area with columns visibility toggle */}
         {filtered.length > 0 && (
           <div className="flex items-center justify-end px-4 pt-3 pb-1">
@@ -495,7 +495,7 @@ export default function ContentPage() {
                     return (
                       <TableRow
                         key={post.id}
-                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer list-item-hover ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
+                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer list-item-hover group ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         onClick={() => setPreviewPost(post)}
                       >
@@ -509,16 +509,25 @@ export default function ContentPage() {
                         {visibleColumns.title && (
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0">
+                              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0 shadow-sm">
                                 <FileText className="h-4 w-4" />
                               </div>
-                              <div className="font-medium max-w-[200px] truncate animated-underline">{post.title}</div>
+                              <div className="font-medium max-w-[200px] truncate animated-underline">
+                                {post.title}
+                                {post.featured && (
+                                  <span className="inline-flex items-center gap-0.5 ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-sm">
+                                    <Star className="h-2.5 w-2.5" />
+                                    ویژه
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                         )}
                         {visibleColumns.status && (
                           <TableCell>
-                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm ${post.status === 'published' ? 'badge-gradient' : post.status === 'draft' ? 'badge-gradient' : ''}`}>
+                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm badge-gradient gap-1 ${post.status === 'published' ? 'badge-gradient-success' : post.status === 'draft' ? 'badge-gradient-warning' : post.status === 'review' ? 'badge-gradient-amber' : 'badge-gradient'}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${post.status === 'published' ? 'bg-green-500' : post.status === 'draft' ? 'bg-yellow-500' : post.status === 'review' ? 'bg-orange-500' : 'bg-gray-400'}`} />
                               {statusLabels[post.status] ?? post.status}
                             </Badge>
                           </TableCell>

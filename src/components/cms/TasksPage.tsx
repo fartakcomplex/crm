@@ -306,9 +306,9 @@ export default function TasksPage() {
       {/* ═══════════════ Stats Cards ═══════════════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Total Tasks */}
-        <Card className="card-elevated shadow-sm animate-in" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
+        <Card className="card-elevated shadow-sm animate-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/40 dark:to-emerald-900/40 flex items-center justify-center shrink-0 shadow-md shadow-green-500/20">
               <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
@@ -319,9 +319,9 @@ export default function TasksPage() {
         </Card>
 
         {/* In Progress */}
-        <Card className="card-elevated shadow-sm animate-in" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
+        <Card className="card-elevated shadow-sm animate-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '80ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/40 dark:to-sky-900/40 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/40 dark:to-sky-900/40 flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20">
               <Loader2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
@@ -332,9 +332,9 @@ export default function TasksPage() {
         </Card>
 
         {/* Completed Today */}
-        <Card className="card-elevated shadow-sm animate-in" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
+        <Card className="card-elevated shadow-sm animate-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '160ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20">
               <CircleCheckBig className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
@@ -345,9 +345,9 @@ export default function TasksPage() {
         </Card>
 
         {/* Overdue */}
-        <Card className="card-elevated shadow-sm animate-in" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
+        <Card className="card-elevated shadow-sm animate-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '240ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 flex items-center justify-center shrink-0 shadow-md shadow-red-500/20">
               <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
             <div>
@@ -463,7 +463,7 @@ export default function TasksPage() {
                   rounded-b-xl border ${isDragTarget ? 'border-primary/50 border-t-0 ring-2 ring-primary/20 ring-offset-0' : 'border-border/50 border-t-0'}
                   bg-muted/20 dark:bg-muted/10
                   min-h-[200px] max-h-[calc(100vh-380px)] overflow-y-auto p-2 space-y-2
-                  transition-all duration-200
+                  kanban-column
                   custom-scrollbar
                   ${isDragTarget ? 'bg-primary/5 dark:bg-primary/10' : ''}
                 `}>
@@ -488,8 +488,8 @@ export default function TasksPage() {
                           className={`
                             group relative rounded-xl p-3.5 cursor-grab active:cursor-grabbing
                             bg-card border border-border/50
-                            hover-lift hover:shadow-md
-                            transition-all duration-200
+                            hover-lift hover:shadow-xl hover:shadow-violet-500/5
+                            task-card-transition
                             animate-in
                           `}
                           style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
@@ -555,8 +555,8 @@ export default function TasksPage() {
 
                           {/* Priority + Overdue Badge */}
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient`}>
-                              <span className={`h-1.5 w-1.5 rounded-full ${pc.dot}`} />
+                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient ${task.priority === 'critical' ? 'badge-gradient-danger' : task.priority === 'high' ? 'badge-gradient-rose' : task.priority === 'medium' ? 'badge-gradient-warning' : 'badge-gradient'}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full shadow-sm ${pc.dot}`} />
                               {priorityLabels[task.priority]}
                             </Badge>
                             {overdue && (

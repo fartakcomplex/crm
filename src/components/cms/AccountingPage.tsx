@@ -1031,7 +1031,7 @@ export default function AccountingPage() {
         {/* ═══════════════ REPORTS TAB ═══════════════ */}
         <TabsContent value="reports" className="space-y-4 animate-in" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
           {/* Monthly Income vs Expense Bar Chart */}
-          <Card className="glass-card-emerald shadow-sm">
+          <Card className="glass-card-emerald shadow-sm chart-glass">
             <CardContent className="p-5">
               <div className="flex items-center gap-2 mb-5">
                 <BarChart3 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -1084,7 +1084,7 @@ export default function AccountingPage() {
           {/* Category Expense Breakdown + Top 5 Expenses */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Pie Chart (CSS-based) */}
-            <Card className="glass-card-emerald shadow-sm">
+            <Card className="glass-card-emerald shadow-sm chart-glass">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-5">
                   <PieChart className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -1143,7 +1143,7 @@ export default function AccountingPage() {
             </Card>
 
             {/* Top 5 Expenses */}
-            <Card className="glass-card-emerald shadow-sm">
+            <Card className="glass-card-emerald shadow-sm chart-glass">
               <CardContent className="p-5">
                 <div className="flex items-center gap-2 mb-5">
                   <TrendingUp className="h-5 w-5 text-red-500" />
