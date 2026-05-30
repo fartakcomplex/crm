@@ -419,7 +419,7 @@ export default function AIAssistantPage() {
                           <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm relative group card-elevated ${
                             msg.role === 'user'
                               ? 'bg-gradient-to-br from-violet-600 to-violet-500 text-white rounded-br-md'
-                              : 'bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground rounded-bl-md border border-violet-200/30 dark:border-violet-800/20'
+                              : 'bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground rounded-bl-md border border-violet-200/30 dark:border-violet-800/20 border-r-2 border-r-violet-500/40'
                           }`}>
                             {msg.role === 'assistant' ? (
                               <MarkdownMessage content={msg.content} />
@@ -455,7 +455,7 @@ export default function AIAssistantPage() {
                       {/* Streaming message (in-progress) */}
                       {streamingMessage !== null && (
                         <div className="flex justify-start animate-in">
-                          <div className="max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 text-sm shadow-sm bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground border border-violet-200/30 dark:border-violet-800/20">
+                          <div className="max-w-[80%] rounded-2xl rounded-bl-md px-4 py-2.5 text-sm shadow-sm bg-gradient-to-br from-violet-50 to-violet-100/50 dark:from-violet-900/30 dark:to-violet-800/20 text-foreground border border-violet-200/30 dark:border-violet-800/20 border-r-2 border-r-violet-500/40">
                             {streamingMessage ? (
                               <>
                                 <MarkdownMessage content={streamingMessage} />
@@ -494,7 +494,7 @@ export default function AIAssistantPage() {
                 </div>
 
                 {/* Input area */}
-                <div className="p-3 border-t border-violet-200/20 dark:border-violet-800/20 bg-gradient-to-t from-violet-50/50 to-transparent dark:from-violet-900/10">
+                <div className="p-3 border-t border-violet-200/20 dark:border-violet-800/20 bg-gradient-to-t from-violet-50/50 to-transparent dark:from-violet-900/10 focus-within:ring-2 focus-within:ring-violet-500/30 focus-within:border-violet-500/50 transition-all duration-200">
                   <div className="flex gap-2">
                     <div className="flex-1 relative">
                       <Textarea
@@ -523,7 +523,7 @@ export default function AIAssistantPage() {
                         size="icon"
                         onClick={handleChatSend}
                         disabled={!chatInput.trim()}
-                        className="shrink-0 bg-gradient-to-r from-violet-600 to-violet-500 hover:from-violet-700 hover:to-violet-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm shine-effect"
+                        className="shrink-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white hover:scale-105 active:scale-95 transition-all duration-200 shadow-sm shine-effect"
                       >
                         <Send className="h-4 w-4" />
                       </Button>

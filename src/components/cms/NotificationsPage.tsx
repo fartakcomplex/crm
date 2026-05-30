@@ -322,7 +322,7 @@ export default function NotificationsPage() {
                               ${config.bg} ${config.border} ${config.borderAccent}
                               glass-card card-elevated card-inner-glow hover-lift list-item-hover shadow-sm animate-in cursor-pointer
                               transition-all duration-300 scale-in
-                              ${!n.read ? 'ring-1 ring-purple-300/50 dark:ring-purple-700/50' : 'opacity-80 hover:opacity-100'}
+                              ${!n.read ? 'bg-violet-50/50 dark:bg-violet-900/10 ring-1 ring-purple-300/50 dark:ring-purple-700/50' : 'opacity-80 hover:opacity-100'}
                             `}
                             style={{ animationDelay: `${idx * 50}ms`, animationFillMode: 'both' }}
                           >

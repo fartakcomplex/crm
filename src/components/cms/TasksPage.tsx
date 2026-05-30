@@ -456,7 +456,7 @@ export default function TasksPage() {
                     </span>
                     <span className="font-semibold text-sm">{column.label}</span>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold tabular-nums">
+                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-bold tabular-nums bg-gradient-to-r from-violet-100 to-violet-200 dark:from-violet-900/40 dark:to-violet-800/40 text-violet-700 dark:text-violet-300 border-0">
                     {columnTasks.length}
                   </Badge>
                 </div>
@@ -558,7 +558,7 @@ export default function TasksPage() {
 
                           {/* Priority + Overdue Badge */}
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient ${task.priority === 'critical' ? 'badge-gradient-danger' : task.priority === 'high' ? 'badge-gradient-rose' : task.priority === 'medium' ? 'badge-gradient-warning' : 'badge-gradient'}`}>
+                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient ${task.priority === 'critical' ? 'badge-gradient-danger shadow-md shadow-red-500/20' : task.priority === 'high' ? 'badge-gradient-rose shadow-sm shadow-red-500/20' : task.priority === 'medium' ? 'badge-gradient-warning' : 'badge-gradient'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full shadow-sm ${pc.dot}`} />
                               {priorityLabels[task.priority]}
                             </Badge>

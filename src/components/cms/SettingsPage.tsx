@@ -141,7 +141,7 @@ function SettingsSection({ icon, title, children, color, accent }: {
   color: string; accent?: string
 }) {
   return (
-    <Card className="glass-card card-elevated hover-lift shadow-sm transition-all duration-300">
+    <Card className="glass-card card-elevated hover-lift hover:shadow-md shadow-sm transition-all duration-200">
       <CardHeader className="pb-3">
         {accent && <GradientAccent colors={accent} />}
         <CardTitle className={`text-base flex items-center gap-2 text-gradient-violet ${color}`}>
@@ -178,7 +178,7 @@ function ToggleRow({
       <Switch
         checked={checked}
         onCheckedChange={onCheckedChange}
-        className="data-[state=checked]:bg-violet-500 transition-colors duration-300 badge-gradient"
+        className="data-[state=checked]:bg-violet-500 data-[state=checked]:shadow-md data-[state=checked]:shadow-violet-500/30 transition-colors duration-300 badge-gradient"
       />
     </div>
   )

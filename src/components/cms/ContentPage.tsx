@@ -526,7 +526,7 @@ export default function ContentPage() {
                         )}
                         {visibleColumns.status && (
                           <TableCell>
-                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm badge-gradient gap-1 ${post.status === 'published' ? 'badge-gradient-success' : post.status === 'draft' ? 'badge-gradient-warning' : post.status === 'review' ? 'badge-gradient-amber' : 'badge-gradient'}`}>
+                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm badge-gradient gap-1 ${post.status === 'published' ? 'badge-gradient-success animate-pulse' : post.status === 'draft' ? 'badge-gradient-warning' : post.status === 'review' ? 'badge-gradient-amber' : 'badge-gradient'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${post.status === 'published' ? 'bg-green-500' : post.status === 'draft' ? 'bg-yellow-500' : post.status === 'review' ? 'bg-orange-500' : 'bg-gray-400'}`} />
                               {statusLabels[post.status] ?? post.status}
                             </Badge>

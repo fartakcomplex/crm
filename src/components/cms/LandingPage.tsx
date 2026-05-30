@@ -147,7 +147,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-background/80 backdrop-blur-xl shadow-lg shadow-black/5 border-b border-border/30'
+          ? 'bg-background/60 backdrop-blur-2xl shadow-lg shadow-violet-500/5 border-b border-violet-500/20 glass-card'
           : 'bg-transparent'
       }`}
     >
@@ -348,8 +348,9 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.7 }}
               className="mt-10 flex items-center gap-4 sm:gap-6 justify-center lg:justify-start"
+              style={{ animation: 'float 3s ease-in-out infinite' }}
             >
-              <div className="flex -space-x-3 space-x-reverse">
+              <div className="flex -space-x-3 space-x-reverse rounded-full ring-2 ring-violet-500/20 shadow-[0_0_20px_rgba(139,92,246,0.2)]">
                 {['from-violet-400 to-purple-500', 'from-fuchsia-400 to-pink-500', 'from-cyan-400 to-teal-500', 'from-amber-400 to-orange-500'].map((g, i) => (
                   <div key={i} className={`w-9 h-9 rounded-full bg-gradient-to-br ${g} border-2 border-background flex items-center justify-center text-white text-xs font-bold shadow-sm`}>
                     {['A', 'M', 'S', 'R'][i]}
@@ -462,7 +463,7 @@ function StatsSection() {
                 whileHover={{ scale: 1.03, y: -4 }}
                 className="relative group"
               >
-                <Card className="relative overflow-hidden border-border/30 hover:border-violet-500/40 transition-all duration-300 bg-card/40 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 card-elevated hover-lift">
+                <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/20 dark:border-violet-700/20 hover:border-violet-500/40 transition-all duration-300 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 card-elevated hover-lift">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
                   <CardContent className="p-4 sm:p-6 text-center relative z-10">
@@ -572,7 +573,7 @@ function FeaturesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.07}>
-              <Card className={`group relative overflow-hidden border-border/40 hover:border-transparent transition-all duration-500 bg-card/50 backdrop-blur-sm hover:shadow-2xl ${f.glow} cursor-default h-full card-gradient-border card-press hover-lift card-shimmer`}>
+              <Card className={`group relative overflow-hidden border-border/40 hover:border-violet-300/50 dark:hover:border-violet-600/50 transition-all duration-300 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-1.5 ${f.glow} cursor-default h-full card-gradient-border card-press card-shimmer`}>
                 <CardContent className="p-6 md:p-8">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                     <f.icon className="h-6 w-6 text-white" />
@@ -768,7 +769,7 @@ function TestimonialsSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
             <AnimatedSection key={t.name} delay={i * 0.12}>
-              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 hover:border-violet-500/20 transition-all duration-300 h-full card-elevated card-gradient-border hover-lift">
+              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20 transition-all duration-300 hover:-translate-y-1 h-full card-elevated card-gradient-border">
                 <CardContent className="p-6 md:p-8">
                   {/* Stars */}
                   <div className="flex gap-1 mb-4">
@@ -853,7 +854,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, i) => (
             <AnimatedSection key={plan.name} delay={i * 0.1}>
-              <Card className={`relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col card-gradient-border card-press ${plan.popular ? 'border-violet-500/40 shadow-xl shadow-violet-500/10 scale-[1.02] lg:scale-105' : 'hover:border-border/60 hover:shadow-lg card-elevated'}`}>
+              <Card className={`relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col card-gradient-border card-press ${plan.popular ? 'border-2 border-violet-500 shadow-lg shadow-violet-500/20 scale-[1.02] lg:scale-105' : 'hover:border-violet-300/50 hover:shadow-lg transition-all duration-300 card-elevated'}`}>
                 {plan.popular && (
                   <div className="absolute top-0 right-0 left-0">
                     <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-semibold py-1.5 text-center">
@@ -909,7 +910,7 @@ function CTASection({ onEnter }: { onEnter: () => void }) {
         <AnimatedSection>
           <div className="relative rounded-3xl overflow-hidden">
             {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-700" />
+            <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.15),transparent_50%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.1),transparent_40%)]" />
 
@@ -1085,7 +1086,7 @@ function Footer() {
   }
 
   return (
-    <footer id="footer" className="relative border-t border-border/40 bg-card/30 backdrop-blur-sm">
+    <footer id="footer" className="relative border-t border-violet-500/20 bg-card/30 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16" dir="rtl">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-12">
           {/* Brand */}

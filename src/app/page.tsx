@@ -28,6 +28,7 @@ import {
 import { useTheme } from 'next-themes'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { SearchDialog } from '@/components/cms/SearchDialog'
+import CommandPalette from '@/components/cms/CommandPalette'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
 import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
@@ -258,7 +259,7 @@ function SidebarNav({
             return (
               <div key={tab.id}>
                 {showCategoryHeader && (
-                  <div className="sidebar-category-label text-[10px] font-semibold text-muted-foreground/60 px-3 pt-3 pb-1 text-right">
+                  <div className="sidebar-category-label text-[10px] font-semibold text-muted-foreground/60 px-3 pt-3 pb-1 text-right border-r-2 border-violet-500/30">
                     {SIDEBAR_CATEGORIES[category] ?? category}
                   </div>
                 )}
@@ -271,8 +272,8 @@ function SidebarNav({
                         <button
                           className={`w-full flex items-center gap-3 rounded-lg h-10 sm:h-9 transition-all duration-200 cursor-pointer text-right ${
                             isActive
-                              ? `sidebar-nav-item-active bg-gradient-to-l ${tab.gradient} text-white shadow-md`
-                              : `sidebar-nav-item hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
+                              ? `sidebar-nav-item-active bg-gradient-to-l ${tab.gradient} text-white shadow-lg shadow-violet-500/20`
+                              : `sidebar-nav-item hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px] hover:shadow-sm`
                           } ${collapsed ? 'justify-center px-0' : 'justify-start px-3'}`}
                           onClick={() => onTabChange(tab.id)}
                           style={{ animationDelay: `${i * 30}ms` }}
@@ -313,7 +314,7 @@ function SidebarNav({
           <div className="px-3 py-2 rounded-lg bg-gradient-to-r from-violet-500/5 to-fuchsia-500/5 border border-violet-200/20 dark:border-violet-800/20 mb-1 text-right">
             <p className="text-[11px] text-muted-foreground">
               <kbd className="px-1 py-0.5 rounded bg-muted text-[10px] font-mono">⌘K</kbd>
-              {' '}جستجوی سریع
+              {' '}پالت فرمان
             </p>
           </div>
         )}
@@ -832,6 +833,7 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [searchOpen, setSearchOpen] = useState(false)
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const [mobileSheetOpen, setMobileSheetOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -902,7 +904,7 @@ function AppContent() {
 
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()
-        setSearchOpen(prev => !prev)
+        setCommandPaletteOpen(prev => !prev)
         return
       }
 
@@ -916,7 +918,7 @@ function AppContent() {
       // ⌘D → toggle dark mode
       if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
         e.preventDefault()
-        setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+        setTheme(theme === 'dark' ? 'light' : 'dark')
         return
       }
 
@@ -1102,10 +1104,10 @@ function AppContent() {
                 variant="outline"
                 size="sm"
                 className="hidden sm:flex items-center gap-2 h-8 text-xs text-muted-foreground cursor-pointer hover:bg-accent/60 transition-colors border-border/60 btn-ghost-subtle"
-                onClick={() => setSearchOpen(true)}
+                onClick={() => setCommandPaletteOpen(true)}
               >
                 <Search className="h-3.5 w-3.5" />
-                <span>جستجو...</span>
+                <span>فرمان...</span>
                 <kbd className="pointer-events-none ml-1 inline-flex h-5 select-none items-center gap-0.5 rounded border border-border/60 bg-muted/80 px-1 font-mono text-[10px] font-medium text-muted-foreground">
                   ⌘K
                 </kbd>
@@ -1114,7 +1116,7 @@ function AppContent() {
                 variant="ghost"
                 size="icon"
                 className="sm:hidden h-9 w-9"
-                onClick={() => setSearchOpen(true)}
+                onClick={() => setCommandPaletteOpen(true)}
               >
                 <Search className="h-4 w-4" />
               </Button>
@@ -1169,7 +1171,16 @@ function AppContent() {
       {/* Quick Draft Dialog */}
       <QuickDraftDialog open={quickDraftOpen} onOpenChange={setQuickDraftOpen} />
 
-      {/* Search Dialog */}
+      {/* Command Palette */}
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        onNavigate={handleSearchNavigate}
+        onOpenSearchDialog={() => setSearchOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+      />
+
+      {/* Search Dialog (advanced content search, opened from CommandPalette) */}
       <SearchDialog
         open={searchOpen}
         onOpenChange={setSearchOpen}

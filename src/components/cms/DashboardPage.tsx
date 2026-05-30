@@ -54,6 +54,7 @@ import { QuickStatsRow } from './QuickStatsRow'
 import { DataExportWidget } from './DataExportWidget'
 import { SystemStatusWidget } from './SystemStatusWidget'
 import ActivityFeedWidget from './ActivityFeedWidget'
+import RecentActivityTimeline from './RecentActivityTimeline'
 import AnalyticsOverviewWidget from './AnalyticsOverviewWidget'
 import ThemeCustomizerWidget from './ThemeCustomizerWidget'
 import DataExportDialog from '@/components/cms/DataExportDialog'
@@ -170,6 +171,12 @@ const VIOLET_DARK = '#7c3aed'
 const PURPLE_MAIN = '#a855f7'
 const PURPLE_LIGHT = '#c084fc'
 const FUCHSIA_MAIN = '#d946ef'
+const CYAN_MAIN = '#06b6d4'
+const EMERALD_MAIN = '#10b981'
+const AMBER_MAIN = '#f59e0b'
+const ROSE_MAIN = '#f43f5e'
+
+const PIE_COLORS = [VIOLET_MAIN, CYAN_MAIN, EMERALD_MAIN, AMBER_MAIN, ROSE_MAIN, PURPLE_MAIN, FUCHSIA_MAIN, '#6366f1']
 
 // Content status colors
 const CONTENT_STATUS_COLORS: Record<string, string> = {
@@ -402,7 +409,7 @@ function PersianTooltip({ active, payload, label: tooltipLabel, labelKey }: {
 }) {
   if (!active || !payload || payload.length === 0) return null
   return (
-    <div className="glass-card border border-violet-200/50 dark:border-violet-700/50 rounded-lg px-3 py-2 shadow-lg">
+    <div className="glass-card border border-violet-200/30 dark:border-violet-700/30 rounded-lg px-3 py-2 shadow-lg shadow-violet-500/10 backdrop-blur-md">
       <p className="text-xs font-medium text-muted-foreground mb-1">{tooltipLabel ?? ''}</p>
       {payload.map((entry, idx) => (
         <div key={idx} className="flex items-center gap-2 text-sm">
@@ -425,7 +432,7 @@ function PieTooltip({ active, payload }: {
   if (!active || !payload || payload.length === 0) return null
   const entry = payload[0]
   return (
-    <div className="glass-card border border-violet-200/50 dark:border-violet-700/50 rounded-lg px-3 py-2 shadow-lg">
+    <div className="glass-card border border-violet-200/30 dark:border-violet-700/30 rounded-lg px-3 py-2 shadow-lg shadow-violet-500/10 backdrop-blur-md">
       <div className="flex items-center gap-2 text-sm">
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: entry.payload.fill }} />
         <span className="font-medium">{entry.name}</span>
@@ -1920,7 +1927,7 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views BarChart (Recharts) ───── */}
         <Section title={labels.monthlyViews} defaultOpen={true} delay={350}>
-          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
@@ -1945,8 +1952,10 @@ export default function DashboardPage() {
               <Bar
                 dataKey="views"
                 fill="url(#barGradient)"
-                radius={[6, 6, 0, 0]}
+                radius={[4, 4, 0, 0]}
                 maxBarSize={40}
+                isAnimationActive={true}
+                animationDuration={800}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -1955,7 +1964,7 @@ export default function DashboardPage() {
 
         {/* ───── Category Distribution PieChart (Recharts) ───── */}
         <Section title={labels.categoryDist} defaultOpen={false} delay={400}>
-          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -1970,9 +1979,11 @@ export default function DashboardPage() {
                 label={renderPieLabel}
                 labelLine={false}
                 strokeWidth={0}
+                isAnimationActive={true}
+                animationDuration={800}
               >
                 {(chartData?.categoryDistribution ?? []).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip content={<PieTooltip />} />
@@ -1987,17 +1998,17 @@ export default function DashboardPage() {
 
         {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
         <Section title={labels.weeklyActivity} defaultOpen={false} delay={450}>
-          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
                 <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={VIOLET_LIGHT} />
+                  <stop offset="0%" stopColor={CYAN_MAIN} />
                   <stop offset="100%" stopColor={VIOLET_DARK} />
                 </linearGradient>
                 <linearGradient id="commentsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={PURPLE_LIGHT} />
-                  <stop offset="100%" stopColor={PURPLE_MAIN} />
+                  <stop offset="0%" stopColor={EMERALD_MAIN} />
+                  <stop offset="100%" stopColor={VIOLET_DARK} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
@@ -2013,8 +2024,8 @@ export default function DashboardPage() {
                 tickLine={false}
               />
               <Tooltip content={<PersianTooltip labelKey="comments" />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
-              <Bar dataKey="posts" fill="url(#postsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.posts} />
-              <Bar dataKey="comments" fill="url(#commentsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.comments} />
+              <Bar dataKey="posts" fill="url(#postsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.posts} isAnimationActive={true} animationDuration={800} />
+              <Bar dataKey="comments" fill="url(#commentsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.comments} isAnimationActive={true} animationDuration={800} />
               <Legend
                 formatter={(value: string) => (
                   <span className="text-xs text-muted-foreground">{value}</span>
@@ -2028,7 +2039,7 @@ export default function DashboardPage() {
 
         {/* ───── Content Status PieChart (Recharts) ───── */}
         <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
-          <div className="flex flex-col items-center">
+          <div className="chart-glass flex flex-col items-center">
             <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -2044,6 +2055,8 @@ export default function DashboardPage() {
                   label={renderPieLabel}
                   labelLine={false}
                   strokeWidth={0}
+                  isAnimationActive={true}
+                  animationDuration={800}
                 >
                   {contentStatusPieData.map((entry, index) => (
                     <Cell key={`cs-cell-${index}`} fill={entry.fill} />
@@ -2066,7 +2079,7 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
         <Section title={labels.monthlyViewsTrend} defaultOpen={false} delay={525}>
-          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
@@ -2160,6 +2173,9 @@ export default function DashboardPage() {
 
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
+
+        {/* Recent Activity Timeline Widget */}
+        <RecentActivityTimeline />
 
         {/* Activity Feed Widget */}
         <ActivityFeedWidget />
