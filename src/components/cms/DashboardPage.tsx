@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect, useRef, useSyncExternalStore } from 'react'
 import { useCMS } from './context'
+import { useQuery } from '@tanstack/react-query'
+import CalendarWidget from './CalendarWidget'
 import { useEnsureData } from '@/components/cms/useEnsureData'
 import { ModuleStatsOverview, CrossModuleSyncStatus } from '@/components/CrossModulePanel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -62,6 +64,7 @@ import ThemeCustomizerWidget from './ThemeCustomizerWidget'
 import DataExportDialog from '@/components/cms/DataExportDialog'
 import DashboardGreetingWidget from './DashboardGreetingWidget'
 import QuickDraftWidget from './QuickDraftWidget'
+import TopCustomersWidget from './TopCustomersWidget'
 
 // Persian labels
 const labels = {
@@ -141,6 +144,8 @@ const labels = {
   // Quick stats summary
   quickStatsSummary: 'خلاصه آمار',
   totalOrders: 'سفارشات',
+  revenueTrend: 'روند درآمد ماهانه',
+  topCustomers: 'بهترین مشتریان',
   // Floating action bar
   floatingBarTitle: 'دسترسی سریع',
   newPostBtn: 'مطلب جدید',
@@ -219,7 +224,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
 
   return (
     <Card
-      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-animated-border stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-xl transition-all duration-300 animate-in`}
+      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-animated-border stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-200 animate-in`}
       style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}
     >
       {/* Shine overlay */}
@@ -227,7 +232,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out" />
       </div>
       <CardContent className="p-4 sm:p-5 flex items-center gap-3 relative z-10">
-        <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10">{icon}</div>
+        <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10 hover:bg-white/35 hover:scale-105 transition-all duration-200">{icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm opacity-80">{label}</p>
           <p className="text-xl sm:text-2xl font-bold tabular-nums">{displayValue}</p>
@@ -255,7 +260,7 @@ function Section({ title, defaultOpen, children, delay }: {
   const [open, setOpen] = useState(defaultOpen)
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <Card className="glass-card card-gradient-border hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-300 animate-in" style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
+      <Card className="glass-card card-gradient-border hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-200 animate-in" style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-violet-500/5 transition-colors rounded-t-lg py-2.5 sm:py-3">
             <div className="flex items-center justify-between">
@@ -357,7 +362,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
     <Card className={`card-elevated hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
       <CardContent className="p-3.5 sm:p-5">
         <div className="flex items-center justify-between mb-2">
-          <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color} drop-shadow-sm`}>
+          <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color} drop-shadow-sm hover:scale-110 transition-transform duration-200`}>
             {icon}
           </div>
           {trend !== 'flat' && (
@@ -1578,6 +1583,183 @@ function EnhancedActivityTimeline({ activities }: { activities: Array<{ id: stri
   )
 }
 
+// ────────────── Revenue Trend Widget ────────────────────────
+
+function RevenueTrendWidget() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-revenue'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard?XTransformPort=3000')
+      if (!res.ok) throw new Error('خطا در دریافت اطلاعات')
+      return res.json()
+    },
+    refetchInterval: 60000,
+    staleTime: 5000,
+  })
+
+  const revenueData = data?.success ? data.revenue : { total: 0, changePercent: 0, data: [] }
+  const totalRevenue = useCountUp(revenueData.total, 1200, !!data?.success)
+  const changePercent = revenueData.changePercent
+  const isPositive = changePercent >= 0
+
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            {labels.revenueTrend}
+          </CardTitle>
+          <Badge className={`text-[10px] gap-0.5 border-0 px-1.5 py-0 ${
+            isPositive
+              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+              : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+          }`}>
+            {isPositive ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+            {Math.abs(changePercent).toLocaleString('fa-IR')}٪
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {isLoading ? (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-5 w-16" />
+            </div>
+            <Skeleton className="h-[120px] w-full" />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-end gap-4 mb-3">
+              <div>
+                <p className="text-2xl font-bold tabular-nums text-violet-700 dark:text-violet-300">${'$'}{totalRevenue.toLocaleString('en-US')}</p>
+                <p className="text-xs text-muted-foreground">{labels.totalRevenue}</p>
+              </div>
+            </div>
+            <div className="chart-glass h-[140px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData.data} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={VIOLET_MAIN} stopOpacity={0.4} />
+                      <stop offset="95%" stopColor={VIOLET_MAIN} stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+                  />
+                  <Tooltip content={<PersianTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke={VIOLET_MAIN}
+                    strokeWidth={2}
+                    fill="url(#revenueGradient)"
+                    isAnimationActive={true}
+                    animationDuration={800}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+// ────────────── Top Customers Widget ────────────────────────
+
+const CUSTOMER_GRADIENTS = [
+  'from-violet-500 to-purple-600',
+  'from-fuchsia-500 to-pink-600',
+  'from-cyan-500 to-sky-600',
+  'from-emerald-500 to-teal-600',
+  'from-amber-500 to-orange-600',
+]
+
+function LegacyTopCustomersWidget() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['dashboard-top-customers'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard?XTransformPort=3000')
+      if (!res.ok) throw new Error('خطا در دریافت اطلاعات')
+      return res.json()
+    },
+    refetchInterval: 60000,
+    staleTime: 5000,
+  })
+
+  const customers = data?.success ? data.topCustomers : []
+
+  return (
+    <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+      <CardHeader className="pb-3 pt-4 px-4">
+        <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
+          <UserCircle className="h-4 w-4" />
+          {labels.topCustomers}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-4 pb-4">
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-1">
+                  <Skeleton className="h-3.5 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : customers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+            <UserCircle className="h-8 w-8 mb-2 opacity-20" />
+            <p className="text-sm">{labels.noCustomers}</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {customers.map((customer, i) => (
+              <div key={customer.id} className="group flex items-center gap-3">
+                <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${CUSTOMER_GRADIENTS[i % CUSTOMER_GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-background shrink-0`}>{customer.initials}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium truncate">{customer.name}</p>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap">{customer.orderCount} سفارش</span>
+                  </div>
+                  <div className="mt-1">
+                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-l ${CUSTOMER_GRADIENTS[i % CUSTOMER_GRADIENTS.length]} transition-all duration-700 ease-out`}
+                        style={{ width: `${Math.max(customer.spentPercent, 3)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs font-medium text-violet-600 dark:text-violet-400 whitespace-nowrap tabular-nums">
+                  ${customer.totalSpent >= 1000 ? `$${(customer.totalSpent / 1000).toFixed(1)}k` : `$${customer.totalSpent}`}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 // ────────────── Floating Action Bar ──────────────────────────
 
 function FloatingActionBar() {
@@ -1824,7 +2006,7 @@ export default function DashboardPage() {
 
       {/* Collapsible Sections */}
       <Separator className="my-1 bg-border/30" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 divide-y divide-border/40 lg:divide-y-0 lg:divide-x lg:divide-border/40">
         {/* Quick Access Grid */}
         <Section title={labels.quickActionsNew} defaultOpen={true} delay={100}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -1933,7 +2115,7 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views BarChart (Recharts) ───── */}
         <Section title={labels.monthlyViews} defaultOpen={true} delay={350}>
-          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
@@ -1970,7 +2152,7 @@ export default function DashboardPage() {
 
         {/* ───── Category Distribution PieChart (Recharts) ───── */}
         <Section title={labels.categoryDist} defaultOpen={false} delay={400}>
-          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -2004,7 +2186,7 @@ export default function DashboardPage() {
 
         {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
         <Section title={labels.weeklyActivity} defaultOpen={false} delay={450}>
-          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
@@ -2045,7 +2227,7 @@ export default function DashboardPage() {
 
         {/* ───── Content Status PieChart (Recharts) ───── */}
         <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
-          <div className="chart-glass flex flex-col items-center">
+          <div className="chart-glass rounded-xl p-3 sm:p-4 flex flex-col items-center">
             <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -2085,7 +2267,7 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
         <Section title={labels.monthlyViewsTrend} defaultOpen={false} delay={525}>
-          <div className="chart-glass min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
@@ -2161,9 +2343,7 @@ export default function DashboardPage() {
         <AnalyticsWidget />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
-        {/* Quick Actions Widget */}
-        <QuickActionsWidget />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 divide-y divide-border/40 md:divide-y-0 md:divide-x md:divide-border/40">
 
         {/* Activity Timeline Widget */}
         <ActivityTimelineWidget activities={activitiesData} />
@@ -2179,6 +2359,18 @@ export default function DashboardPage() {
 
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
+
+        {/* Revenue Trend Widget */}
+        <RevenueTrendWidget />
+
+        {/* Top Customers Widget (Legacy — uses API data) */}
+        <LegacyTopCustomersWidget />
+
+        {/* Calendar + Top Customers — 2-column grid (new standalone widgets) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+          <CalendarWidget />
+          <TopCustomersWidget />
+        </div>
 
         {/* Quick Draft Widget */}
         <QuickDraftWidget />

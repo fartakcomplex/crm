@@ -597,3 +597,132 @@ Stage Summary:
 4. **Priority 4**: Dashboard charts mobile optimization (stacked card layout)
 5. **Priority 5**: Real-time WebSocket notifications integration in dashboard UI
 6. **Priority 6**: Performance optimization — lazy loading non-visible modules
+
+---
+Task ID: 13
+Agent: Main Agent + 2 subagents
+Task: Bug Fix, Styling Improvements, New Features
+
+Work Log:
+- Reviewed worklog.md (12 previous task rounds documented)
+- Verified server running (HTTP 200), lint clean (0 errors)
+- QA tested desktop (1280x800) with agent-browser + VLM analysis
+  - Landing page: 7/10 (RTL alignment, whitespace, contrast issues)
+  - Dashboard top: 8/10 (good layout, color scheme)
+  - Dashboard bottom: 3/10 initially (fragmentation, inconsistent styling)
+  - After improvements: 6/10 (better but charts need more prominence)
+
+**Bug Fix: Onboarding Wizard Persistence**
+- Fixed critical bug: ESC key and close button didn't save `cms_onboarding_done` to localStorage, causing wizard to reappear on every visit
+- Now ALL dismiss methods (ESC, close button, skip, finish, click outside) persist to localStorage
+- Removed unused `dontShowAgain` state and checkbox (no longer needed)
+- Removed unused imports: `useEffect`, `Checkbox`
+- Fixed resulting `dontShowAgain is not defined` runtime error
+
+**Styling Improvements (1 subagent):**
+
+1. **DashboardPage.tsx:**
+   - StatCard: added `hover:shadow-violet-500/5` + snappier `duration-200` transition
+   - StatCard icon container: added `hover:bg-white/35 hover:scale-105`
+   - MiniTrendCard icon: added `hover:scale-110 transition-transform`
+   - Widget sections: added `divide-y/x divide-border/40` for visual separation
+   - All 5 chart wrappers: enhanced `chart-glass` with `rounded-xl p-3 sm:p-4`
+   - Removed `animate-pulse` from published status badge in ContentPage
+
+2. **LandingPage.tsx:**
+   - Hero padding increased: `py-12→20 / sm:16→28 / md:24→36 / lg:32→44`
+   - CTA button: added `shadow-lg shadow-violet-600/30` for depth
+   - Stats cards: added `hover:scale-[1.02] transition-transform`
+
+3. **ContentPage.tsx:**
+   - Table rows: added `hover:bg-muted/50 transition-colors`
+   - Action buttons: added `hover:bg-accent` transitions
+
+4. **TasksPage.tsx:**
+   - Task cards: refined to `hover:shadow-lg hover:border-violet-500/20`
+   - Priority bars: upgraded to vivid gradients
+   - Kanban columns: added `divide-x divide-border/40`
+   - Priority badges: added colored shadows
+
+**New Features (1 subagent):**
+
+1. **CalendarWidget.tsx** (completely rewritten):
+   - Proper calendar grid with Persian month names (فروردین-اسفند)
+   - Persian weekdays (ش ی د س چ پ ج)
+   - Violet→purple gradient ring on today
+   - Fuchsia dots on task days (demo data)
+   - Click day to see tasks panel
+   - Smooth slide animation on prev/next month navigation
+   - Full RTL + dark/light theme support
+
+2. **TopCustomersWidget.tsx** (new standalone):
+   - Top 5 customers with Persian names
+   - Colored gradient avatar initials
+   - Horizontal spending bar (percentage of max)
+   - Hover effects (scale, shadow, bg tint)
+   - Toman currency format
+
+3. **Stats API Enhancement** (`/api/stats/route.ts`):
+   - Added `recentActivity` (7-day activity count)
+   - Added `pendingTasks` (todo + in_progress)
+   - New `summary` object with key metrics
+
+4. **Dashboard Integration:**
+   - CalendarWidget + TopCustomersWidget in responsive 2-column grid
+   - Fixed duplicate `ArrowDownRight` import error in DashboardPage
+
+Stage Summary:
+- 1 critical bug fixed (onboarding wizard persistence)
+- 4 files modified with styling improvements
+- 2 files created/rewritten (CalendarWidget, TopCustomersWidget)
+- 1 API enhanced (stats)
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- All text in Persian/Farsi
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Very Good. Dashboard continues to improve with new widgets and polished styling. Onboarding wizard bug fixed.
+- **Server Stability**: Running on port 3000, HTTP 200. Cron keep-alive active.
+- **Code Quality**: Lint 0 errors. TypeScript strict.
+- **Styling**: Glass morphism, gradient borders, hover animations, chart animations, RTL support, responsive.
+- **Features**: 30+ features including calendar widget, top customers, mobile nav, FAB, command palette, activity timeline, notification center, quick draft, user menu, WebSocket, search API, drag-and-drop notes, data export, dark mode persistence.
+
+### Completed Modifications (This Round)
+1. Fixed onboarding wizard persistence (all dismiss methods save to localStorage)
+2. Fixed `dontShowAgain is not defined` runtime error
+3. Fixed duplicate `ArrowDownRight` import in DashboardPage
+4. Dashboard: improved stat card hover, widget dividers, chart padding
+5. Landing: increased hero whitespace, CTA depth, stats hover scale
+6. Content: table row hover, action button hover
+7. Tasks: card hover, priority gradient bars, kanban dividers
+8. New CalendarWidget with Persian months, task dots, month navigation
+9. New TopCustomersWidget with gradient avatars, spending bars
+10. Enhanced Stats API with activity and task counts
+
+### Verification Results
+- Desktop landing: 7/10 (VLM) - good but RTL alignment and whitespace can improve
+- Desktop dashboard top: 8/10 (VLM) - clean layout, good color scheme
+- Onboarding wizard: 7/10 (VLM) - clean, functional, no errors
+- Charts: 2 recharts elements rendering (SVG confirmed in DOM)
+- Stats API: returns comprehensive data from all tables
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+
+### Unresolved Issues / Risks
+1. **Server instability**: Periodic Turbopack crashes (mitigated by auto-restart)
+2. **No real authentication**: Simple state-based login
+3. **Dashboard charts visibility**: VLM reports charts not clearly visible (may be below fold or loading timing)
+4. **Landing RTL alignment**: Some elements not properly RTL-aligned (7/10)
+5. **PWA not implemented**: No service worker or manifest yet
+
+### Next Phase Recommendations
+1. **Priority 1**: Improve chart visibility and prominence in dashboard layout
+2. **Priority 2**: Fix landing page RTL alignment issues
+3. **Priority 3**: Add real authentication with NextAuth.js
+4. **Priority 4**: PWA support (service worker, manifest, installable)
+5. **Priority 5**: Fuzzy search in Command Palette
+6. **Priority 6**: Performance optimization — lazy loading non-visible modules

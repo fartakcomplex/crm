@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { Prisma } from '@prisma/client'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -13,6 +14,9 @@ interface SearchResultItem {
   statusLabel: string
   createdAt: string
 }
+
+type SortField = 'createdAt' | 'updatedAt'
+type SortDir = 'asc' | 'desc'
 
 // ─── Persian Labels ──────────────────────────────────────────────────────────
 
@@ -51,6 +55,20 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 100)
     const offset = parseInt(searchParams.get('offset') || '0', 10)
 
+    // Date filtering
+    const fromDateStr = searchParams.get('fromDate') || ''
+    const toDateStr = searchParams.get('toDate') || ''
+    const fromDate = fromDateStr ? new Date(fromDateStr) : null
+    const toDate = toDateStr ? new Date(toDateStr) : null
+
+    // Sorting
+    const sortBy = (searchParams.get('sortBy') || 'createdAt') as SortField
+    const sortOrder = (searchParams.get('sortOrder') || 'desc') as SortDir
+    const validSortFields: SortField[] = ['createdAt', 'updatedAt']
+    const validSortDirs: SortDir[] = ['asc', 'desc']
+    const orderByField = validSortFields.includes(sortBy) ? sortBy : 'createdAt'
+    const orderByDir = validSortDirs.includes(sortOrder) ? sortOrder : 'desc'
+
     if (!q.trim()) {
       return NextResponse.json({
         success: true,
@@ -69,12 +87,16 @@ export async function GET(request: NextRequest) {
     const allResults: SearchResultItem[] = []
 
     for (const type of types) {
-      const items = await searchByType(type, keyword, statusFilter === 'all' ? null : statusFilter, limit)
+      const items = await searchByType(type, keyword, statusFilter === 'all' ? null : statusFilter, limit, fromDate, toDate, orderByField, orderByDir)
       allResults.push(...items)
     }
 
-    // Sort by creation date (newest first)
-    allResults.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    // Sort results according to requested sort
+    allResults.sort((a, b) => {
+      const aVal = new Date(a[orderByField] || a.createdAt).getTime()
+      const bVal = new Date(b[orderByField] || b.createdAt).getTime()
+      return orderByDir === 'desc' ? bVal - aVal : aVal - bVal
+    })
 
     // Apply pagination
     const paginatedResults = allResults.slice(offset, offset + limit)
@@ -105,19 +127,41 @@ export async function GET(request: NextRequest) {
 
 // ─── Search by Type ──────────────────────────────────────────────────────────
 
+// Build date filter clause for Prisma
+function buildDateFilter(fromDate: Date | null, toDate: Date | null): Prisma.DateTimeFilter {
+  const filter: Prisma.DateTimeFilter = {}
+  if (fromDate && toDate) {
+    filter.gte = fromDate
+    filter.lte = toDate
+  } else if (fromDate) {
+    filter.gte = fromDate
+  } else if (toDate) {
+    filter.lte = toDate
+  }
+  return filter
+}
+
 async function searchByType(
   type: string,
   keyword: string,
   statusFilter: string | null,
   limit: number,
+  fromDate: Date | null,
+  toDate: Date | null,
+  orderByField: SortField,
+  orderByDir: SortDir,
 ): Promise<SearchResultItem[]> {
   const results: SearchResultItem[] = []
+  const dateFilter = buildDateFilter(fromDate, toDate)
+  const hasDateFilter = fromDate || toDate
+  const orderConfig = { [orderByField]: orderByDir } as Record<string, string>
 
   switch (type) {
     case 'post': {
       const posts = await db.post.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { title: { contains: keyword } },
             { excerpt: { contains: keyword } },
@@ -125,13 +169,14 @@ async function searchByType(
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           title: true,
           excerpt: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const post of posts) {
@@ -153,13 +198,14 @@ async function searchByType(
       const users = await db.user.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { name: { contains: keyword } },
             { email: { contains: keyword } },
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           name: true,
@@ -167,6 +213,7 @@ async function searchByType(
           role: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const user of users) {
@@ -188,6 +235,7 @@ async function searchByType(
       const customers = await db.customer.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { name: { contains: keyword } },
             { email: { contains: keyword } },
@@ -196,7 +244,7 @@ async function searchByType(
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           name: true,
@@ -204,6 +252,7 @@ async function searchByType(
           company: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const customer of customers) {
@@ -225,19 +274,21 @@ async function searchByType(
       const projects = await db.project.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { title: { contains: keyword } },
             { description: { contains: keyword } },
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           title: true,
           description: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const project of projects) {
@@ -259,19 +310,21 @@ async function searchByType(
       const mediaItems = await db.media.findMany({
         where: {
           ...(statusFilter ? { type: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { name: { contains: keyword } },
             { alt: { contains: keyword } },
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           name: true,
           alt: true,
           type: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const media of mediaItems) {
@@ -293,19 +346,21 @@ async function searchByType(
       const comments = await db.comment.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { content: { contains: keyword } },
             { author: { contains: keyword } },
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           content: true,
           author: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const comment of comments) {
@@ -327,6 +382,7 @@ async function searchByType(
       const teamMembers = await db.teamMember.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { name: { contains: keyword } },
             { email: { contains: keyword } },
@@ -335,7 +391,7 @@ async function searchByType(
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           name: true,
@@ -343,6 +399,7 @@ async function searchByType(
           department: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const member of teamMembers) {
@@ -364,19 +421,21 @@ async function searchByType(
       const tasks = await db.task.findMany({
         where: {
           ...(statusFilter ? { status: statusFilter } : {}),
+          ...(hasDateFilter ? { createdAt: dateFilter } : {}),
           OR: [
             { title: { contains: keyword } },
             { description: { contains: keyword } },
           ],
         },
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: orderConfig,
         select: {
           id: true,
           title: true,
           description: true,
           status: true,
           createdAt: true,
+          updatedAt: true,
         },
       })
       for (const task of tasks) {

@@ -4,6 +4,8 @@ import { db } from '@/lib/db'
 // GET dashboard stats
 export async function GET() {
   try {
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+
     const [
       totalPosts,
       totalUsers,
@@ -19,6 +21,8 @@ export async function GET() {
       activeUsers,
       activeCustomers,
       activeProjects,
+      recentActivity,
+      pendingTasks,
     ] = await Promise.all([
       db.post.count(),
       db.user.count(),
@@ -34,6 +38,8 @@ export async function GET() {
       db.user.count({ where: { status: 'active' } }),
       db.customer.count({ where: { status: 'active' } }),
       db.project.count({ where: { status: { in: ['active', 'in-progress'] } } }),
+      db.activityLog.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+      db.task.count({ where: { status: { in: ['todo', 'in_progress'] } } }),
     ])
 
     // Calculate total revenue from customers
@@ -85,6 +91,14 @@ export async function GET() {
         avgProgress: avgProjectProgress,
       },
       postsByStatus,
+      summary: {
+        totalPosts,
+        totalUsers,
+        totalOrders,
+        totalRevenue,
+        recentActivity,
+        pendingTasks,
+      },
     })
   } catch (error) {
     console.error('GET /api/stats error:', error)

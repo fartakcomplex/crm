@@ -495,7 +495,7 @@ export default function ContentPage() {
                     return (
                       <TableRow
                         key={post.id}
-                        className={`hover-lift transition-all duration-200 animate-in cursor-pointer list-item-hover group ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
+                        className={`hover-lift hover:bg-muted/50 transition-all duration-200 animate-in cursor-pointer list-item-hover group ${isSelected ? 'bg-violet-50 dark:bg-violet-950/30' : ''}`}
                         style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                         onClick={() => setPreviewPost(post)}
                       >
@@ -526,7 +526,7 @@ export default function ContentPage() {
                         )}
                         {visibleColumns.status && (
                           <TableCell>
-                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm badge-gradient gap-1 ${post.status === 'published' ? 'badge-gradient-success animate-pulse' : post.status === 'draft' ? 'badge-gradient-warning' : post.status === 'review' ? 'badge-gradient-amber' : 'badge-gradient'}`}>
+                            <Badge className={`${sc.bg} ${sc.text} border-0 shadow-sm badge-gradient gap-1 ${post.status === 'published' ? 'badge-gradient-success' : post.status === 'draft' ? 'badge-gradient-warning' : post.status === 'review' ? 'badge-gradient-amber' : 'badge-gradient'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full ${post.status === 'published' ? 'bg-green-500' : post.status === 'draft' ? 'bg-yellow-500' : post.status === 'review' ? 'bg-orange-500' : 'bg-gray-400'}`} />
                               {statusLabels[post.status] ?? post.status}
                             </Badge>
@@ -555,16 +555,16 @@ export default function ContentPage() {
                         {visibleColumns.actions && (
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-accent hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openQuickView(post) }} title="مشاهده سریع">
+                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-accent hover:bg-violet-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openQuickView(post) }} title="مشاهده سریع">
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-accent hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
+                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-red-500 hover:text-red-600 hover:bg-accent hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>

@@ -278,7 +278,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
 
       <motion.div
         style={{ y: heroY, opacity: heroOpacity }}
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 lg:py-32"
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28 md:py-36 lg:py-44"
       >
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center" dir="rtl">
           {/* Text Content — RTL-safe alignment with isolation */}
@@ -325,7 +325,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               <Button
                 size="lg"
                 onClick={onEnter}
-                className="gap-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-500 hover:via-purple-500 hover:to-fuchsia-500 text-white font-bold shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:shadow-fuchsia-500/20 hover:scale-105 active:scale-95 transition-all duration-300 px-8 h-13 text-base ring-2 ring-violet-500/20 hover:ring-violet-400/40 cta-glow"
+                className="gap-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-500 hover:via-purple-500 hover:to-fuchsia-500 text-white font-bold shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:shadow-fuchsia-500/20 hover:scale-105 active:scale-95 transition-all duration-300 px-8 h-13 text-base ring-2 ring-violet-500/20 hover:ring-violet-400/40 cta-glow shadow-lg shadow-violet-600/30"
               >
                 <Rocket className="h-5 w-5" />
                 شروع رایگان
@@ -463,7 +463,7 @@ function StatsSection() {
                 whileHover={{ scale: 1.03, y: -4 }}
                 className="relative group"
               >
-                <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/20 dark:border-violet-700/20 hover:border-violet-500/40 transition-all duration-300 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 card-elevated hover-lift">
+                <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/20 dark:border-violet-700/20 hover:border-violet-500/40 transition-all duration-300 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 hover:scale-[1.02] card-elevated hover-lift">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
                   <CardContent className="p-4 sm:p-6 text-center relative z-10">

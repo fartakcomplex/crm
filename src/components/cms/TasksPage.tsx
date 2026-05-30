@@ -430,7 +430,7 @@ export default function TasksPage() {
         />
       ) : (
         <div className="overflow-x-auto animate-in card-gradient-border" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
-        <div className="flex gap-4 min-w-max p-0.5">
+        <div className="flex gap-4 min-w-max p-0.5 divide-x divide-border/40">
           {KANBAN_COLUMNS.map((column) => {
             const columnTasks = tasksByStatus[column.id] ?? []
             const isDragTarget = dragOverColumn === column.id
@@ -491,7 +491,7 @@ export default function TasksPage() {
                           className={`
                             group relative rounded-xl p-3.5 cursor-grab active:cursor-grabbing
                             bg-card border border-border/50
-                            hover-lift hover:shadow-xl hover:shadow-violet-500/5
+                            hover:shadow-lg hover:border-violet-500/20
                             task-card-transition
                             animate-in
                           `}
@@ -501,10 +501,10 @@ export default function TasksPage() {
                           {/* Priority indicator bar */}
                           <div className={`
                             absolute top-0 right-0 left-0 h-0.5 rounded-t-xl
-                            ${task.priority === 'low' ? 'bg-gray-300 dark:bg-gray-600' : ''}
-                            ${task.priority === 'medium' ? 'bg-yellow-400 dark:bg-yellow-500' : ''}
-                            ${task.priority === 'high' ? 'bg-orange-400 dark:bg-orange-500' : ''}
-                            ${task.priority === 'critical' ? 'bg-red-500 dark:bg-red-600' : ''}
+                            ${task.priority === 'low' ? 'bg-gradient-to-l from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500' : ''}
+                            ${task.priority === 'medium' ? 'bg-gradient-to-l from-yellow-400 to-amber-500 dark:from-yellow-500 dark:to-amber-400' : ''}
+                            ${task.priority === 'high' ? 'bg-gradient-to-l from-orange-400 to-red-500 dark:from-orange-500 dark:to-red-400' : ''}
+                            ${task.priority === 'critical' ? 'bg-gradient-to-l from-red-500 to-rose-600 dark:from-red-600 dark:to-rose-500' : ''}
                           `} />
 
                           {/* Drag handle + action buttons */}
@@ -522,21 +522,21 @@ export default function TasksPage() {
                                     handleStatusChange(task.id, KANBAN_COLUMNS[currentIndex + 1].id)
                                   }
                                 }}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-accent hover:bg-green-500/10 transition-colors shine-effect"
                                 title="انتقال به مرحله بعد"
                               >
                                 <ArrowUpDown className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openEdit(task, e)}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-accent hover:bg-blue-500/10 transition-colors shine-effect"
                                 title={labels.edit}
                               >
                                 <Edit className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openDelete(task.id, e)}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-accent hover:bg-red-500/10 transition-colors shine-effect"
                                 title={labels.delete}
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -558,7 +558,7 @@ export default function TasksPage() {
 
                           {/* Priority + Overdue Badge */}
                           <div className="flex flex-wrap gap-1.5 mb-2">
-                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient ${task.priority === 'critical' ? 'badge-gradient-danger shadow-md shadow-red-500/20' : task.priority === 'high' ? 'badge-gradient-rose shadow-sm shadow-red-500/20' : task.priority === 'medium' ? 'badge-gradient-warning' : 'badge-gradient'}`}>
+                            <Badge className={`${pc.bg} ${pc.text} border-0 text-[10px] shadow-sm gap-1 badge-gradient ${task.priority === 'critical' ? 'badge-gradient-danger shadow-md shadow-red-500/25' : task.priority === 'high' ? 'badge-gradient-rose shadow-sm shadow-orange-500/20' : task.priority === 'medium' ? 'badge-gradient-warning shadow-sm shadow-amber-500/20' : 'badge-gradient'}`}>
                               <span className={`h-1.5 w-1.5 rounded-full shadow-sm ${pc.dot}`} />
                               {priorityLabels[task.priority]}
                             </Badge>

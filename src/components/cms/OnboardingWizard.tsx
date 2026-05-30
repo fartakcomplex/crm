@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import {
   Sparkles,
   ChevronLeft,
@@ -142,7 +141,6 @@ const stepAnimationClass = 'animate-in fade-in slide-in-from-bottom-4 duration-5
 
 export default function OnboardingWizard({ open, onClose }: OnboardingWizardProps) {
   const [currentStep, setCurrentStep] = useState(0)
-  const [dontShowAgain, setDontShowAgain] = useState(false)
   const [stepKey, setStepKey] = useState(0)
 
   // Reset stepKey when step changes to re-trigger entrance animation
@@ -155,13 +153,10 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
     if (currentStep < 3) {
       goToStep(currentStep + 1)
     } else {
-      // Final step — close
-      if (dontShowAgain) {
-        localStorage.setItem('cms_onboarding_done', 'true')
-      }
+      localStorage.setItem('cms_onboarding_done', 'true')
       onClose()
     }
-  }, [currentStep, dontShowAgain, goToStep, onClose])
+  }, [currentStep, goToStep, onClose])
 
   const handlePrev = useCallback(() => {
     if (currentStep > 0) {
@@ -170,25 +165,17 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
   }, [currentStep, goToStep])
 
   const handleSkip = useCallback(() => {
+    localStorage.setItem('cms_onboarding_done', 'true')
     onClose()
   }, [onClose])
 
   const handleFinish = useCallback(() => {
-    if (dontShowAgain) {
-      localStorage.setItem('cms_onboarding_done', 'true')
-    }
+    localStorage.setItem('cms_onboarding_done', 'true')
     onClose()
-  }, [dontShowAgain, onClose])
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // no-op
-    }
-  }, [])
+  }, [onClose])
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) { localStorage.setItem('cms_onboarding_done', 'true'); onClose() } }}>
       <DialogContent
         className="sm:max-w-[560px] glass-card card-elevated p-0 overflow-hidden"
         dir="rtl"
@@ -199,6 +186,7 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
           try {
             e.preventDefault()
           } catch { /* ignore */ }
+          localStorage.setItem('cms_onboarding_done', 'true')
           onClose()
         }}
       >
@@ -206,7 +194,7 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
         <div className="relative px-6 pt-6 pb-4">
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={() => { localStorage.setItem('cms_onboarding_done', 'true'); onClose() }}
             className="absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-accent/60 transition-colors cursor-pointer"
             aria-label="بستن"
           >
@@ -404,16 +392,6 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
                     </div>
                   ))}
                 </div>
-
-                {/* Don't show again checkbox */}
-                <label className="flex items-center justify-center gap-2 cursor-pointer select-none">
-                  <Checkbox
-                    checked={dontShowAgain}
-                    onCheckedChange={(checked) => setDontShowAgain(checked === true)}
-                    className="data-[state=checked]:bg-violet-500 data-[state=checked]:border-violet-500"
-                  />
-                  <span className="text-xs text-muted-foreground">در دفعات بعدی نمایش نده</span>
-                </label>
               </div>
             )}
           </div>
