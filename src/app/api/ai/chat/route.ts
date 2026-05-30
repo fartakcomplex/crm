@@ -1,0 +1,157 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getAIClient } from '@/lib/ai-client'
+
+export async function POST(request: NextRequest) {
+  try {
+    const client = await getAIClient()
+    const body = await request.json()
+    const { messages, systemPrompt, maxTokens, stream = false } = body
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json(
+        { error: 'Messages array with at least one message is required' },
+        { status: 400 }
+      )
+    }
+
+    const hasUserMessage = messages.some((msg: { role: string; content: string }) => msg.role === 'user')
+    if (!hasUserMessage) {
+      return NextResponse.json(
+        { error: 'At least one user message is required' },
+        { status: 400 }
+      )
+    }
+
+    for (const msg of messages) {
+      if (!msg.role || !msg.content) {
+        return NextResponse.json(
+          { error: 'Each message must have a role and content' },
+          { status: 400 }
+        )
+      }
+      if (!['system', 'user', 'assistant'].includes(msg.role)) {
+        return NextResponse.json(
+          { error: 'Invalid message role. Must be: system, user, or assistant' },
+          { status: 400 }
+        )
+      }
+    }
+
+    const defaultSystemPrompt = `You are an intelligent AI assistant integrated into a Smart CMS platform. You help content creators, marketers, and SEO specialists with:
+- Content creation and editing
+- SEO optimization and analysis
+- Keyword research and strategy
+- Competitor analysis
+- Technical SEO recommendations
+- Content strategy planning
+- Writing improvement suggestions
+
+Always provide actionable, specific, and well-structured responses. Use markdown formatting for better readability when appropriate. Be concise but thorough. If you need more information to provide a better answer, ask for it.`
+
+    const apiMessages = [
+      { role: 'system' as const, content: systemPrompt || defaultSystemPrompt },
+      ...messages.map((msg: { role: string; content: string }) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
+    ]
+
+    // ─── Streaming path ─────────────────────────────────────────────────────
+    if (stream) {
+      const completion = await client.chat.completions.create({
+        model: 'GLM-5-turbo',
+        messages: apiMessages,
+        thinking: { type: 'disabled' },
+        stream: true,
+      })
+
+      const encoder = new TextEncoder()
+
+      const readable = new ReadableStream({
+        async start(controller) {
+          try {
+            // ZAI SDK returns Uint8Array chunks containing raw SSE data
+            for await (const rawChunk of completion) {
+              // Decode Uint8Array to string
+              const chunkStr = typeof rawChunk === 'string'
+                ? rawChunk
+                : new TextDecoder().decode(rawChunk as Uint8Array, { stream: true })
+
+              // Parse SSE format: "data: {json}\n\n"
+              const lines = chunkStr.split('\n')
+              for (const line of lines) {
+                const trimmed = line.trim()
+                if (!trimmed.startsWith('data: ')) continue
+
+                const payload = trimmed.slice(6)
+                if (payload === '[DONE]') {
+                  controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+                  continue
+                }
+
+                try {
+                  const parsed = JSON.parse(payload)
+                  const delta = parsed.choices?.[0]?.delta?.content
+                  if (delta) {
+                    controller.enqueue(
+                      encoder.encode(`data: ${JSON.stringify({ content: delta })}\n\n`)
+                    )
+                  }
+                } catch {
+                  // skip malformed SSE lines
+                }
+              }
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            controller.close()
+          } catch (err) {
+            const errMsg = err instanceof Error ? err.message : 'Stream error'
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify({ error: errMsg })}\n\n`)
+            )
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(readable, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      })
+    }
+
+    // ─── Non-streaming path (original behavior) ────────────────────────────
+    const result = await client.chat.completions.create({
+      model: 'GLM-5-turbo',
+      messages: apiMessages,
+      thinking: { type: 'disabled' },
+    })
+
+    const responseText = result.choices[0].message.content
+
+    return NextResponse.json({
+      success: true,
+      message: responseText,
+      metadata: {
+        messageCount: messages.length,
+        tokens: result.usage,
+        generatedAt: new Date().toISOString(),
+      },
+    })
+  } catch (error) {
+    console.error('POST /api/ai/chat error:', error)
+    const msg = error instanceof Error ? error.message : 'Failed to process chat request'
+
+    if (msg.includes('1301') || msg.includes('contentFilter') || msg.includes('敏感')) {
+      return NextResponse.json({
+        error: 'content_filter',
+        userMessage: '⚠️ متأسفانه درخواست شما توسط سیستم ایمنی فیلتر شد. لطفاً توضیحات خود را تغییر دهید.',
+      }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: msg, userMessage: '⚠️ خطا در پردازش درخواست. لطفاً دوباره تلاش کنید.' }, { status: 500 })
+  }
+}
