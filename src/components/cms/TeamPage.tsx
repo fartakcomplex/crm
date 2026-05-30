@@ -151,7 +151,7 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
+    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -167,7 +167,7 @@ export default function TeamPage() {
 
       {/* Filters */}
       <Card className="glass-card card-elevated shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
@@ -220,7 +220,7 @@ export default function TeamPage() {
                   </Badge>
                 </div>
                 {/* Info */}
-                <CardContent className="p-4 space-y-3">
+                <CardContent className="p-3 sm:p-4 md:p-6 space-y-3">
                   <div className="text-center">
                     <p className="font-semibold text-base">{member.name}</p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1.5 mt-1.5">
@@ -241,10 +241,10 @@ export default function TeamPage() {
                     {labels.joinDate}: {formatDate(member.joinedAt)}
                   </p>
                   <div className="flex gap-2 justify-center pt-1">
-                    <Button size="sm" variant="outline" className="gap-1.5 h-8 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(member)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-10 sm:h-11 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(member)}>
                       <Pencil className="h-3 w-3" />{labels.edit}
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1.5 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleDelete(member.id)}>
+                    <Button size="sm" variant="outline" className="gap-1.5 h-10 sm:h-11 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleDelete(member.id)}>
                       <Trash2 className="h-3 w-3" />{labels.delete}
                     </Button>
                   </div>

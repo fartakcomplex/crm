@@ -224,3 +224,156 @@ Stage Summary:
 - All changes are className-only (no logic changes)
 - RTL and dark/light theme support maintained
 - All Persian/Farsi text preserved unchanged
+
+---
+Task ID: 9
+Agent: Main Agent + 5 subagents
+Task: Comprehensive Mobile Responsive Overhaul
+
+Work Log:
+- Fixed pre-existing lint error: Added missing `Star` import to ContentPage.tsx (lucide-react)
+- QA tested entire application on mobile viewport (375x812 iPhone X) using agent-browser + VLM analysis
+- Identified and documented all mobile responsive issues across landing page, dashboard, table pages, card pages, sidebar, and shared components
+
+**globals.css (+75 lines mobile CSS):**
+- Added `.table-responsive-wrapper` class with horizontal scroll and thin scrollbar for mobile tables
+- Added `@media (max-width: 639px)` rules: 44px min touch targets for buttons/links/inputs, 36px for icon buttons
+- Bumped base font to 15px on mobile for readability, `.text-xs` to 0.7rem
+- Added 12px border-radius for glass-card on mobile
+- Added iOS safe area support with `env(safe-area-inset-*)` utilities
+- Forced Radix dialog to near-full viewport width on mobile
+- Hidden horizontal scrollbar tracks on `.overflow-x-auto` for cleaner swiping
+
+**LandingPage.tsx (responsive fixes):**
+- Navbar: Logo gap `gap-2 sm:gap-3`, logo box `w-9 h-9 sm:w-10 sm:h-10`, logo text `text-lg sm:text-xl`
+- Touch targets: Hamburger and theme toggle `h-10 w-10` (44px)
+- Mobile menu: Overlay padding `py-4 sm:py-3`, link buttons `py-3`, CTA `py-5`
+- Hero: Container padding `py-12 sm:py-16 md:py-24 lg:py-32`, heading `text-3xl sm:text-4xl md:text-5xl`, paragraph `text-sm sm:text-base md:text-lg`
+- Badge: `mb-4 sm:mb-6 px-3 py-1 sm:px-4 sm:py-1.5`
+- Trust indicators: `hidden sm:block` on very small screens
+- Section paddings: `py-16 sm:py-20 md:py-28`
+- Features grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+- AI capabilities: `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5`
+- Testimonials: `grid-cols-1 md:grid-cols-3`
+- Pricing: `grid-cols-1 md:grid-cols-3`
+- Stats: `gap-3 sm:gap-4 md:gap-6`, card `p-4 sm:p-6`
+- Footer: `grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8`
+
+**DashboardPage.tsx (responsive fixes):**
+- StatCard grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4`
+- MiniTrendCard grid: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
+- System Health grid: `grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3`
+- StatCard text: label `text-xs sm:text-sm`, value `text-xl sm:text-2xl`
+- PersianClockWidget: Digits `text-base sm:text-xl`, padding `px-1.5 py-0.5 sm:px-2 sm:py-1`, min-width `min-w-[2rem] sm:min-w-[2.5rem]`
+- Section CardHeader: `py-2.5 sm:py-3`
+- Dashboard skeleton: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6`
+- All 5 chart sections: `min-h-[200px] sm:min-h-[250px] md:min-h-[300px]`
+- DashboardQuickStatsSummary: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`
+
+**Table pages (8 files - responsive table wrappers + hidden columns):**
+- ContentPage.tsx: Table wrapped in `.table-responsive-wrapper`, action buttons `sm:h-9 sm:w-9`
+- UsersPage.tsx: Wrapper + email `hidden sm:table-cell` + role `hidden md:table-cell`
+- StorePage.tsx: Wrapper + SKU `hidden md:table-cell` + stock `hidden lg:table-cell` + order columns
+- CrmPage.tsx: Wrapper + email `hidden sm:table-cell`
+- InventoryPage.tsx: Wrapper + action button sizing
+- AccountingPage.tsx: Wrapper + action button sizing
+- CustomersPage.tsx: Wrapper + email `hidden sm:table-cell`
+- FinancePage.tsx: Wrapper (already had mobile card view)
+
+**Card pages (8 files - responsive grids + touch targets):**
+- TasksPage.tsx: Kanban `overflow-x-auto` with `min-w-[280px]` columns, action buttons `h-10 sm:h-11`
+- ProjectsPage.tsx: Card padding `p-3 sm:p-4 md:p-6`, stats `md:grid-cols-4`
+- CommentsPage.tsx: Filter badges in `overflow-x-auto` with `flex-shrink-0`, avatar `h-8 w-8 sm:h-10 sm:w-10`
+- MediaPage.tsx: Grid `grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5`
+- ActivitiesPage.tsx: Timeline padding updated
+- NotificationsPage.tsx: Filter tabs in `overflow-x-auto` with `flex-shrink-0`
+- TeamPage.tsx: Card content responsive padding, action buttons `h-10 sm:h-11`
+- ReportsPage.tsx: Charts `h-56 sm:h-64 md:h-72`, summary `md:grid-cols-4`
+
+**Shared components:**
+- PaginationControls.tsx: Buttons `h-9 w-9 sm:h-8 sm:w-8` (44px on mobile), padding `px-3 sm:px-4`
+- QuickStatsRow.tsx: Stat cards `min-w-[160px]` (from 200px), value `text-lg sm:text-xl`
+- SearchDialog.tsx: Max height `max-h-[85vh] sm:max-h-[70vh]`
+- page.tsx sidebar nav items: `h-10 sm:h-9` (44px on mobile)
+- page.tsx sidebar sheet: `w-[300px] sm:w-[280px]`
+- page.tsx hamburger button: `h-10 w-10`
+- page.tsx main content: `pb-16 md:pb-0` for bottom nav space
+
+Stage Summary:
+- ~30 files modified for mobile responsiveness
+- 75 lines of new mobile CSS in globals.css
+- All changes are className-only (no logic changes)
+- Lint passes cleanly (0 errors, 0 warnings)
+- VLM QA ratings: Landing page 9/10, Dashboard 7/10, Content table 8/10, Tasks kanban 8/10
+- All text in Persian/Farsi preserved
+
+---
+Task ID: 10
+Agent: full-stack-developer (2 subagents)
+Task: Add Mobile-Specific Features (Bottom Nav, FAB, Scroll-to-Top)
+
+Work Log:
+- Added `MobileBottomNav` component in page.tsx:
+  - 5 quick-access tabs: Dashboard, Content, Tasks, AI Assistant, Settings
+  - Only visible on mobile (`md:hidden`), fixed at bottom with safe-area support
+  - Active indicator with violet gradient bottom bar
+  - RTL-aware with `dir="rtl"`
+- Added `MobileFAB` (Floating Action Button) component:
+  - 3 quick actions: New Post, New Task, AI Assistant
+  - Framer Motion expand/collapse animation
+  - Positioned at `bottom-20 left-4` to avoid overlap with bottom nav
+  - Rotates to close icon when expanded
+- Added `ScrollToTopFAB` component:
+  - Appears when scrolled > 300px
+  - Smooth scroll to top on click
+  - Glassmorphic styling, `md:hidden`
+- Added `handleFABAction` handler mapping FAB actions to tab switches
+- Adjusted main content `pb-16 md:pb-0` for bottom nav space
+
+Stage Summary:
+- 3 new mobile-only components added
+- All animations use framer-motion
+- All text in Persian/Farsi
+- Lint passes cleanly
+- Mobile navigation experience significantly improved
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Excellent. Mobile responsive overhaul complete. All 20+ modules fully functional on mobile (375px+). 
+- **Server Stability**: Running on port 3000, responding with 200 OK. Cron keep-alive active.
+- **Code Quality**: Lint passes cleanly (0 errors, 0 warnings). TypeScript strict mode.
+- **Mobile Responsiveness**: Comprehensive responsive design across all pages with proper touch targets, flexible grids, table scroll wrappers, and mobile-only navigation.
+- **Features**: 20+ modules + mobile bottom nav, floating action button, scroll-to-top, WebSocket notifications, advanced search API, drag-and-drop notes, data export.
+
+### Completed Modifications (This Round)
+1. Fixed lint error: Star import in ContentPage.tsx
+2. Comprehensive mobile responsive overhaul (30+ files)
+3. Added mobile bottom navigation bar (5 quick tabs)
+4. Added mobile floating action button (3 quick actions)
+5. Added mobile scroll-to-top button
+6. Mobile-optimized: tables, grids, touch targets, fonts, spacing, dialogs, sidebar
+
+### Verification Results
+- Landing page mobile: 9/10 (VLM analysis)
+- Dashboard mobile: 7/10 (VLM analysis) 
+- Content table mobile: 8/10 (VLM analysis)
+- Tasks kanban mobile: 8/10 (VLM analysis)
+- Lint: 0 errors, 0 warnings
+- Dev server: HTTP 200 on port 3000
+
+### Unresolved Issues / Risks
+1. **Dashboard charts**: Still slightly small on mobile (7/10). Charts could benefit from a mobile-specific layout (stacked cards instead of side-by-side).
+2. **Server instability**: Periodic Turbopack crashes mitigated by auto-restart but not root-cause fixed.
+3. **No real authentication**: Simple state-based login. NextAuth.js available but not implemented.
+4. **Long Persian text**: Some very long text strings may still truncate in tight spaces (rare).
+
+### Next Phase Recommendations
+1. **Priority 1**: Further optimize dashboard charts for mobile (consider mobile-specific card layout)
+2. **Priority 2**: Add real authentication with NextAuth.js
+3. **Priority 3**: Add PWA support (service worker, manifest) for mobile app-like experience
+4. **Priority 4**: Implement mobile swipe gestures for navigation
+5. **Priority 5**: Add offline data caching with service worker
+6. **Priority 6**: Performance audit — lazy loading for non-visible modules

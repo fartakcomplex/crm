@@ -153,12 +153,12 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between" dir="rtl">
         {/* Logo */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25">
             <Bot className="h-5 w-5 text-white" />
           </div>
           <div>
-            <span className="font-bold text-xl tracking-tight">Smart CMS</span>
+            <span className="font-bold text-lg sm:text-xl tracking-tight">Smart CMS</span>
             <span className="block text-[10px] text-muted-foreground -mt-0.5 leading-tight">سیستم مدیریت هوشمند</span>
           </div>
         </div>
@@ -181,7 +181,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-9 w-9"
+            className="h-10 w-10"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -197,7 +197,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden h-9 w-9"
+            className="md:hidden h-10 w-10"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -214,19 +214,19 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-background/95 backdrop-blur-xl border-b border-border/30 overflow-hidden"
           >
-            <div className="px-4 py-3 space-y-1" dir="rtl">
+            <div className="px-4 py-4 sm:py-3 space-y-1" dir="rtl">
               {navLinks.map(link => (
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="block w-full text-right px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-foreground hover:bg-accent/50 transition-all cursor-pointer"
+                  className="block w-full text-right px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-foreground hover:bg-accent/50 transition-all cursor-pointer"
                 >
                   {link.label}
                 </button>
               ))}
               <Button
                 onClick={() => { onEnter(); setMobileOpen(false) }}
-                className="w-full mt-2 gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white"
+                className="w-full mt-2 gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white py-5"
               >
                 <Rocket className="h-4 w-4" />
                 ورود به پنل
@@ -278,7 +278,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
 
       <motion.div
         style={{ y: heroY, opacity: heroOpacity }}
-        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32"
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 lg:py-32"
       >
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center" dir="rtl">
           {/* Text Content — RTL-safe alignment with isolation */}
@@ -288,7 +288,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Badge className="mb-6 px-4 py-1.5 bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/15 cursor-default badge-pulse">
+              <Badge className="mb-4 sm:mb-6 px-3 py-1 sm:px-4 sm:py-1.5 bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20 hover:bg-violet-500/15 cursor-default badge-pulse">
                 <Sparkles className="h-3.5 w-3.5 ml-1.5" />
                 نسخه ۲.۰ — با هوش مصنوعی قدرتمند
               </Badge>
@@ -298,7 +298,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight tracking-tight"
             >
               <span className="block">مدیریت هوشمند</span>
               <span className="block mt-2 text-animated-gradient text-gradient-violet">
@@ -310,7 +310,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-6 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 lg:max-w-none"
+              className="mt-6 text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 lg:max-w-none"
             >
               یک پلتفرم جامع و قدرتمند برای مدیریت محتوا، فروشگاه، CRM و حسابداری
               با بهره‌گیری از آخرین فناوری‌های هوش مصنوعی
@@ -347,7 +347,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.7 }}
-              className="mt-10 flex items-center gap-6 justify-center lg:justify-start"
+              className="mt-10 flex items-center gap-4 sm:gap-6 justify-center lg:justify-start"
             >
               <div className="flex -space-x-3 space-x-reverse">
                 {['from-violet-400 to-purple-500', 'from-fuchsia-400 to-pink-500', 'from-cyan-400 to-teal-500', 'from-amber-400 to-orange-500'].map((g, i) => (
@@ -356,7 +356,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
                   </div>
                 ))}
               </div>
-              <div className="text-sm">
+              <div className="text-sm hidden sm:block">
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map(i => (
                     <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
@@ -455,7 +455,7 @@ function StatsSection() {
     <section className="relative py-16 md:py-20 min-h-[200px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
         <AnimatedSection>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             {stats.map((stat, i) => (
               <motion.div
                 key={stat.label}
@@ -465,7 +465,7 @@ function StatsSection() {
                 <Card className="relative overflow-hidden border-border/30 hover:border-violet-500/40 transition-all duration-300 bg-card/40 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 card-elevated hover-lift">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
-                  <CardContent className="p-6 text-center relative z-10">
+                  <CardContent className="p-4 sm:p-6 text-center relative z-10">
                     <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-br ${stat.color === 'text-violet-500' ? 'from-violet-500/15 to-purple-500/10' : stat.color === 'text-fuchsia-500' ? 'from-fuchsia-500/15 to-pink-500/10' : stat.color === 'text-emerald-500' ? 'from-emerald-500/15 to-teal-500/10' : 'from-amber-500/15 to-orange-500/10'} backdrop-blur-sm group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}><stat.icon className={`h-7 w-7 ${stat.color}`} /></div>
                     <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent stat-count-animate">
                       {stat.value}
@@ -551,7 +551,7 @@ function FeaturesSection() {
   ]
 
   return (
-    <section id="features" className="relative py-20 md:py-28 min-h-[500px]">
+    <section id="features" className="relative py-16 sm:py-20 md:py-28 min-h-[500px]">
       <GradientOrb className="w-[500px] h-[500px] bg-violet-500 top-20 -left-60 opacity-20" />
       <GradientOrb className="w-[400px] h-[400px] bg-fuchsia-500 bottom-20 -right-60 opacity-15" />
 
@@ -569,7 +569,7 @@ function FeaturesSection() {
           </p>
         </AnimatedSection>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.07}>
               <Card className={`group relative overflow-hidden border-border/40 hover:border-transparent transition-all duration-500 bg-card/50 backdrop-blur-sm hover:shadow-2xl ${f.glow} cursor-default h-full card-gradient-border card-press hover-lift card-shimmer`}>
@@ -615,7 +615,7 @@ function ProductsSection() {
   ]
 
   return (
-    <section id="products" className="relative py-20 md:py-28 min-h-[600px]">
+    <section id="products" className="relative py-16 sm:py-20 md:py-28 min-h-[600px]">
       <div className="absolute inset-0 bg-gradient-to-b from-violet-500/[0.02] via-transparent to-transparent pointer-events-none" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" dir="rtl">
         <AnimatedSection className="text-center mb-16">
@@ -683,7 +683,7 @@ function AICapabilitiesSection() {
   ]
 
   return (
-    <section className="relative py-20 md:py-28 overflow-hidden min-h-[600px]">
+    <section className="relative py-16 sm:py-20 md:py-28 overflow-hidden min-h-[600px]">
       <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 via-fuchsia-500/5 to-transparent pointer-events-none" />
       <GradientOrb className="w-[600px] h-[600px] bg-cyan-500 top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 opacity-15" />
 
@@ -701,7 +701,7 @@ function AICapabilitiesSection() {
           </p>
         </AnimatedSection>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
           {capabilities.map((cap, i) => (
             <AnimatedSection key={cap.title} delay={i * 0.06}>
               <motion.div
@@ -751,7 +751,7 @@ function TestimonialsSection() {
   ]
 
   return (
-    <section id="about" className="relative py-20 md:py-28 min-h-[500px]">
+    <section id="about" className="relative py-16 sm:py-20 md:py-28 min-h-[500px]">
       <GradientOrb className="w-[500px] h-[500px] bg-amber-500 top-20 -right-60 opacity-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" dir="rtl">
@@ -765,7 +765,7 @@ function TestimonialsSection() {
           </h2>
         </AnimatedSection>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
             <AnimatedSection key={t.name} delay={i * 0.12}>
               <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 hover:border-violet-500/20 transition-all duration-300 h-full card-elevated card-gradient-border hover-lift">
@@ -832,7 +832,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
   ]
 
   return (
-    <section id="pricing" className="relative py-20 md:py-28 min-h-[500px]">
+    <section id="pricing" className="relative py-16 sm:py-20 md:py-28 min-h-[500px]">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-violet-500/[0.03] to-transparent pointer-events-none" />
       <GradientOrb className="w-[500px] h-[500px] bg-fuchsia-500 top-1/3 -right-60 opacity-15" />
 
@@ -850,7 +850,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
           </p>
         </AnimatedSection>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, i) => (
             <AnimatedSection key={plan.name} delay={i * 0.1}>
               <Card className={`relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col card-gradient-border card-press ${plan.popular ? 'border-violet-500/40 shadow-xl shadow-violet-500/10 scale-[1.02] lg:scale-105' : 'hover:border-border/60 hover:shadow-lg card-elevated'}`}>
@@ -904,7 +904,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
 // ─── CTA Section ──────────────────────────────────────────────────
 function CTASection({ onEnter }: { onEnter: () => void }) {
   return (
-    <section id="contact" className="relative py-20 md:py-28 overflow-hidden min-h-[400px]">
+    <section id="contact" className="relative py-16 sm:py-20 md:py-28 overflow-hidden min-h-[400px]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
         <AnimatedSection>
           <div className="relative rounded-3xl overflow-hidden">
@@ -922,7 +922,7 @@ function CTASection({ onEnter }: { onEnter: () => void }) {
               }}
             />
 
-            <div className="relative z-10 px-6 py-16 md:px-16 md:py-20 text-center">
+            <div className="relative z-10 px-6 py-12 sm:py-16 md:px-16 md:py-20 text-center">
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity }}
@@ -1036,7 +1036,7 @@ function SystemStatsBar() {
   ]
 
   return (
-    <section className="relative py-10 md:py-14 bg-gradient-to-b from-transparent via-violet-500/[0.02] to-transparent">
+    <section className="relative py-8 sm:py-10 md:py-14 bg-gradient-to-b from-transparent via-violet-500/[0.02] to-transparent">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
         <AnimatedSection>
           <div className="text-center mb-6">
@@ -1086,8 +1086,8 @@ function Footer() {
 
   return (
     <footer id="footer" className="relative border-t border-border/40 bg-card/30 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16" dir="rtl">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16" dir="rtl">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2.5 mb-4">

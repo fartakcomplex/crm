@@ -234,7 +234,7 @@ export default function MediaPage() {
 
   return (
     <div
-      className="space-y-6 p-4 md:p-6 page-enter"
+      className="space-y-6 p-4 sm:p-6 page-enter"
       onDragOver={handleMainDrag}
       onDrop={handleMainDrop}
     >
@@ -253,7 +253,7 @@ export default function MediaPage() {
 
       {/* Filters */}
       <Card className="glass-card shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
@@ -291,7 +291,7 @@ export default function MediaPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {filtered.map((item, idx) => (
             <Card
               key={item.id}
@@ -304,10 +304,10 @@ export default function MediaPage() {
                 {typeIcons[item.type] ?? typeIcons.other}
                 {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2 backdrop-blur-[2px]">
-                  <Button size="icon" variant="ghost" className="h-9 w-9 text-white hover:bg-white/20 hover:scale-110 transition-all duration-200" onClick={e => { e.stopPropagation(); openDetail(item) }}>
+                  <Button size="icon" variant="ghost" className="h-9 w-9 sm:h-10 sm:w-10 text-white hover:bg-white/20 hover:scale-110 transition-all duration-200" onClick={e => { e.stopPropagation(); openDetail(item) }}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-9 w-9 text-white hover:bg-red-500/40 hover:scale-110 transition-all duration-200" onClick={e => { e.stopPropagation(); openDelete(item.id) }}>
+                  <Button size="icon" variant="ghost" className="h-9 w-9 sm:h-10 sm:w-10 text-white hover:bg-red-500/40 hover:scale-110 transition-all duration-200" onClick={e => { e.stopPropagation(); openDelete(item.id) }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

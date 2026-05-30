@@ -1037,7 +1037,7 @@ export default function StorePage() {
           {/* Products Table */}
           <Card className="glass-card card-elevated card-gradient-border shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 max-h-[600px] overflow-y-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
@@ -1049,12 +1049,12 @@ export default function StorePage() {
                       </TableHead>
                       <TableHead className="p-3 text-xs font-semibold">تصویر</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">نام محصول</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">SKU</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden md:table-cell">SKU</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">قیمت</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">موجودی</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden lg:table-cell">موجودی</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">وضعیت</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">دسته‌بندی</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">تاریخ</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden md:table-cell">دسته‌بندی</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden sm:table-cell">تاریخ</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1082,14 +1082,14 @@ export default function StorePage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="p-3 text-xs text-muted-foreground font-mono" dir="ltr">{product.sku}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground font-mono hidden md:table-cell" dir="ltr">{product.sku}</TableCell>
                           <TableCell className="p-3">
                             <span className={`font-bold text-sm tabular-nums ${product.salePrice > 0 ? 'text-red-500' : 'text-foreground'}`}>
                               {formatPrice(product.salePrice || product.price)}
                             </span>
                             <span className="text-[10px] text-muted-foreground mr-1">تومان</span>
                           </TableCell>
-                          <TableCell className="p-3">
+                          <TableCell className="p-3 hidden lg:table-cell">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className={`text-sm font-medium tabular-nums ${product.stock === 0 ? 'text-red-500' : product.stock <= product.minStock ? 'text-amber-500' : 'text-emerald-600'}`}>
                                 {toPersianDigits(product.stock)}
@@ -1114,8 +1114,8 @@ export default function StorePage() {
                               {sc.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="p-3 text-xs text-muted-foreground">{product.category}</TableCell>
-                          <TableCell className="p-3 text-xs text-muted-foreground">{product.createdAt}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground hidden md:table-cell">{product.category}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground hidden sm:table-cell">{product.createdAt}</TableCell>
                           <TableCell className="p-3">
                             <div className="flex items-center gap-1">
                               <Button
@@ -1211,16 +1211,16 @@ export default function StorePage() {
           {/* Orders Table */}
           <Card className="glass-card card-elevated shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 max-h-[600px] overflow-y-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>
                       <TableHead className="p-3 text-xs font-semibold">شماره سفارش</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">مشتری</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">تعداد اقلام</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden sm:table-cell">تعداد اقلام</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">مبلغ کل</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">وضعیت سفارش</TableHead>
-                      <TableHead className="p-3 text-xs font-semibold">تاریخ</TableHead>
+                      <TableHead className="p-3 text-xs font-semibold hidden md:table-cell">تاریخ</TableHead>
                       <TableHead className="p-3 text-xs font-semibold">عملیات</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1246,7 +1246,7 @@ export default function StorePage() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="p-3 text-sm tabular-nums">
+                          <TableCell className="p-3 text-sm tabular-nums hidden sm:table-cell">
                             {toPersianDigits(order.items.reduce((s, i) => s + i.quantity, 0))} عدد
                           </TableCell>
                           <TableCell className="p-3 font-bold text-sm tabular-nums">{formatPrice(order.total)} <span className="text-[10px] font-normal text-muted-foreground">تومان</span></TableCell>
@@ -1255,9 +1255,9 @@ export default function StorePage() {
                               {sc.label}
                             </Badge>
                           </TableCell>
-                          <TableCell className="p-3 text-xs text-muted-foreground">{order.createdAt}</TableCell>
+                          <TableCell className="p-3 text-xs text-muted-foreground hidden md:table-cell">{order.createdAt}</TableCell>
                           <TableCell className="p-3">
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-9 sm:w-9">
                               <Eye className="h-3.5 w-3.5" />
                             </Button>
                           </TableCell>
@@ -1298,7 +1298,7 @@ export default function StorePage() {
 
           <Card className="glass-card shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1455,7 +1455,7 @@ export default function StorePage() {
 
           <Card className="glass-card shadow-sm">
             <CardContent className="p-0">
-              <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 max-h-[600px] overflow-y-auto">
                 <Table>
                   <TableHeader className="sticky top-0 bg-background z-10">
                     <TableRow>

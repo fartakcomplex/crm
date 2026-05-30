@@ -287,7 +287,7 @@ export default function TasksPage() {
   // ──────────────────────────── Render ────────────────────────────
 
   return (
-    <div className="space-y-5 p-4 md:p-6 page-enter" dir="rtl">
+    <div className="space-y-5 p-4 sm:p-6 page-enter" dir="rtl">
       {/* ═══════════════ Header ═══════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -304,7 +304,7 @@ export default function TasksPage() {
       </div>
 
       {/* ═══════════════ Stats Cards ═══════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {/* Total Tasks */}
         <Card className="card-elevated shadow-sm animate-in hover:shadow-lg transition-shadow duration-300" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
           <CardContent className="p-4 flex items-center gap-3">
@@ -360,7 +360,7 @@ export default function TasksPage() {
 
       {/* ═══════════════ Filter Bar ═══════════════ */}
       <Card className="glass-card shadow-sm animate-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           {/* Search */}
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -375,7 +375,8 @@ export default function TasksPage() {
           {/* Priority Filter */}
           <div className="flex items-center gap-2">
             <Flag className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="flex gap-1.5 flex-wrap">
+            <div className="overflow-x-auto flex-nowrap">
+              <div className="flex gap-1.5 flex-nowrap min-w-0">
               {[
                 { value: 'all', label: labels.all },
                 { value: 'low', label: 'کم' },
@@ -395,7 +396,7 @@ export default function TasksPage() {
                     onClick={() => setPriorityFilter(item.value)}
                     className={`
                       px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
-                      flex items-center gap-1.5
+                      flex items-center gap-1.5 flex-shrink-0
                       ${isActive
                         ? 'bg-primary text-primary-foreground shadow-sm hover:scale-[1.03] active:scale-[0.97]'
                         : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
@@ -407,6 +408,7 @@ export default function TasksPage() {
                   </button>
                 )
               })}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -427,7 +429,8 @@ export default function TasksPage() {
           description="فیلترهای جستجو یا اولویت را تغییر دهید"
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-in card-gradient-border" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+        <div className="overflow-x-auto animate-in card-gradient-border" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+        <div className="flex gap-4 min-w-max p-0.5">
           {KANBAN_COLUMNS.map((column) => {
             const columnTasks = tasksByStatus[column.id] ?? []
             const isDragTarget = dragOverColumn === column.id
@@ -435,7 +438,7 @@ export default function TasksPage() {
             return (
               <div
                 key={column.id}
-                className="flex flex-col"
+                className="flex flex-col min-w-[280px] w-[280px] sm:w-auto sm:min-w-0 sm:flex-1"
                 onDragOver={(e) => handleDragOver(e, column.id)}
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, column.id)}
@@ -519,21 +522,21 @@ export default function TasksPage() {
                                     handleStatusChange(task.id, KANBAN_COLUMNS[currentIndex + 1].id)
                                   }
                                 }}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-green-500/10 transition-colors shine-effect"
                                 title="انتقال به مرحله بعد"
                               >
                                 <ArrowUpDown className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openEdit(task, e)}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 transition-colors shine-effect"
                                 title={labels.edit}
                               >
                                 <Edit className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openDelete(task.id, e)}
-                                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors shine-effect"
+                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-500/10 transition-colors shine-effect"
                                 title={labels.delete}
                               >
                                 <Trash2 className="h-3 w-3" />
@@ -542,7 +545,7 @@ export default function TasksPage() {
                           </div>
 
                           {/* Title */}
-                          <h4 className={`text-sm font-semibold mb-1 leading-relaxed ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                          <h4 className={`text-sm font-semibold mb-1 leading-relaxed truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
                             {task.title}
                           </h4>
 
@@ -611,6 +614,7 @@ export default function TasksPage() {
               </div>
             )
           })}
+        </div>
         </div>
       )}
 

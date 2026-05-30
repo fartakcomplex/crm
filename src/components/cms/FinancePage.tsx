@@ -1071,7 +1071,7 @@ export default function FinancePage() {
           <Card className="glass-card shadow-sm">
             <CardContent className="p-0">
               {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden md:block table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border/50">

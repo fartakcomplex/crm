@@ -295,7 +295,7 @@ export default function CustomersPage() {
               <p className="text-sm mt-1 opacity-60">برای شروع مشتری جدیدی اضافه کنید</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -305,7 +305,7 @@ export default function CustomersPage() {
                         {sortColumn === 'name' ? (sortDirection === 'asc' ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />) : <ArrowUpDown className="h-3.5 w-3.5 opacity-40" />}
                       </button>
                     </TableHead>
-                    <TableHead>{labels.email}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{labels.email}</TableHead>
                     <TableHead className="hidden md:table-cell">{labels.company}</TableHead>
                     <TableHead>
                       <button onClick={() => handleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
@@ -347,7 +347,7 @@ export default function CustomersPage() {
                             <span className="font-medium">{customer.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-sm text-muted-foreground" dir="ltr">{customer.email}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-sm text-muted-foreground" dir="ltr">{customer.email}</TableCell>
                         <TableCell className="hidden md:table-cell text-sm">
                           {customer.company && (
                             <div className="flex items-center gap-1.5">
@@ -369,11 +369,11 @@ export default function CustomersPage() {
                           {formatDate(customer.createdAt)}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(customer) }}>
+                          <div className="flex items-center gap-1">
+                            <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(customer) }}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                            <Button size="icon" variant="ghost" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(customer.id) }}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(customer.id) }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>

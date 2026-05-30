@@ -149,7 +149,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
+    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -166,7 +166,7 @@ export default function ProjectsPage() {
       {/* Stats Overview */}
       {projectsData.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {/* کل پروژه‌ها */}
             <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
 
       {/* Filters */}
       <Card className="glass-card-cyan card-elevated shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />
@@ -294,7 +294,7 @@ export default function ProjectsPage() {
               >
                 {/* Header bar */}
                 <div className={`h-2 bg-gradient-to-r ${gradient} transition-all duration-500 shadow-sm`} />
-                <CardContent className="p-5 space-y-3.5">
+                <CardContent className="p-3 sm:p-4 md:p-6 space-y-3.5">
                   {/* Title + badges */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -347,10 +347,10 @@ export default function ProjectsPage() {
 
                   {/* Actions */}
                   <div className="flex gap-2 pt-1">
-                    <Button size="sm" variant="outline" className="flex-1 gap-1.5 h-8 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(project)}>
+                    <Button size="sm" variant="outline" className="flex-1 gap-1.5 h-10 sm:h-11 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openEdit(project)}>
                       <Pencil className="h-3 w-3" />{labels.edit}
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-1 h-8 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openDelete(project.id)}>
+                    <Button size="sm" variant="outline" className="gap-1 h-10 sm:h-11 text-red-500 hover:text-red-600 hover:bg-red-500/10 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => openDelete(project.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>

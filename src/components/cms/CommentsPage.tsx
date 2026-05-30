@@ -133,7 +133,7 @@ export default function CommentsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll">
+    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -142,10 +142,11 @@ export default function CommentsPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="overflow-x-auto flex-nowrap">
+          <div className="flex gap-2 flex-nowrap min-w-0">
           <Button
             variant="outline"
-            className="btn-ghost-subtle gap-2 border-orange-300 dark:border-orange-700 hover:bg-orange-500/10 text-orange-700 dark:text-orange-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="btn-ghost-subtle gap-2 border-orange-300 dark:border-orange-700 hover:bg-orange-500/10 text-orange-700 dark:text-orange-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 h-10 sm:h-11 flex-shrink-0"
             onClick={() => {
               exportToCSV(
                 filtered.map(c => ({
@@ -173,23 +174,24 @@ export default function CommentsPage() {
             خروجی CSV
           </Button>
           {pendingCount > 0 && (
-            <Badge className="badge-gradient-violet border-0 shadow-sm">
+            <Badge className="badge-gradient-violet border-0 shadow-sm flex-shrink-0">
               {pendingCount} در انتظار
             </Badge>
           )}
-          <Badge className="badge-gradient-emerald border-0 shadow-sm">
+          <Badge className="badge-gradient-emerald border-0 shadow-sm flex-shrink-0">
             {approvedCount} تأیید شده
           </Badge>
-          <Badge className="badge-gradient-rose border-0 shadow-sm">
+          <Badge className="badge-gradient-rose border-0 shadow-sm flex-shrink-0">
             {rejectedCount} رد شده
           </Badge>
+          </div>
         </div>
       </div>
 
       {/* Filters + Sort */}
       <Card className="glass-card-rose card-elevated shadow-sm">
         <CardContent className="p-4 space-y-3">
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder={labels.search} value={search} onChange={e => handleSearchChange(e.target.value)} className="pr-10" />
@@ -257,11 +259,11 @@ export default function CommentsPage() {
                 >
                   {/* Colored left accent */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${gradient}`} />
-                  <CardContent className="p-5 space-y-3">
+                  <CardContent className="p-3 sm:p-4 md:p-6 space-y-3">
                     {/* Top row: author + status + time */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-sm font-bold shadow-md">
                           {comment.author.charAt(0)}
                         </div>
                         <div>
@@ -297,17 +299,17 @@ export default function CommentsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       {comment.status === 'pending' && (
                         <>
-                          <Button size="sm" variant="outline" className="gap-1.5 border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-500/10 text-xs hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleApprove(comment.id)}>
+                          <Button size="sm" variant="outline" className="gap-1.5 border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-500/10 text-xs h-10 sm:h-11 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleApprove(comment.id)}>
                             <Check className="h-3.5 w-3.5" />
                             {labels.approve}
                           </Button>
-                          <Button size="sm" variant="outline" className="gap-1.5 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-500/10 text-xs hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleReject(comment.id)}>
+                          <Button size="sm" variant="outline" className="gap-1.5 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-500/10 text-xs h-10 sm:h-11 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => handleReject(comment.id)}>
                             <X className="h-3.5 w-3.5" />
                             {labels.reject}
                           </Button>
                         </>
                       )}
-                      <Button size="sm" variant="outline" className="gap-1.5 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 text-xs hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => setReplyingTo(isReplying ? null : comment.id)}>
+                      <Button size="sm" variant="outline" className="gap-1.5 border-orange-300 dark:border-orange-700 text-orange-600 dark:text-orange-400 hover:bg-orange-500/10 text-xs h-10 sm:h-11 hover:scale-[1.03] active:scale-[0.97] transition-all duration-200" onClick={() => setReplyingTo(isReplying ? null : comment.id)}>
                         <Reply className="h-3.5 w-3.5" />
                         {labels.reply}
                       </Button>

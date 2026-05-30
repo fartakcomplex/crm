@@ -547,7 +547,7 @@ export function SearchDialog({ open, onOpenChange, onNavigate }: SearchDialogPro
       if (!newOpen) { setQuery(''); setActiveFilterType('all') }
       setIsFocused(false)
     }}>
-      <DialogContent className="glass-card sm:max-w-2xl p-0 gap-0 overflow-hidden" dir="rtl">
+      <DialogContent className="glass-card sm:max-w-2xl p-0 gap-0 overflow-hidden max-h-[85vh] sm:max-h-[70vh]" dir="rtl">
         <DialogHeader className="sr-only">
           <DialogTitle>جستجوی سریع</DialogTitle>
         </DialogHeader>

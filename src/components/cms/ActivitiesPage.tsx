@@ -109,9 +109,9 @@ export default function ActivitiesPage() {
   }, [activities])
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter content-area reveal-on-scroll">
+    <div className="space-y-6 p-4 sm:p-6 page-enter content-area reveal-on-scroll">
       {/* ─── Gradient Header ─── */}
-      <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
+      <div className="relative rounded-2xl overflow-hidden p-4 sm:p-6 md:p-8 glass-card shine-effect">
         <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 via-emerald-500/5 to-cyan-500/10 pointer-events-none" />
         <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-lime-400/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
@@ -149,7 +149,8 @@ export default function ActivitiesPage() {
       </div>
 
       {/* ─── Filter Chips ─── */}
-      <div className="tab-group flex flex-wrap items-center gap-2 animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+      <div className="overflow-x-auto animate-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+        <div className="tab-group flex flex-nowrap items-center gap-2 min-w-max p-0.5">
         <div className="flex items-center gap-2 text-sm text-muted-foreground ml-2">
           <Filter className="h-4 w-4" />
           {labels.filter}:
@@ -161,8 +162,8 @@ export default function ActivitiesPage() {
               key={chip.key}
               onClick={() => setActiveChip(chip.key)}
               className={`
-                tab-item inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
-                transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
+                tab-item inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-full text-sm font-medium
+                transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] flex-shrink-0
                 ${isActive
                   ? 'tab-item-active bg-gradient-to-r from-lime-500 to-emerald-500 text-white shadow-lg shadow-lime-500/25 hover:shadow-lime-500/35'
                   : 'glass-card border border-lime-200/50 dark:border-lime-800/30 text-lime-700 dark:text-lime-400 hover:bg-lime-500/10 hover:border-lime-300/50'
@@ -174,6 +175,7 @@ export default function ActivitiesPage() {
             </button>
           )
         })}
+      </div>
       </div>
 
       {/* ─── Activity Timeline ─── */}
@@ -197,7 +199,7 @@ export default function ActivitiesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-8 card-gradient-border p-4 md:p-6 rounded-xl">
+        <div className="space-y-8 card-gradient-border p-4 sm:p-6 rounded-xl">
           {grouped.map((group, gi) => (
             <div key={gi} className="animate-in" style={{ animationDelay: `${(gi + 1) * 120}ms`, animationFillMode: 'both' }}>
               {/* Date Header */}

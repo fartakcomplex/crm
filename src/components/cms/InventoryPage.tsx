@@ -739,7 +739,7 @@ export default function InventoryPage() {
                       <p className="text-base font-medium">{search ? labels.noResults : 'قلمی یافت نشد'}</p>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
+                    <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
                       <Table>
                         <TableHeader>
                           <TableRow className="hover:bg-transparent">
@@ -845,8 +845,8 @@ export default function InventoryPage() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
-                                  <div className="flex gap-1">
-                                    <Button size="icon" variant="ghost" className="h-8 w-8 text-sky-500 hover:text-sky-600 hover:bg-sky-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => openAdjust(item)} title={labels.adjust}>
+                                  <div className="flex items-center gap-1">
+                                    <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-sky-500 hover:text-sky-600 hover:bg-sky-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={() => openAdjust(item)} title={labels.adjust}>
                                       <ArrowUpCircle className="h-4 w-4" />
                                     </Button>
                                   </div>

@@ -680,10 +680,11 @@ export default function CrmPage() {
 
       {/* Table */}
       <Card className="glass-card shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-right text-xs font-bold">مخاطب</TableHead>
+        <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-right text-xs font-bold">مخاطب</TableHead>
               <TableHead className="text-right text-xs font-bold hidden md:table-cell">شرکت</TableHead>
               <TableHead className="text-right text-xs font-bold hidden lg:table-cell">تلفن</TableHead>
               <TableHead className="text-right text-xs font-bold">ارزش معامله</TableHead>
@@ -753,7 +754,7 @@ export default function CrmPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-8 w-8 sm:h-9 sm:w-9 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={e => { e.stopPropagation(); openDetail(contact) }}
                       >
                         <Eye className="h-4 w-4" />
@@ -765,6 +766,7 @@ export default function CrmPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </Card>
     </div>
   )
@@ -1082,7 +1084,7 @@ export default function CrmPage() {
               <p className="text-sm">{labels.crossModule.noOrders}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -1133,7 +1135,7 @@ export default function CrmPage() {
               <p className="text-sm">{labels.crossModule.noInvoices}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="table-responsive-wrapper -mx-4 px-4 sm:mx-0 sm:px-0 overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">

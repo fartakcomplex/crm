@@ -461,7 +461,7 @@ export default function ReportsPage() {
   const conversionRate = 4.5
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter reveal-on-scroll" dir="rtl">
+    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll" dir="rtl">
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
@@ -496,7 +496,7 @@ export default function ReportsPage() {
       </div>
 
       {/* ─── Summary Cards Row ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 stagger-children">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 stagger-children">
         <SummaryMetricCard
           icon={<Wallet className="h-5 w-5" />}
           label={labels.totalRevenue}
@@ -590,7 +590,7 @@ export default function ReportsPage() {
             />
           </div>
           {/* Revenue Area Chart */}
-          <div className="h-72">
+          <div className="h-56 sm:h-64 md:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <defs>
@@ -616,7 +616,7 @@ export default function ReportsPage() {
           {/* Posts by Status - BarChart */}
           <div className="space-y-3">
             <Badge className="badge-gradient-cyan border-0 text-[10px]">{labels.postsByStatus}</Badge>
-            <div className="h-64">
+            <div className="h-52 sm:h-56 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={postsByStatusData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" />
@@ -635,7 +635,7 @@ export default function ReportsPage() {
           {/* Category Distribution - PieChart */}
           <div className="space-y-3">
             <Badge className="badge-gradient-violet border-0 text-[10px]">{labels.categoryDistribution}</Badge>
-            <div className="h-64">
+            <div className="h-52 sm:h-56 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -712,7 +712,7 @@ export default function ReportsPage() {
             />
           </div>
           {/* Orders Line Chart */}
-          <div className="h-72">
+          <div className="h-56 sm:h-64 md:h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dailyOrders} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" />
@@ -736,7 +736,7 @@ export default function ReportsPage() {
           {/* Daily Active Users - Area Chart */}
           <div className="space-y-3 lg:col-span-1">
             <Badge className="badge-gradient-cyan border-0 text-[10px]">{labels.dailyActiveUsers}</Badge>
-            <div className="h-64">
+            <div className="h-52 sm:h-56 md:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={dailyActiveUsers} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <defs>
@@ -809,7 +809,7 @@ export default function ReportsPage() {
           {/* Top Products - BarChart */}
           <div className="space-y-3">
             <Badge className="badge-gradient-rose border-0 text-[10px]">{labels.topProducts}</Badge>
-            <div className="h-72">
+            <div className="h-56 sm:h-64 md:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-muted/40" horizontal={false} />
@@ -828,7 +828,7 @@ export default function ReportsPage() {
           {/* Order Status Distribution - PieChart */}
           <div className="space-y-3">
             <Badge className="badge-gradient-rose border-0 text-[10px]">{labels.orderStatus}</Badge>
-            <div className="h-72">
+            <div className="h-56 sm:h-64 md:h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

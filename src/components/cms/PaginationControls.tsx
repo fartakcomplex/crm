@@ -70,7 +70,7 @@ export default function PaginationControls({
   if (totalItems <= 0) return null
 
   return (
-    <div className="glass-card shadow-sm mt-4 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div className="glass-card shadow-sm mt-4 px-3 sm:px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
       {/* Item count + page size selector */}
       <div className="flex items-center gap-3">
         <span className="text-sm text-muted-foreground">
@@ -105,7 +105,7 @@ export default function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-9 w-9 sm:h-8 sm:w-8"
           disabled={currentPage <= 1}
           onClick={() => onPageChange(currentPage - 1)}
           aria-label="صفحه قبلی"
@@ -131,7 +131,7 @@ export default function PaginationControls({
               key={page}
               variant={isActive ? 'default' : 'outline'}
               size="icon"
-              className={`h-8 w-8 text-xs tabular-nums transition-all duration-200 ${
+              className={`h-9 w-9 sm:h-8 sm:w-8 text-xs tabular-nums transition-all duration-200 ${
                 isActive
                   ? 'shadow-sm hover:shadow-md hover:scale-105'
                   : 'hover:scale-105'
@@ -149,7 +149,7 @@ export default function PaginationControls({
         <Button
           variant="outline"
           size="icon"
-          className="h-8 w-8"
+          className="h-9 w-9 sm:h-8 sm:w-8"
           disabled={currentPage >= totalPages}
           onClick={() => onPageChange(currentPage + 1)}
           aria-label="صفحه بعدی"

@@ -20,7 +20,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import {
   LayoutDashboard, FileText, ImageIcon, Users, UserCog, UserCircle, FolderKanban,
   Bot, BarChart3, Activity, MessageCircle, Bell, Globe, Settings, Settings2,
-  Menu, ChevronRight, ChevronLeft, Moon, Sun, Search, LogOut, User as UserIcon,
+  Menu, ChevronRight, ChevronLeft, ChevronUp, Moon, Sun, Search, LogOut, User as UserIcon,
   Zap, Plus, X, Database, Clock, Wifi, Keyboard, CheckSquare, Pencil,
   CalendarDays, ShoppingBag, Handshake, Receipt, Warehouse, Wallet,
   Sparkles,
@@ -47,6 +47,7 @@ import RecentCommentsWidget from '@/components/cms/RecentCommentsWidget'
 import { NotificationCenter } from '@/components/cms/NotificationCenter'
 import { formatRelativeTime } from '@/components/cms/types'
 import { toast } from 'sonner'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from '@/components/ui/dialog'
@@ -268,7 +269,7 @@ function SidebarNav({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          className={`w-full flex items-center gap-3 rounded-lg h-9 transition-all duration-200 cursor-pointer text-right ${
+                          className={`w-full flex items-center gap-3 rounded-lg h-10 sm:h-9 transition-all duration-200 cursor-pointer text-right ${
                             isActive
                               ? `sidebar-nav-item-active bg-gradient-to-l ${tab.gradient} text-white shadow-md`
                               : `sidebar-nav-item hover:bg-accent/60 ${getTabAccentClass(tab.id)} hover:translate-x-[-2px]`
@@ -619,6 +620,77 @@ function FloatingActionButton({ onNavigate, onOpenQuickDraft }: { onNavigate: (t
   )
 }
 
+// ─── Mobile FAB (Quick Actions) ────────────────────────────────────────
+
+function MobileFAB({ onAction }: { onAction: (action: string) => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const fabActions = [
+    { id: 'new-post', icon: Plus, label: 'مطلب جدید', gradient: 'from-cyan-500 to-cyan-700' },
+    { id: 'new-task', icon: CheckSquare, label: 'وظیفه جدید', gradient: 'from-violet-500 to-violet-700' },
+    { id: 'ai-chat', icon: Bot, label: 'دستیار AI', gradient: 'from-fuchsia-500 to-fuchsia-700' },
+  ]
+
+  return (
+    <div className="md:hidden fixed bottom-20 left-4 z-30" dir="rtl">
+      {/* Expanded actions */}
+      <AnimatePresence>
+        {expanded && fabActions.map((action, idx) => (
+          <motion.button
+            key={action.id}
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: -12 * (idx + 1) - idx * 48, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.8 }}
+            transition={{ duration: 0.2, delay: idx * 0.05 }}
+            onClick={() => { onAction(action.id); setExpanded(false) }}
+            className={`absolute left-0 flex items-center gap-2 bg-gradient-to-l ${action.gradient} text-white rounded-full pl-3 pr-4 py-2.5 shadow-lg active:scale-95 transition-transform`}
+          >
+            <action.icon className="h-4 w-4" />
+            <span className="text-xs font-medium">{action.label}</span>
+          </motion.button>
+        ))}
+      </AnimatePresence>
+      {/* Main FAB button */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-xl active:scale-90 transition-all duration-300 ${
+          expanded
+            ? 'bg-red-500 hover:bg-red-600 rotate-45'
+            : 'bg-gradient-to-br from-violet-500 to-fuchsia-600 hover:shadow-violet-500/40'
+        }`}
+      >
+        <Plus className="h-6 w-6 text-white transition-transform duration-300" />
+      </button>
+    </div>
+  )
+}
+
+// ─── Scroll-to-Top Mobile FAB ─────────────────────────────────────────
+
+function ScrollToTopFAB() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setVisible(window.scrollY > 300)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  if (!visible) return null
+
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="md:hidden fixed bottom-20 right-4 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg active:scale-90 transition-all"
+      dir="rtl"
+      aria-label="بازگشت به بالا"
+    >
+      <ChevronUp className="h-5 w-5" />
+    </button>
+  )
+}
+
 // ─── Notification Dropdown ─────────────────────────────────────────────
 
 function NotificationDropdown({ children }: { children: React.ReactNode }) {
@@ -710,6 +782,47 @@ function UserProfileDropdown({ onLogout, onOpenProfile }: { onLogout: () => void
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+// ─── Mobile Bottom Navigation ────────────────────────────────────────
+
+function MobileBottomNav({ activeTab, onTabChange }: { activeTab: string; onTabChange: (id: string) => void }) {
+  const quickTabs = [
+    { id: 'dashboard', icon: LayoutDashboard, label: 'داشبورد' },
+    { id: 'content', icon: FileText, label: 'محتوا' },
+    { id: 'tasks', icon: CheckSquare, label: 'وظایف' },
+    { id: 'ai-assistant', icon: Bot, label: 'دستیار AI' },
+    { id: 'settings', icon: Settings, label: 'تنظیمات' },
+  ]
+
+  return (
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom" dir="rtl">
+      <div className="flex items-center justify-around h-16 px-1">
+        {quickTabs.map(tab => {
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 ${
+                isActive 
+                  ? 'text-violet-600 dark:text-violet-400' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <div className={`flex items-center justify-center w-10 h-7 rounded-lg transition-all duration-200 ${isActive ? 'bg-violet-100 dark:bg-violet-900/30' : ''}`}>
+                <tab.icon className="h-[18px] w-[18px]" />
+              </div>
+              <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
+              {isActive && (
+                <div className="absolute bottom-0 w-8 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" />
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </nav>
   )
 }
 
@@ -870,6 +983,19 @@ function AppContent() {
     setMobileSheetOpen(false)
   }, [])
 
+  const handleFABAction = useCallback((action: string) => {
+    const actionTabMap: Record<string, string> = {
+      'new-post': 'content',
+      'new-task': 'tasks',
+      'ai-chat': 'ai-assistant',
+    }
+    const tabId = actionTabMap[action]
+    if (tabId) {
+      setActiveTab(tabId)
+      setMobileSheetOpen(false)
+    }
+  }, [])
+
   const PageComponent = pageComponents[activeTab] ?? pageComponents.dashboard
   const activeTabData = CMS_TABS.find(t => t.id === activeTab)
 
@@ -929,18 +1055,18 @@ function AppContent() {
         )}
 
         {/* ─── Main Content ─── */}
-        <main className="flex-1 min-w-0 flex flex-col">
+        <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0">
           {/* Top Bar */}
-          <header className="sticky top-0 z-20 h-14 border-b border-border/60 bg-background/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
+          <header className="sticky top-0 z-20 h-14 pt-safe border-b border-border/60 bg-background/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
             <div className="flex items-center gap-3">
               {/* Mobile menu button */}
               <Sheet open={mobileSheetOpen} onOpenChange={setMobileSheetOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="md:hidden h-9 w-9 hover:bg-accent/60 btn-icon-circle">
+                  <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 hover:bg-accent/60 btn-icon-circle">
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[280px] p-0 bg-card/95 backdrop-blur-xl" dir="rtl">
+                <SheetContent side="right" className="w-[300px] sm:w-[280px] p-0 bg-card/95 backdrop-blur-xl" dir="rtl">
                   <SidebarNav
                     activeTab={activeTab}
                     onTabChange={handleTabChange}
@@ -1023,10 +1149,19 @@ function AppContent() {
           {/* Bottom Status Bar */}
           <BottomStatusBar />
         </main>
+
+        {/* ─── Mobile Bottom Navigation ─── */}
+        <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
 
       {/* Floating Action Button */}
       <FloatingActionButton onNavigate={handleTabChange} onOpenQuickDraft={() => setQuickDraftOpen(true)} />
+
+      {/* Mobile FAB (Quick Actions) */}
+      <MobileFAB onAction={handleFABAction} />
+
+      {/* Scroll-to-Top Mobile FAB */}
+      <ScrollToTopFAB />
 
       {/* Quick AI Chat Widget */}
       <QuickAIChat />

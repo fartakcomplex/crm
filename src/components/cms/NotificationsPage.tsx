@@ -189,9 +189,9 @@ export default function NotificationsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter content-area reveal-on-scroll">
+    <div className="space-y-6 p-4 sm:p-6 page-enter content-area reveal-on-scroll">
       {/* ─── Animated Gradient Header ─── */}
-      <div className="relative rounded-2xl overflow-hidden p-6 md:p-8 glass-card shine-effect">
+      <div className="relative rounded-2xl overflow-hidden p-4 sm:p-6 md:p-8 glass-card shine-effect">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-violet-500/5 to-fuchsia-500/10 pointer-events-none" />
         <div className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-purple-400/10 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-fuchsia-400/10 blur-3xl pointer-events-none" />
@@ -240,7 +240,7 @@ export default function NotificationsPage() {
             <Filter className="h-4 w-4" />
             {labels.filterType}
           </div>
-          <div className="tab-group flex flex-wrap gap-2">
+          <div className="overflow-x-auto"><div className="tab-group flex flex-nowrap gap-2 min-w-max p-0.5">
             {FILTER_TABS.map((tab) => {
               const count = tabCounts[tab.key] ?? 0
               const isActive = activeTab === tab.key
@@ -250,7 +250,7 @@ export default function NotificationsPage() {
                   onClick={() => setActiveTab(tab.key)}
                   className={`
                     tab-item inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium
-                    transition-all duration-300 hover:scale-[1.03] active:scale-[0.97]
+                    transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] flex-shrink-0
                     ${isActive
                       ? 'tab-item-active bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white shadow-lg shadow-purple-500/25 hover:shadow-purple-500/35'
                       : 'glass-card border border-purple-200/50 dark:border-purple-800/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10'
@@ -270,7 +270,7 @@ export default function NotificationsPage() {
                 </button>
               )
             })}
-          </div>
+          </div></div>
         </CardContent>
       </Card>
 

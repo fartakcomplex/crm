@@ -73,7 +73,7 @@ function StatMiniCard({ stat, index }: { stat: StatItem; index: number }) {
 
   return (
     <div
-      className="relative group min-w-[200px] sm:min-w-0 snap-start shrink-0 sm:shrink rounded-xl border border-border/40 bg-background/80 backdrop-blur-sm p-3.5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-border/80 animate-in overflow-hidden"
+      className="relative group min-w-[160px] sm:min-w-0 snap-start shrink-0 sm:shrink rounded-xl border border-border/40 bg-background/80 backdrop-blur-sm p-3.5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-border/80 animate-in overflow-hidden"
       style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
     >
       {/* Top accent bar */}
@@ -96,7 +96,7 @@ function StatMiniCard({ stat, index }: { stat: StatItem; index: number }) {
           {stat.trend}
         </Badge>
       </div>
-      <p className="text-xl font-bold tabular-nums">{stat.value}</p>
+      <p className="text-lg sm:text-xl font-bold tabular-nums">{stat.value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
 
       {/* Hover gradient overlay */}

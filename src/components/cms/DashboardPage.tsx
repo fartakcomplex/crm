@@ -219,8 +219,8 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
       <CardContent className="p-4 flex items-center gap-3 relative z-10">
         <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10">{icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm opacity-80">{label}</p>
-          <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
+          <p className="text-xs sm:text-sm opacity-80">{label}</p>
+          <p className="text-xl sm:text-2xl font-bold tabular-nums">{displayValue}</p>
           {sparklineData && sparklineData.length >= 2 && (
             <div className="mt-1 opacity-70">
               <MiniSparkline
@@ -247,7 +247,7 @@ function Section({ title, defaultOpen, children, delay }: {
     <Collapsible open={open} onOpenChange={setOpen}>
       <Card className="glass-card card-gradient-border hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-300 animate-in" style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="cursor-pointer hover:bg-violet-500/5 transition-colors rounded-t-lg py-3">
+          <CardHeader className="cursor-pointer hover:bg-violet-500/5 transition-colors rounded-t-lg py-2.5 sm:py-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base text-violet-700 dark:text-violet-300 font-semibold">{title}</CardTitle>
               <ChevronDown className={`h-5 w-5 text-violet-500 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
@@ -300,19 +300,19 @@ function PersianClockWidget() {
     <div className="flex flex-col items-center gap-1">
       {/* Digital Clock */}
       <div className="flex items-center gap-0.5 font-mono" dir="ltr">
-        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm">
+        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 text-base sm:text-xl font-bold tabular-nums min-w-[2rem] sm:min-w-[2.5rem] text-center shadow-sm">
           {hours}
         </span>
-        <span className={`text-violet-500 dark:text-violet-400 text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
+        <span className={`text-violet-500 dark:text-violet-400 text-base sm:text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
           :
         </span>
-        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm">
+        <span className="inline-flex items-center justify-center bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 text-base sm:text-xl font-bold tabular-nums min-w-[2rem] sm:min-w-[2.5rem] text-center shadow-sm">
           {minutes}
         </span>
-        <span className={`text-violet-500 dark:text-violet-400 text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
+        <span className={`text-violet-500 dark:text-violet-400 text-base sm:text-xl font-bold transition-opacity duration-100 ${colonVisible ? 'opacity-100' : 'opacity-30'}`}>
           :
         </span>
-        <span className="inline-flex items-center justify-center bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg px-2 py-1 text-xl font-bold tabular-nums min-w-[2.5rem] text-center shadow-sm animate-pulse">
+        <span className="inline-flex items-center justify-center bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300 rounded-lg px-1.5 py-0.5 sm:px-2 sm:py-1 text-base sm:text-xl font-bold tabular-nums min-w-[2rem] sm:min-w-[2.5rem] text-center shadow-sm animate-pulse">
           {seconds}
         </span>
       </div>
@@ -375,7 +375,7 @@ function DashboardSkeleton() {
         <Skeleton className="h-8 w-40 loading-shimmer" />
         <Skeleton className="h-5 w-20 loading-shimmer" />
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl loading-shimmer" />
         ))}
@@ -1432,7 +1432,7 @@ function DashboardQuickStatsSummary({ statsData }: { statsData: { totalPosts?: n
           </Badge>
         </div>
         {/* Cards Row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-x divide-border/50">
           {summaryCards.map((card, i) => (
             <div
               key={card.label}
@@ -1727,7 +1727,7 @@ export default function DashboardPage() {
       <QuickStatsRow />
 
       {/* Today's Quick Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <MiniTrendCard
           label="بازدید امروز"
           value="۱۲۴"
@@ -1780,7 +1780,7 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
             {[
               { label: 'سرور', value: 'فعال', status: 'ok', icon: Server },
               { label: 'پایگاه داده', value: 'متصل', status: 'ok', icon: Database },
@@ -1801,7 +1801,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
         <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} sparklineData={[2, 2, 3, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} sparklineData={[1, 2, 2, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
@@ -1920,7 +1920,8 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views BarChart (Recharts) ───── */}
         <Section title={labels.monthlyViews} defaultOpen={true} delay={350}>
-          <ResponsiveContainer width="100%" height={280}>
+          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
                 <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -1949,11 +1950,13 @@ export default function DashboardPage() {
               />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </Section>
 
         {/* ───── Category Distribution PieChart (Recharts) ───── */}
         <Section title={labels.categoryDist} defaultOpen={false} delay={400}>
-          <ResponsiveContainer width="100%" height={260}>
+          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={chartData?.categoryDistribution ?? []}
@@ -1979,11 +1982,13 @@ export default function DashboardPage() {
               />
             </PieChart>
           </ResponsiveContainer>
+          </div>
         </Section>
 
         {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
         <Section title={labels.weeklyActivity} defaultOpen={false} delay={450}>
-          <ResponsiveContainer width="100%" height={280}>
+          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
                 <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
@@ -2018,12 +2023,14 @@ export default function DashboardPage() {
               />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </Section>
 
         {/* ───── Content Status PieChart (Recharts) ───── */}
         <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
           <div className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={220}>
+            <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={contentStatusPieData}
@@ -2053,12 +2060,14 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+            </div>
           </div>
         </Section>
 
         {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
         <Section title={labels.monthlyViewsTrend} defaultOpen={false} delay={525}>
-          <ResponsiveContainer width="100%" height={280}>
+          <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
               <defs>
                 <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
@@ -2090,6 +2099,7 @@ export default function DashboardPage() {
               />
             </AreaChart>
           </ResponsiveContainer>
+          </div>
         </Section>
 
         {/* Popular Articles */}
