@@ -943,3 +943,24 @@ Stage Summary:
 3. **Priority 3**: Fuzzy search in Command Palette
 4. **Priority 4**: Performance optimization — lazy loading non-visible modules
 5. **Priority 5**: Real-time WebSocket notifications integration in dashboard UI
+
+---
+Task ID: 16
+Agent: Main Agent
+Task: Fix Mobile Bottom Nav Not Working
+
+Work Log:
+- User reported "لینک های فوتر ثابت موبایل کار نمیکنن" (mobile fixed footer links don't work)
+- Investigated MobileBottomNav click handler chain: onClick → onTabChange → handleTabChange → setActiveTab ✓
+- Investigated z-index stacking: MobileBottomNav z-40 vs all other elements ✓
+- **Root cause found**: BottomStatusBar has `sticky bottom-0 z-10` inside `<main>`, which sticks at viewport bottom on mobile, physically overlapping the MobileBottomNav area. On some mobile browsers, touch events get intercepted by the overlapping sticky element even with lower z-index.
+- Fix 1: Hidden BottomStatusBar on mobile with `hidden md:block`
+- Fix 2: Increased MobileBottomNav z-index from z-40 to z-50 + added `pointer-events-auto`
+- Fix 3: Improved landing page footer link touch targets (`block py-1.5 sm:py-0`, `space-y-1.5 sm:space-y-3`)
+- Lint: 0 errors
+
+Stage Summary:
+- BottomStatusBar now hidden on mobile (not needed — MobileBottomNav serves as mobile nav)
+- MobileBottomNav z-index increased to z-50 (highest in normal flow)
+- Landing page footer links have larger touch targets on mobile
+- All Persian text preserved

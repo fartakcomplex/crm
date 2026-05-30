@@ -1087,7 +1087,7 @@ function Footer() {
 
   return (
     <footer id="footer" className="relative border-t border-violet-500/20 bg-gradient-to-t from-gray-900/5 to-transparent bg-card/30 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16" dir="rtl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 md:py-16" dir="rtl">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-12">
           {/* Brand */}
           <div className="lg:col-span-1">
@@ -1109,10 +1109,10 @@ function Footer() {
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
               <h4 className="font-semibold text-sm tracking-wide mb-4 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">{title}</h4>
-              <ul className="space-y-3 gap-4 flex flex-col">
+              <ul className="space-y-1.5 sm:space-y-3 flex flex-col">
                 {links.map(link => (
                   <li key={link}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-violet-400 transition-colors animated-underline">
+                    <a href="#" className="block py-1.5 sm:py-0 text-sm text-muted-foreground hover:text-violet-400 transition-colors animated-underline rounded-md">
                       {link}
                     </a>
                   </li>
@@ -1123,7 +1123,7 @@ function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-border/40 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border-t border-border/40 pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-muted-foreground whitespace-nowrap">
             © ۱۴۰۴ Smart CMS. تمامی حقوق محفوظ است.
           </p>

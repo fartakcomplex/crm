@@ -408,7 +408,7 @@ function BottomStatusBar() {
   }, [])
 
   return (
-    <div className="sticky bottom-0 z-10 h-7 w-full border-t border-border/60 bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 text-[11px] text-muted-foreground shrink-0">
+    <div className="hidden md:block sticky bottom-0 z-10 h-7 w-full border-t border-border/60 bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 text-[11px] text-muted-foreground shrink-0">
       <div className="flex items-center gap-1.5">
         <span className="font-medium text-foreground/60">Smart CMS</span>
         <span className="text-foreground/30">v1.0</span>
@@ -799,7 +799,7 @@ function MobileBottomNav({ activeTab, onTabChange }: { activeTab: string; onTabC
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom" dir="rtl">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom pointer-events-auto" dir="rtl">
       <div className="flex items-center justify-around h-14 px-1">
         {quickTabs.map(tab => {
           const isActive = activeTab === tab.id
