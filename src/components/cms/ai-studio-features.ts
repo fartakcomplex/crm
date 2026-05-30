@@ -13,7 +13,7 @@ import {
   BarChart3, Wand2, Download, Film, Code, Link, Music, Flame, Check, Workflow,
   Package, UtensilsCrossed,
 } from 'lucide-react'
-import React from 'react'
+import type React from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,11 +59,11 @@ export const categories: Category[] = [
 
 // ─── Output Type Labels ─────────────────────────────────────────────────────────
 
-export const outputTypeLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
-  text: { label: 'متن', icon: FileText, color: 'text-violet-600 dark:text-violet-300' },
-  image: { label: 'تصویر', icon: Camera, color: 'text-cyan-600 dark:text-cyan-300' },
-  audio: { label: 'صدا', icon: Volume2, color: 'text-emerald-600 dark:text-emerald-300' },
-  video: { label: 'ویدئو', icon: Play, color: 'text-rose-600 dark:text-rose-300' },
+export const outputTypeLabels: Record<string, { label: string; icon: React.ElementType; gradient: string }> = {
+  text: { label: 'متن', icon: FileText, gradient: 'from-violet-500 to-purple-500' },
+  image: { label: 'تصویر', icon: Camera, gradient: 'from-cyan-500 to-teal-500' },
+  audio: { label: 'صدا', icon: Volume2, gradient: 'from-emerald-500 to-green-500' },
+  video: { label: 'ویدئو', icon: Play, gradient: 'from-rose-500 to-pink-500' },
 }
 
 // ─── Icon Fallback ─────────────────────────────────────────────────────────────

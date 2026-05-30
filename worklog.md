@@ -1036,3 +1036,55 @@ git push -u origin main
 3. **Priority 3**: Add real authentication with NextAuth.js
 4. **Priority 4**: PWA support (service worker, manifest)
 5. **Priority 5**: Performance optimization — lazy loading
+---
+Task ID: 16
+Agent: full-stack-developer
+Task: Fix AI Studio issues
+
+Work Log:
+- Reviewed worklog.md (15 previous task rounds documented)
+- Verified server running (HTTP 200), lint clean (0 errors)
+- Read AIContentStudio.tsx (1389 lines) — analyzed all logic, state, handlers, and JSX
+- Read ai-studio-features.ts — verified all exports: allFeatures, categories, buildPrompt, buildImagePrompt, buildVideoPrompt, buildTTSParams, buildVideoParams, outputTypeLabels, AIFeature type
+- Checked all 7 API endpoints used by AI Studio:
+  - /api/ai/chat (POST with streaming) — exists, correct
+  - /api/ai/generate-image (POST + GET polling) — exists, correct
+  - /api/ai/generate-video (POST + GET polling) — exists, correct
+  - /api/ai/generate-tts (POST) — exists, correct
+  - /api/ai/research (POST) — exists, correct
+  - /api/posts (GET returns { posts, total, page, limit }) — exists, correct
+  - /api/products (GET returns { products, total, page, limit }) — exists, correct
+- Checked lib/ai-client.ts — singleton ZAI SDK client, correct
+- Checked lib/rate-limit.ts — global SDK mutex with queue, rate limiting, cooldown, correct
+
+Issues Found and Fixed:
+1. **Bug: outputTypeLabels color/gradient mismatch (CRITICAL VISUAL BUG)**:
+   - `outputTypeLabels` in ai-studio-features.ts had `color` field with Tailwind text color classes (e.g. `'text-violet-600 dark:text-violet-300'`)
+   - AIContentStudio.tsx used these values with `bg-gradient-to-r ${outputInfo?.color || ...}` expecting gradient classes (e.g. `'from-violet-400 to-purple-500'`)
+   - Result: Output type badges on feature cards and dialog showed NO gradient background — just invisible/transparent badges with white text
+   - Fix: Changed `color` field to `gradient` field with proper gradient classes:
+     - text: `from-violet-500 to-purple-500`
+     - image: `from-cyan-500 to-teal-500`
+     - audio: `from-emerald-500 to-green-500`
+     - video: `from-rose-500 to-pink-500`
+   - Updated all references in AIContentStudio.tsx from `.color` to `.gradient` (2 locations)
+
+2. **Minor: Non-type import in ai-studio-features.ts**:
+   - Changed `import React from 'react'` to `import type React from 'react'` since only `React.ElementType` is used in type annotations
+
+Verified No Issues:
+- All API endpoints exist and handle correct HTTP methods
+- All function exports in ai-studio-features.ts are correct
+- No React hook issues (useEffect cleanup not needed — dialog controls lifecycle)
+- No memory leaks in polling (polling stops on success/error/timeout)
+- Content picker correctly parses /api/posts and /api/products response formats
+- Streaming SSE parsing is correct
+- Rate limiting and SDK mutex are properly implemented
+- All lucide-react icon imports are used in feature definitions
+
+Stage Summary:
+- 1 critical visual bug fixed (outputTypeLabels gradient mismatch)
+- 1 minor improvement (type import)
+- 0 lint errors, 0 warnings
+- Server running on port 3000, HTTP 200
+- All AI Studio features verified: 100 tools, 8 categories, 4 output types (text, image, video, audio)

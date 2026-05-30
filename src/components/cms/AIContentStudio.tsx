@@ -809,7 +809,7 @@ export default function AIContentStudio() {
                           </div>
                           <Badge
                             variant="secondary"
-                            className={`text-[10px] px-2 py-0 h-5 bg-gradient-to-r ${outputInfo?.color || 'from-gray-400 to-gray-500'} text-white shrink-0`}
+                            className={`text-[10px] px-2 py-0 h-5 bg-gradient-to-r ${outputInfo?.gradient || 'from-gray-400 to-gray-500'} text-white shrink-0`}
                           >
                             <OutputIcon className="h-3 w-3 ml-1" />
                             {outputInfo?.label || 'متن'}
@@ -881,7 +881,7 @@ export default function AIContentStudio() {
                   {/* Output type indicator */}
                   <Badge
                     variant="secondary"
-                    className={`text-[10px] px-2 py-0 h-5 bg-gradient-to-r ${outputTypeLabels[selectedFeature.outputType]?.color || 'from-gray-400 to-gray-500'} text-white shrink-0`}
+                    className={`text-[10px] px-2 py-0 h-5 bg-gradient-to-r ${outputTypeLabels[selectedFeature.outputType]?.gradient || 'from-gray-400 to-gray-500'} text-white shrink-0`}
                   >
                     {selectedFeature.outputType === 'image' && <ImageIcon className="h-3 w-3 ml-1" />}
                     {selectedFeature.outputType === 'video' && <Video className="h-3 w-3 ml-1" />}
