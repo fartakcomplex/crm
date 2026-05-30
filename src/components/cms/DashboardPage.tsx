@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
 import {
   Select,
   SelectContent,
@@ -55,10 +56,12 @@ import { DataExportWidget } from './DataExportWidget'
 import { SystemStatusWidget } from './SystemStatusWidget'
 import ActivityFeedWidget from './ActivityFeedWidget'
 import RecentActivityTimeline from './RecentActivityTimeline'
+import NotificationCenterWidget from './NotificationCenterWidget'
 import AnalyticsOverviewWidget from './AnalyticsOverviewWidget'
 import ThemeCustomizerWidget from './ThemeCustomizerWidget'
 import DataExportDialog from '@/components/cms/DataExportDialog'
 import DashboardGreetingWidget from './DashboardGreetingWidget'
+import QuickDraftWidget from './QuickDraftWidget'
 
 // Persian labels
 const labels = {
@@ -223,7 +226,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
       <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out" />
       </div>
-      <CardContent className="p-4 flex items-center gap-3 relative z-10">
+      <CardContent className="p-4 sm:p-5 flex items-center gap-3 relative z-10">
         <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10">{icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm opacity-80">{label}</p>
@@ -256,7 +259,7 @@ function Section({ title, defaultOpen, children, delay }: {
         <CollapsibleTrigger asChild>
           <CardHeader className="cursor-pointer hover:bg-violet-500/5 transition-colors rounded-t-lg py-2.5 sm:py-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base text-violet-700 dark:text-violet-300 font-semibold">{title}</CardTitle>
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{title}</CardTitle>
               <ChevronDown className={`h-5 w-5 text-violet-500 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
             </div>
           </CardHeader>
@@ -352,7 +355,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
 }) {
   return (
     <Card className={`card-elevated hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
-      <CardContent className="p-3.5">
+      <CardContent className="p-3.5 sm:p-5">
         <div className="flex items-center justify-between mb-2">
           <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color} drop-shadow-sm`}>
             {icon}
@@ -377,7 +380,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6 p-4 md:p-6 animate-in">
+    <div className="max-w-[1600px] mx-auto w-full space-y-6 p-4 sm:p-5 md:p-6 lg:p-8 animate-in">
       <div className="flex items-center gap-3">
         <Skeleton className="h-8 w-40 loading-shimmer" />
         <Skeleton className="h-5 w-20 loading-shimmer" />
@@ -462,9 +465,9 @@ function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }:
   )
 }
 
-// ──────────────────── Quick Draft Widget ─────────────────────────
+// ──────────────────── CMS Quick Draft Widget ─────────────────────────
 
-function QuickDraftWidget({ categories }: { categories: Array<{ id: string; name: string }> }) {
+function CMSQuickDraftWidget({ categories }: { categories: Array<{ id: string; name: string }> }) {
   const { createPost } = useCMS()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -1687,7 +1690,7 @@ export default function DashboardPage() {
   if (isLoading) return <DashboardSkeleton />
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="max-w-[1600px] mx-auto w-full space-y-6 p-4 sm:p-5 md:p-6 lg:p-8 page-enter">
       {/* Welcome Banner */}
       <Card className="relative overflow-hidden glass-card border-0 shadow-sm">
         <div className="absolute inset-0 bg-gradient-to-l from-violet-600/10 via-purple-500/5 to-fuchsia-500/10 dark:from-violet-600/20 dark:via-purple-500/10 dark:to-fuchsia-500/10 pointer-events-none" />
@@ -1697,8 +1700,8 @@ export default function DashboardPage() {
               <Sparkles className="h-7 w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold gradient-text">{labels.title}</h1>
-              <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
+              <h1 className="text-2xl sm:text-3xl font-bold gradient-text">{labels.title}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-0.5">{labels.subtitle}</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -1722,6 +1725,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Dashboard Greeting Widget */}
+      <div className="space-y-4 lg:space-y-6">
       <DashboardGreetingWidget />
 
       {/* Onboarding Tip Banner */}
@@ -1734,7 +1738,7 @@ export default function DashboardPage() {
       <QuickStatsRow />
 
       {/* Today's Quick Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <MiniTrendCard
           label="بازدید امروز"
           value="۱۲۴"
@@ -1787,7 +1791,7 @@ export default function DashboardPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {[
               { label: 'سرور', value: 'فعال', status: 'ok', icon: Server },
               { label: 'پایگاه داده', value: 'متصل', status: 'ok', icon: Database },
@@ -1808,7 +1812,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
         <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} sparklineData={[2, 2, 3, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} sparklineData={[1, 2, 2, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
@@ -1816,9 +1820,11 @@ export default function DashboardPage() {
         <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} numericValue={statsData?.totalViews} color="from-teal-500 to-teal-700" delay={200} sparklineData={[100, 150, 120, 200, 180, 250, 300]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} numericValue={statsData?.revenue} color="from-amber-500 to-amber-700" delay={250} sparklineData={[50000, 60000, 45000, 80000, 70000, 90000, 78250]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
       </div>
+      </div>
 
       {/* Collapsible Sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Separator className="my-1 bg-border/30" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
         {/* Quick Access Grid */}
         <Section title={labels.quickActionsNew} defaultOpen={true} delay={100}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -2144,18 +2150,18 @@ export default function DashboardPage() {
 
         {/* ───── Quick Draft Widget ───── */}
         <Section title={labels.quickDraft} defaultOpen={true} delay={575}>
-          <QuickDraftWidget categories={categoriesData} />
+          <CMSQuickDraftWidget categories={categoriesData} />
         </Section>
       </div>
 
       {/* ═══════ New Dashboard Widgets ═══════ */}
-      <div className="border-t border-border/40 my-1" />
+      <Separator className="my-2 bg-border/30" />
       {/* Analytics Overview Widget — full width */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
         <AnalyticsWidget />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
         {/* Quick Actions Widget */}
         <QuickActionsWidget />
 
@@ -2174,8 +2180,14 @@ export default function DashboardPage() {
         {/* Quick Notes Widget */}
         <QuickNotesWidget notes={notesData} />
 
-        {/* Recent Activity Timeline Widget */}
-        <RecentActivityTimeline />
+        {/* Quick Draft Widget */}
+        <QuickDraftWidget />
+
+        {/* Notification Center + Recent Activity Timeline */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+          <NotificationCenterWidget />
+          <RecentActivityTimeline />
+        </div>
 
         {/* Activity Feed Widget */}
         <ActivityFeedWidget />
@@ -2194,8 +2206,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════ New Feature Widgets ═══════ */}
-      <div className="border-t border-border/40 my-1" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <Separator className="my-2 bg-border/30" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
         {/* Recent Activity Feed */}
         <Card className="glass-card card-elevated">
           <CardHeader className="pb-3">
@@ -2235,8 +2247,8 @@ export default function DashboardPage() {
         <PerformanceMonitor />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Notification Sound Toggle */}
+      <Separator className="my-2 bg-border/30" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
         <NotificationSoundToggle />
 
         {/* Color Theme Customizer */}

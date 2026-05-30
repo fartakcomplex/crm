@@ -494,3 +494,106 @@ Stage Summary:
 4. **Priority 4**: Fuzzy search in Command Palette
 5. **Priority 5**: Real-time WebSocket notifications integration in dashboard
 6. **Priority 6**: Performance optimization — lazy loading non-visible modules
+
+---
+Task ID: 12
+Agent: Main Agent + 4 subagents
+Task: QA, Dashboard Layout Improvement, New Widgets & User Menu
+
+Work Log:
+- Verified server running (HTTP 200), lint clean (0 errors)
+- QA tested desktop (1280x800) and mobile (375x812) with agent-browser
+- VLM gave desktop dashboard 6/10 (crowding, inconsistent sizing, basic data viz)
+- VLM gave mobile dashboard 9/10 (good stacking, clean RTL, optimized)
+
+**Bug Fix:**
+- Fixed QuickDraftWidget naming conflict: renamed local CMS widget to `CMSQuickDraftWidget` to avoid collision with imported standalone widget
+
+**Dashboard Layout Improvements (1 subagent):**
+- Main container: added `max-w-[1600px] mx-auto w-full` for ultra-wide screen centering
+- Main padding: `p-4 sm:p-5 md:p-6 lg:p-8` for generous spacing
+- All grid gaps standardized: small cards `gap-3 lg:gap-4`, sections `gap-5 lg:gap-6`
+- Added `<Separator>` between major widget groups (5 new separators)
+- StatCard padding: `p-4 sm:p-5`, MiniTrendCard: `p-3.5 sm:p-5`
+- Page title: `text-2xl sm:text-3xl`, subtitle: `text-sm sm:text-base`
+- Section titles: `text-base lg:text-lg`
+- Wrapped top widgets in `space-y-4 lg:space-y-6` for vertical rhythm
+- Dashboard skeleton matching the same spacing improvements
+- VLM re-rated: **6/10 → 8/10** ✅
+
+**New Features (3 subagents):**
+
+1. **QuickDraftWidget (standalone)**:
+   - New component at `/src/components/cms/QuickDraftWidget.tsx`
+   - Local-state draft management (no backend required)
+   - Compose mode with title + content textarea
+   - AI placeholder button, amber gradient save button
+   - Draft list with hover-reveal delete, line-clamped preview, Persian relative timestamps
+   - Empty state with motivational prompt "ایده‌ای دارید؟"
+   - Integrated into DashboardPage 3-column widget grid
+
+2. **NotificationCenterWidget**:
+   - New component at `/src/components/cms/NotificationCenterWidget.tsx`
+   - 4 notification types: info (sky), success (emerald), warning (amber), error (rose)
+   - Unread count badge with pulse animation
+   - Show more/less toggle (4 default, expandable)
+   - Auto-refresh every 30 seconds via TanStack Query
+   - Fallback to mock Persian data if API unavailable
+   - Integrated alongside RecentActivityTimeline in 2-column grid
+
+3. **UserMenuDropdown**:
+   - New component at `/src/components/cms/UserMenuDropdown.tsx`
+   - Gradient avatar button (violet→fuchsia) with hover effects
+   - User info header (name + email)
+   - Role badge (مدیر ارشد)
+   - Quick actions: notifications, theme toggle, settings, profile, logout
+   - Replaced old simpler UserProfileDropdown in top bar
+   - Connected to existing state handlers
+
+Stage Summary:
+- 4 subagents executed in parallel
+- 3 new files created (QuickDraftWidget, NotificationCenterWidget, UserMenuDropdown)
+- 1 file modified (DashboardPage.tsx — layout spacing + widget integration + bug fix)
+- Lint: 0 errors, 0 warnings
+- VLM dashboard rating: **6/10 → 8/10** (+2 points)
+- All text in Persian/Farsi
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Very Good. Dashboard layout significantly improved (8/10). 30+ features. Mobile responsive (9/10).
+- **Server Stability**: Running on port 3000, HTTP 200. Cron keep-alive active.
+- **Code Quality**: Lint 0 errors. TypeScript strict.
+- **Styling**: Glass morphism, gradient borders, hover animations, chart animations, RTL support, responsive.
+- **Features**: 28+ features including mobile nav, FAB, command palette, activity timeline, notification center, quick draft, user menu dropdown, WebSocket, search API, drag-and-drop notes, data export, dark mode persistence.
+
+### Completed Modifications (This Round)
+1. Fixed QuickDraftWidget naming conflict (renamed to CMSQuickDraftWidget)
+2. Dashboard layout: max-width constraint, improved spacing, separators, typography hierarchy
+3. Dashboard VLM rating improved from 6/10 to 8/10
+4. QuickDraftWidget (standalone) — local draft notes
+5. NotificationCenterWidget — 4 notification types, auto-refresh
+6. UserMenuDropdown — gradient avatar, role badge, quick actions
+
+### Verification Results
+- Desktop: Dashboard 8/10 (up from 6/10)
+- Mobile: 9/10 (maintained)
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- 0 JavaScript errors on all tested pages
+
+### Unresolved Issues / Risks
+1. **Server instability**: Periodic Turbopack crashes (mitigated by auto-restart)
+2. **No real authentication**: Simple state-based login
+3. **Command Palette**: Could use fuzzy matching for better search
+4. **PWA not implemented**: No service worker or manifest yet
+
+### Next Phase Recommendations
+1. **Priority 1**: Add real authentication with NextAuth.js
+2. **Priority 2**: PWA support (service worker, manifest, installable)
+3. **Priority 3**: Fuzzy search in Command Palette
+4. **Priority 4**: Dashboard charts mobile optimization (stacked card layout)
+5. **Priority 5**: Real-time WebSocket notifications integration in dashboard UI
+6. **Priority 6**: Performance optimization — lazy loading non-visible modules

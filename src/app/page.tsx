@@ -32,6 +32,7 @@ import CommandPalette from '@/components/cms/CommandPalette'
 import ProfilePanel from '@/components/cms/ProfilePanel'
 import { ScrollToTopButton } from '@/components/cms/ScrollToTopButton'
 import AnnouncementBanner from '@/components/cms/AnnouncementBanner'
+import UserMenuDropdown from '@/components/cms/UserMenuDropdown'
 import PerformanceMonitorWidget from '@/components/cms/PerformanceMonitorWidget'
 import NotificationHistoryWidget from '@/components/cms/NotificationHistoryWidget'
 import ThemeSwitcherWidget from '@/components/cms/ThemeSwitcherWidget'
@@ -1134,7 +1135,13 @@ function AppContent() {
               />
 
               {/* User Profile */}
-              <UserProfileDropdown onLogout={handleLogout} onOpenProfile={() => setProfileOpen(true)} />
+              <UserMenuDropdown
+                theme={theme}
+                onToggleTheme={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                onOpenNotifications={() => setNotificationSheetOpen(true)}
+                onOpenProfile={() => setProfileOpen(true)}
+                onLogout={handleLogout}
+              />
             </div>
           </header>
 
