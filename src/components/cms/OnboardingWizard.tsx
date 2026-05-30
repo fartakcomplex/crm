@@ -192,10 +192,13 @@ export default function OnboardingWizard({ open, onClose }: OnboardingWizardProp
       <DialogContent
         className="sm:max-w-[560px] glass-card card-elevated p-0 overflow-hidden"
         dir="rtl"
-        onPointerDownOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          try { e.preventDefault() } catch { /* ignore */ }
+        }}
         onEscapeKeyDown={(e) => {
-          // Allow escape to close
-          e.preventDefault()
+          try {
+            e.preventDefault()
+          } catch { /* ignore */ }
           onClose()
         }}
       >

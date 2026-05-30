@@ -255,6 +255,7 @@ body {
 /*  SCROLLBAR STYLES                                                         */
 /* ========================================================================== */
 
+/* Smooth scrollbar — WebKit */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -262,18 +263,32 @@ body {
 
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
+  border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
   border-radius: 999px;
+  transition: background-color 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.556 0 0 / 70%);
 }
 
+/* Smooth scrollbar — WebKit corner */
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Smooth scrollbar — Firefox */
 * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* RTL: position scrollbar on left side */
+[dir="rtl"] * {
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
@@ -282,11 +297,26 @@ body {
 /*  CORE UTILITY CLASSES                                                      */
 /* ========================================================================== */
 
-/* Glass morphism card */
+/* Glass morphism card — with backdrop blur in light mode */
 .glass-card {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Glass card hover glow */
+.glass-card:hover {
+  box-shadow: 0 4px 16px oklch(0 0 0 / 5%), 0 0 0 1px oklch(0.55 0.2 270 / 8%);
+}
+
+.dark .glass-card:hover {
+  box-shadow: 0 4px 16px oklch(0 0 0 / 20%), 0 0 0 1px oklch(0.7 0.2 270 / 12%);
 }
 
 /* Glass morphism card — pink accent variant (used by Store page) */
@@ -553,11 +583,14 @@ body {
 /*  TEXT & TYPOGRAPHY                                                        */
 /* ========================================================================== */
 
-/* Smooth text rendering */
+/* Smooth text rendering + theme switching transitions */
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
 }
 
 /* Selection styling */
@@ -684,10 +717,10 @@ tbody tr:nth-child(even) {
   background: oklch(0.708 0 0 / 80%);
 }
 
-/* Dark mode glass card — no extra blur to avoid frosted overlay */
+/* Dark mode glass card — reduced blur to avoid frosted overlay */
 .dark .glass-card {
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(2px) saturate(1.1);
+  -webkit-backdrop-filter: blur(2px) saturate(1.1);
 }
 
 /* Dark mode subtle shadow adjustments */
@@ -6837,4 +6870,329 @@ hr, [data-radix-separator] {
 @keyframes badge-dot-pulse-ring {
   0% { transform: scale(1); opacity: 0.8; }
   100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ========================================================================== */
+/*  (TASK 6) STYLING IMPROVEMENTS — NEW ADDITIONS                              */
+/* ========================================================================== */
+
+/* ---- 1. STATUS BAR GLASS EFFECT ---- */
+
+.status-bar-glass {
+  background: oklch(1 0 0 / 60%);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border-top: 1px solid oklch(0 0 0 / 6%);
+  transition:
+    background-color 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
+}
+
+.dark .status-bar-glass {
+  background: oklch(0.16 0 0 / 80%);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border-top-color: oklch(1 0 0 / 6%);
+}
+
+/* ---- 2. ENHANCED SIDEBAR ACTIVE INDICATOR ANIMATION ---- */
+
+/* Animated slide-in bar for active sidebar item (RTL: appears from right) */
+@keyframes active-indicator-slide {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.sidebar-nav-item-active::before {
+  animation: active-indicator-slide 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top center;
+}
+
+/* ---- 3. MOBILE SAFE AREA INSETS ---- */
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-left {
+  padding-left: env(safe-area-inset-left, 0px);
+}
+
+.safe-right {
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-area-all {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Improved touch targets for mobile — minimum 44px */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* ---- 4. ENHANCED FOCUS RING FOR ACCESSIBILITY ---- */
+
+/* Smoother animated focus ring */
+@keyframes focus-ring-expand {
+  from {
+    box-shadow: 0 0 0 0 oklch(0.55 0.2 270 / 40%);
+  }
+  to {
+    box-shadow: 0 0 0 3px oklch(0.55 0.2 270 / 25%);
+  }
+}
+
+.focus-ring-animated:focus-visible {
+  outline: none;
+  animation: focus-ring-expand 0.2s ease-out forwards;
+  border-radius: var(--radius);
+}
+
+/* ---- 5. CARD HOVER BORDER GLOW (simple variant) ---- */
+
+.card-hover-glow {
+  transition:
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s ease;
+}
+
+.card-hover-glow:hover {
+  box-shadow:
+    0 0 0 1px oklch(0.55 0.2 270 / 15%),
+    0 4px 16px oklch(0.55 0.2 270 / 8%),
+    0 1px 3px oklch(0 0 0 / 5%);
+  transform: translateY(-2px);
+}
+
+.dark .card-hover-glow:hover {
+  box-shadow:
+    0 0 0 1px oklch(0.7 0.2 270 / 20%),
+    0 4px 16px oklch(0.7 0.2 270 / 12%),
+    0 1px 3px oklch(0 0 0 / 20%);
+}
+
+/* ---- 6. CHART TOOLTIP GLASS ---- */
+
+.chart-tooltip-glass {
+  background: oklch(1 0 0 / 85%);
+  backdrop-filter: blur(12px) saturate(1.15);
+  -webkit-backdrop-filter: blur(12px) saturate(1.15);
+  border: 1px solid oklch(0 0 0 / 8%);
+  border-radius: calc(var(--radius) - 2px);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 8%), 0 0 0 1px oklch(0 0 0 / 3%);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.dark .chart-tooltip-glass {
+  background: oklch(0.18 0 0 / 92%);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border-color: oklch(1 0 0 / 10%);
+  box-shadow: 0 4px 12px oklch(0 0 0 / 25%), 0 0 0 1px oklch(1 0 0 / 5%);
+}
+
+/* ---- 7. CONTENT FADE-IN (standalone utility) ---- */
+
+.content-fade-in {
+  animation: content-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ---- 8. RTL-SPECIFIC POLISH ---- */
+
+/* RTL: correct shine effect direction */
+[dir="rtl"] .shine-effect::after {
+  transform: translateX(100%);
+}
+[dir="rtl"] .shine-effect:hover::after {
+  transform: translateX(-100%);
+}
+
+/* RTL: animated underline slides from right */
+[dir="rtl"] .animated-underline::after {
+  right: 0;
+  left: auto;
+}
+
+/* RTL: text fade in correct direction */
+[dir="rtl"] .text-fade-right::after {
+  right: 0;
+  left: auto;
+  background: linear-gradient(to right, var(--background), transparent);
+}
+
+/* RTL: sidebar hover indent on right side */
+[dir="rtl"] .sidebar-nav-item:hover {
+  padding-right: 1rem;
+  padding-left: 0.75rem;
+}
+
+/* ---- 9. SMOOTH COLOR MODE TRANSITIONS FOR COMPONENTS ---- */
+
+/* Elements that need theme transition support */
+.theme-transition,
+.theme-transition * {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* ---- 10. ENHANCED GLASS MORPHISM VARIANTS WITH BLUR ---- */
+
+.glass-card-cyan,
+.glass-card-violet,
+.glass-card-rose,
+.glass-card-emerald,
+.glass-card-amber {
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.1);
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.dark .glass-card-cyan,
+.dark .glass-card-violet,
+.dark .glass-card-rose,
+.dark .glass-card-emerald,
+.dark .glass-card-amber {
+  backdrop-filter: blur(2px) saturate(1.1);
+  -webkit-backdrop-filter: blur(2px) saturate(1.1);
+}
+
+/* Glass card pink also needs blur */
+.glass-card-pink {
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.1);
+}
+
+.dark .glass-card-pink {
+  backdrop-filter: blur(2px) saturate(1.1);
+  -webkit-backdrop-filter: blur(2px) saturate(1.1);
+}
+
+/* ---- 11. IMPROVED LOADING SHIMMER ---- */
+
+/* Smooth skeleton loading with pulse overlay */
+@keyframes loading-shimmer-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.loading-shimmer-enhanced {
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    oklch(0.92 0 0 / 50%) 20%,
+    oklch(0.92 0 0 / 70%) 40%,
+    var(--muted) 60%
+  );
+  background-size: 1200px 100%;
+  animation:
+    shimmer 2s ease-in-out infinite,
+    loading-shimmer-pulse 3s ease-in-out infinite;
+  border-radius: var(--radius);
+}
+
+.dark .loading-shimmer-enhanced {
+  background: linear-gradient(
+    90deg,
+    oklch(0.269 0 0) 0%,
+    oklch(0.32 0 0 / 60%) 20%,
+    oklch(0.35 0.02 270 / 30%) 40%,
+    oklch(0.269 0 0) 60%
+  );
+  background-size: 1200px 100%;
+}
+
+/* ---- 12. IMPROVED SIDEBAR SCROLLBAR ---- */
+
+/* The scrollbar-sidebar class now gets a thinner, transparent track */
+.scrollbar-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0 0 0 / 12%) transparent;
+}
+
+.dark .scrollbar-sidebar {
+  scrollbar-color: oklch(1 0 0 / 10%) transparent;
+}
+
+/* ---- 13. BADGE PULSE ENHANCEMENT ---- */
+
+/* Badge with continuous soft pulse */
+@keyframes badge-pulse-soft {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 oklch(0.65 0.2 10 / 40%);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px 2px oklch(0.65 0.2 10 / 20%);
+  }
+}
+
+.badge-pulse-soft {
+  animation: badge-pulse-soft 2s ease-in-out infinite;
+}
+
+/* ---- 14. PRINT OVERRIDES FOR NEW CLASSES ---- */
+
+@media print {
+  .status-bar-glass {
+    background: #f9fafb !important;
+    backdrop-filter: none !important;
+    border-top-color: #e5e7eb !important;
+  }
+  .chart-tooltip-glass {
+    background: white !important;
+    backdrop-filter: none !important;
+    border-color: #e5e7eb !important;
+  }
+  .glass-card-cyan,
+  .glass-card-violet,
+  .glass-card-rose,
+  .glass-card-emerald,
+  .glass-card-amber,
+  .glass-card-pink {
+    backdrop-filter: none !important;
+  }
+}
+
+/* ---- 15. REDUCED MOTION OVERRIDES FOR NEW ANIMATIONS ---- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-nav-item-active::before {
+    animation: none !important;
+  }
+  .focus-ring-animated:focus-visible {
+    animation: none !important;
+    box-shadow: 0 0 0 3px oklch(0.55 0.2 270 / 25%);
+  }
+  .loading-shimmer-enhanced {
+    animation: none !important;
+    opacity: 0.5;
+  }
+  .badge-pulse-soft {
+    animation: none !important;
+  }
 }

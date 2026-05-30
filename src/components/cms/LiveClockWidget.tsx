@@ -1,18 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Clock, CalendarDays } from 'lucide-react'
 
 export default function LiveClockWidget() {
-  const mountedRef = useRef(false)
   const [time, setTime] = useState('')
   const [date, setDate] = useState('')
 
   useEffect(() => {
-    mountedRef.current = true
     const updateTime = () => {
       const now = new Date()
-      // Persian time
       setTime(
         new Intl.DateTimeFormat('fa-IR', {
           hour: '2-digit',
@@ -20,7 +17,6 @@ export default function LiveClockWidget() {
           hour12: false,
         }).format(now)
       )
-      // Persian date
       setDate(
         new Intl.DateTimeFormat('fa-IR', {
           weekday: 'long',
@@ -35,7 +31,7 @@ export default function LiveClockWidget() {
     return () => clearInterval(interval)
   }, [])
 
-  if (!mountedRef.current) return null
+  if (!time) return null
 
   return (
     <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 border border-border/40 hover:bg-muted/60 transition-colors">

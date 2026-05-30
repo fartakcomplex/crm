@@ -57,6 +57,7 @@ import ActivityFeedWidget from './ActivityFeedWidget'
 import AnalyticsOverviewWidget from './AnalyticsOverviewWidget'
 import ThemeCustomizerWidget from './ThemeCustomizerWidget'
 import DataExportDialog from '@/components/cms/DataExportDialog'
+import DashboardGreetingWidget from './DashboardGreetingWidget'
 
 // Persian labels
 const labels = {
@@ -1335,50 +1336,79 @@ function DashboardQuickStatsSummary({ statsData }: { statsData: { totalPosts?: n
   const revenue = useCountUp(statsData?.revenue ?? 0, 1400, statsData !== null)
   const totalUsers = useCountUp(statsData?.totalUsers ?? 0, 1000, statsData !== null)
 
+  // Simulated trend data for sparklines
+  const sparkData = useMemo(() => ({
+    revenueTrend: statsData?.revenue
+      ? [statsData.revenue * 0.6, statsData.revenue * 0.7, statsData.revenue * 0.65, statsData.revenue * 0.8, statsData.revenue * 0.75, statsData.revenue * 0.85, statsData.revenue * 0.9, statsData.revenue, statsData.revenue * 0.95, statsData.revenue * 1.02]
+      : [40, 55, 48, 60, 52, 70, 65, 78, 72, 85],
+    newCustomersTrend: statsData?.totalCustomers
+      ? [statsData.totalCustomers * 0.5, statsData.totalCustomers * 0.55, statsData.totalCustomers * 0.6, statsData.totalCustomers * 0.65, statsData.totalCustomers * 0.7, statsData.totalCustomers * 0.75, statsData.totalCustomers * 0.8, statsData.totalCustomers * 0.85, statsData.totalCustomers * 0.9, statsData.totalCustomers]
+      : [1, 2, 2, 3, 3, 4, 5, 4, 6, 7],
+    activeOrdersTrend: statsData?.totalOrders
+      ? [statsData.totalOrders * 0.4, statsData.totalOrders * 0.5, statsData.totalOrders * 0.55, statsData.totalOrders * 0.6, statsData.totalOrders * 0.65, statsData.totalOrders * 0.7, statsData.totalOrders * 0.75, statsData.totalOrders * 0.8, statsData.totalOrders * 0.85, statsData.totalOrders]
+      : [2, 3, 5, 4, 6, 5, 7, 8, 6, 9],
+    taskCompletionTrend: [60, 65, 58, 72, 68, 75, 80, 78, 85, 82],
+  }), [statsData])
+
+  // Calculate completion rate from trend
+  const taskCompletionRate = sparkData.taskCompletionTrend[sparkData.taskCompletionTrend.length - 1] ?? 0
+
   const summaryCards = [
     {
-      label: labels.totalPosts,
-      value: totalPosts.toLocaleString('fa-IR'),
-      rawValue: totalPosts,
-      icon: <FileText className="h-5 w-5" />,
-      gradient: 'from-violet-500 to-purple-600',
-      iconBg: 'bg-violet-100 dark:bg-violet-900/30',
-      iconColor: 'text-violet-600 dark:text-violet-400',
-      barData: [3, 5, 4, 7, 6, 8, 9, 7, 10, 12],
-      barColor: '#8b5cf6',
-    },
-    {
-      label: labels.totalOrders,
-      value: totalOrders.toLocaleString('fa-IR'),
-      rawValue: totalOrders,
-      icon: <ShoppingCart className="h-5 w-5" />,
-      gradient: 'from-emerald-500 to-teal-600',
-      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
-      barData: [2, 3, 5, 4, 6, 5, 7, 8, 6, 9],
-      barColor: '#10b981',
-    },
-    {
-      label: labels.revenue,
+      label: 'روند درآمد',
       value: `$${revenue.toLocaleString('en-US')}`,
       rawValue: revenue,
       icon: <DollarSign className="h-5 w-5" />,
-      gradient: 'from-amber-500 to-orange-600',
-      iconBg: 'bg-amber-100 dark:bg-amber-900/30',
-      iconColor: 'text-amber-600 dark:text-amber-400',
-      barData: [40, 55, 48, 60, 52, 70, 65, 78, 72, 85],
-      barColor: '#f59e0b',
+      gradient: 'from-violet-500 to-purple-600',
+      iconBg: 'bg-violet-100 dark:bg-violet-900/30',
+      iconColor: 'text-violet-600 dark:text-violet-400',
+      sparklineData: sparkData.revenueTrend,
+      sparkColor: '#8b5cf6',
+      sparkFill: '#a78bfa',
+      trend: 'up' as const,
+      change: '+۱۲.۵٪',
     },
     {
-      label: labels.totalUsers,
+      label: 'مشتریان جدید (ماه)',
       value: totalUsers.toLocaleString('fa-IR'),
       rawValue: totalUsers,
-      icon: <Users className="h-5 w-5" />,
+      icon: <UserCircle className="h-5 w-5" />,
+      gradient: 'from-fuchsia-500 to-pink-600',
+      iconBg: 'bg-fuchsia-100 dark:bg-fuchsia-900/30',
+      iconColor: 'text-fuchsia-600 dark:text-fuchsia-400',
+      sparklineData: sparkData.newCustomersTrend,
+      sparkColor: '#d946ef',
+      sparkFill: '#e879f9',
+      trend: 'up' as const,
+      change: '+۸.۳٪',
+    },
+    {
+      label: 'سفارشات فعال',
+      value: totalOrders.toLocaleString('fa-IR'),
+      rawValue: totalOrders,
+      icon: <ShoppingCart className="h-5 w-5" />,
       gradient: 'from-cyan-500 to-sky-600',
       iconBg: 'bg-cyan-100 dark:bg-cyan-900/30',
       iconColor: 'text-cyan-600 dark:text-cyan-400',
-      barData: [1, 2, 2, 3, 3, 4, 5, 4, 6, 7],
-      barColor: '#06b6d4',
+      sparklineData: sparkData.activeOrdersTrend,
+      sparkColor: '#06b6d4',
+      sparkFill: '#22d3ee',
+      trend: 'up' as const,
+      change: '+۱۵.۲٪',
+    },
+    {
+      label: 'نرخ تکمیل تسک‌ها',
+      value: `${Math.round(taskCompletionRate)}٪`,
+      rawValue: taskCompletionRate,
+      icon: <Target className="h-5 w-5" />,
+      gradient: 'from-emerald-500 to-green-600',
+      iconBg: 'bg-emerald-100 dark:bg-emerald-900/30',
+      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      sparklineData: sparkData.taskCompletionTrend,
+      sparkColor: '#10b981',
+      sparkFill: '#34d399',
+      trend: 'up' as const,
+      change: '+۴.۸٪',
     },
   ]
 
@@ -1408,14 +1438,26 @@ function DashboardQuickStatsSummary({ statsData }: { statsData: { totalPosts?: n
                 <div className={`h-9 w-9 rounded-xl ${card.iconBg} flex items-center justify-center ${card.iconColor} drop-shadow-sm`}>
                   {card.icon}
                 </div>
-                <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${card.gradient} flex items-center justify-center text-white shadow-sm`}>
-                  <TrendingUp className="h-4 w-4" />
-                </div>
+                <Badge className={`text-[10px] gap-0.5 border-0 px-1.5 py-0 ${
+                  card.trend === 'up' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                }`}>
+                  {card.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {card.change}
+                </Badge>
               </div>
               <p className="text-xl font-bold tabular-nums mb-0.5">{card.value}</p>
               <p className="text-xs text-muted-foreground mb-2">{card.label}</p>
-              {/* CSS-only bar chart */}
-              <CSSBarChart data={card.barData} color={card.barColor} height={24} />
+              {/* MiniSparkline Chart */}
+              <div className="opacity-80 hover:opacity-100 transition-opacity duration-200">
+                <MiniSparkline
+                  data={card.sparklineData}
+                  color={card.sparkColor}
+                  fillColor={card.sparkFill}
+                  trend={card.trend}
+                  width={120}
+                  height={28}
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -1666,6 +1708,9 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dashboard Greeting Widget */}
+      <DashboardGreetingWidget />
 
       {/* Onboarding Tip Banner */}
       <OnboardingTipBanner />

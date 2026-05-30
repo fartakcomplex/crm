@@ -22,8 +22,9 @@ export function useEnsureData(keys: string[]) {
           queryKey: config.queryKey,
           queryFn: config.queryFn,
           staleTime: 60_000,
-        }).catch(() => {
-          // Silently ignore fetch errors — the useQuery hook will handle retry
+        }).catch((err: unknown) => {
+          // Log fetch errors for debugging — the useQuery hook will handle retry
+          console.warn(`[useEnsureData] Failed to prefetch "${key}":`, err)
         })
       }
     })

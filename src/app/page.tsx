@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { CMSProvider, useCMS } from '@/components/cms/context'
@@ -112,6 +112,86 @@ const DynamicOnboardingWizard = dynamic(
   () => import('@/components/cms/OnboardingWizard'),
   { ssr: false }
 )
+
+// ─── Error Boundary ──────────────────────────────────────────────────────
+
+type ErrorBoundaryProps = { children: React.ReactNode }
+type ErrorBoundaryState = { hasError: boolean; error: Error | null }
+
+class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    console.error('[AppErrorBoundary] Caught error:', error, errorInfo)
+  }
+
+  handleRetry = (): void => {
+    this.setState({ hasError: false, error: null })
+  }
+
+  render(): React.ReactNode {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+          <div className="text-center space-y-4 p-8 max-w-md">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+              <X className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground">خطایی رخ داد</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              متأسفانه در بارگذاری برنامه خطایی رخ داده است. لطفاً دوباره تلاش کنید.
+            </p>
+            {this.state.error && (
+              <pre className="text-xs text-muted-foreground/70 bg-muted p-3 rounded-lg text-left overflow-auto max-h-32 dir-ltr" dir="ltr">
+                {this.state.error.message}
+              </pre>
+            )}
+            <Button
+              onClick={this.handleRetry}
+              className="gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
+            >
+              تلاش مجدد
+            </Button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+// ─── Transition Loading Skeleton ─────────────────────────────────────────
+
+function TransitionLoadingScreen() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background" dir="rtl">
+      <div className="space-y-6 text-center w-full max-w-sm px-6">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25 animate-pulse">
+          <Bot className="h-7 w-7 text-white" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-48 mx-auto rounded-lg" />
+          <Skeleton className="h-4 w-32 mx-auto rounded-lg" />
+        </div>
+        <div className="space-y-2 pt-4">
+          <div className="flex justify-center gap-3">
+            {[0, 1, 2].map(i => (
+              <Skeleton key={i} className="w-20 h-24 rounded-xl loading-shimmer" style={{ animationDelay: `${i * 150}ms` }} />
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground/60">در حال بارگذاری...</p>
+      </div>
+    </div>
+  )
+}
 
 // ─── Icon Map ──────────────────────────────────────────────────────────
 
@@ -645,8 +725,19 @@ function AppContent() {
   const [quickDraftOpen, setQuickDraftOpen] = useState(false)
   const [notificationSheetOpen, setNotificationSheetOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const { theme, setTheme } = useTheme()
   const isMobile = useIsMobile()
+
+  // ── Transition delay: show loading skeleton briefly before mounting dashboard ──
+  useEffect(() => {
+    if (isTransitioning) {
+      const timer = setTimeout(() => {
+        setIsTransitioning(false)
+      }, 400)
+      return () => clearTimeout(timer)
+    }
+  }, [isTransitioning])
 
   // ── Onboarding Wizard state ──
   const [showOnboarding, setShowOnboarding] = useState(false)
@@ -769,6 +860,7 @@ function AppContent() {
   }, [])
 
   const handleLogin = useCallback(() => {
+    setIsTransitioning(true)
     setIsLoggedIn(true)
     setActiveTab('dashboard')
   }, [])
@@ -783,7 +875,12 @@ function AppContent() {
 
   // Full-screen landing page when not authenticated
   if (!isLoggedIn) {
-    return <DynamicLandingPage onEnter={() => setIsLoggedIn(true)} />
+    return <DynamicLandingPage onEnter={handleLogin} />
+  }
+
+  // Transition loading screen while dynamic imports prepare
+  if (isTransitioning) {
+    return <TransitionLoadingScreen />
   }
 
   return (
@@ -1006,7 +1103,9 @@ export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
       <CMSProvider>
-        <AppContent />
+        <AppErrorBoundary>
+          <AppContent />
+        </AppErrorBoundary>
       </CMSProvider>
     </QueryClientProvider>
   )

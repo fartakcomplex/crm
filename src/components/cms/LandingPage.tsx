@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
@@ -11,7 +11,7 @@ import {
   Users, Sparkles, Check, Star, ChevronDown,
   Menu, X, Moon, Sun, LayoutDashboard, Wand2, Cpu,
   Layers, Lock, Gauge, Rocket, Heart, Code, Workflow, Eye,
-  ShoppingCart, Database, TrendingUp, Receipt,
+  ShoppingCart, Database, TrendingUp, Receipt, Activity,
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -1141,10 +1141,19 @@ function Footer() {
 
 // ─── Main Landing Page Component ──────────────────────────────────
 export default function LandingPage({ onEnter }: { onEnter: () => void }) {
+  // Stable callback with delay to allow cleanup before transition
+  const handleEnter = useCallback(() => {
+    // Small delay to let the landing page animations clean up
+    // before the full dashboard component tree mounts
+    setTimeout(() => {
+      onEnter()
+    }, 100)
+  }, [onEnter])
+
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <Navbar onEnter={onEnter} />
-      <HeroSection onEnter={onEnter} />
+      <Navbar onEnter={handleEnter} />
+      <HeroSection onEnter={handleEnter} />
       <StatsSection />
       <SectionDivider />
       <FeaturesSection />
@@ -1153,8 +1162,8 @@ export default function LandingPage({ onEnter }: { onEnter: () => void }) {
       <AICapabilitiesSection />
       <SectionDivider />
       <TestimonialsSection />
-      <PricingSection onEnter={onEnter} />
-      <CTASection onEnter={onEnter} />
+      <PricingSection onEnter={handleEnter} />
+      <CTASection onEnter={handleEnter} />
       <Footer />
     </div>
   )
