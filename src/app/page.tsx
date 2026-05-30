@@ -633,7 +633,7 @@ function MobileFAB({ onAction }: { onAction: (action: string) => void }) {
   ]
 
   return (
-    <div className="md:hidden fixed bottom-[68px] left-4 z-40" dir="rtl">
+    <div className="md:hidden fixed bottom-[68px] left-4 z-[90]" dir="rtl">
       {/* Expanded actions */}
       <AnimatePresence>
         {expanded && fabActions.map((action, idx) => (
@@ -684,7 +684,7 @@ function ScrollToTopFAB() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="md:hidden fixed bottom-[68px] right-4 z-40 flex items-center justify-center w-10 h-10 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg active:scale-90 transition-all"
+      className="md:hidden fixed bottom-[68px] right-4 z-[90] flex items-center justify-center w-10 h-10 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg active:scale-90 transition-all"
       dir="rtl"
       aria-label="بازگشت به بالا"
     >
@@ -799,15 +799,17 @@ function MobileBottomNav({ activeTab, onTabChange }: { activeTab: string; onTabC
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom pointer-events-auto" dir="rtl">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-[100] bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom pointer-events-auto touch-manipulation" dir="rtl" style={{ isolation: 'isolate' as const }}>
       <div className="flex items-center justify-around h-14 px-1">
         {quickTabs.map(tab => {
           const isActive = activeTab === tab.id
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => onTabChange(tab.id)}
-              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 ${
+              tabIndex={0}
+              className={`relative flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all duration-200 active:scale-95 ${
                 isActive 
                   ? 'text-violet-600 dark:text-violet-400' 
                   : 'text-muted-foreground hover:text-foreground'
@@ -816,7 +818,7 @@ function MobileBottomNav({ activeTab, onTabChange }: { activeTab: string; onTabC
               <div className={`flex items-center justify-center w-10 h-7 rounded-lg transition-all duration-200 ${isActive ? 'bg-violet-100 dark:bg-violet-900/30' : ''}`}>
                 <tab.icon className="h-[18px] w-[18px]" />
               </div>
-              <span className="text-[10px] font-medium leading-tight">{tab.label}</span>
+              <span className="text-[10px] font-medium leading-tight select-none">{tab.label}</span>
               {isActive && (
                 <div className="absolute bottom-0 w-8 h-0.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full" />
               )}
@@ -1158,10 +1160,10 @@ function AppContent() {
           {/* Bottom Status Bar */}
           <BottomStatusBar />
         </main>
-
-        {/* ─── Mobile Bottom Navigation ─── */}
-        <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
+
+      {/* ─── Mobile Bottom Navigation ─── */}
+      <MobileBottomNav activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Floating Action Button */}
       <FloatingActionButton onNavigate={handleTabChange} onOpenQuickDraft={() => setQuickDraftOpen(true)} />
