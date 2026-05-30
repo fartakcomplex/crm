@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/table'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-  FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X,
+  FileText, Plus, Pencil, Trash2, Search, Eye, Calendar, User, FolderOpen, AlignRight, Hash, X, Star,
   Download, ArrowUpDown, ChevronUp, ChevronDown, CheckSquare, Trash, Columns3,
 } from 'lucide-react'
 import { exportToCSV } from '@/lib/csv-export'
