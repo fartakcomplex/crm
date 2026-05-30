@@ -326,9 +326,9 @@ export default function AIContentStudio() {
     const titleField = feature.inputFields.find(f => f.name === 'title' || f.name === 'productName' || f.name === 'topic' || f.name === 'headline' || f.name === 'name')
     const contentField = feature.inputFields.find(f => f.type === 'textarea')
 
-    if (selectedContent || (titleField && data[titleField.name])) {
-      const researchTitle = selectedContent?.title || data[titleField.name] || ''
-      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField.name] : '')
+    if (selectedContent || (titleField && data[titleField?.name ?? ''])) {
+      const researchTitle = selectedContent?.title || data[titleField?.name ?? ''] || ''
+      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField?.name ?? ''] : '')
       if (researchTitle.trim()) {
         researchContext = await researchContent(researchTitle, researchContent_text || undefined, 'image')
       }
@@ -406,9 +406,9 @@ export default function AIContentStudio() {
     const titleField = feature.inputFields.find(f => f.name === 'topic' || f.name === 'productName' || f.name === 'brand' || f.name === 'scene' || f.name === 'dish' || f.name === 'brandName' || f.name === 'text' || f.name === 'name')
     const contentField = feature.inputFields.find(f => f.type === 'textarea')
 
-    if (selectedContent || (titleField && data[titleField.name])) {
-      const researchTitle = selectedContent?.title || data[titleField.name] || ''
-      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField.name] : '')
+    if (selectedContent || (titleField && data[titleField?.name ?? ''])) {
+      const researchTitle = selectedContent?.title || data[titleField?.name ?? ''] || ''
+      const researchContent_text = selectedContent?.excerpt || (contentField ? data[contentField?.name ?? ''] : '')
       if (researchTitle.trim()) {
         researchContext = await researchContent(researchTitle, researchContent_text || undefined, 'video')
       }

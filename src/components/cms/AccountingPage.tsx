@@ -442,11 +442,15 @@ export default function AccountingPage() {
         total: calcTotal,
         notes: '',
         items: form.items.map(item => ({
+          id: '',
+          invoiceId: '',
+          productId: null,
           description: item.description,
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
-        })),
+          createdAt: new Date().toISOString(),
+        })) as InvoiceItem[],
       })
       toast.success('فاکتور بروزرسانی شد')
     } else {
@@ -467,7 +471,7 @@ export default function AccountingPage() {
           quantity: item.quantity,
           unitPrice: item.unitPrice,
           total: item.quantity * item.unitPrice,
-        })),
+        })) as InvoiceItem[],
       })
       toast.success('فاکتور جدید صادر شد')
     }

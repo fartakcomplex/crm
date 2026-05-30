@@ -99,8 +99,8 @@ function extractUrls(result: Record<string, unknown>) {
     result.video_url,
     result.url,
     result.video,
-    result.output?.video_url,
-    result.output?.url,
+    (result.output as Record<string, unknown>)?.video_url,
+    (result.output as Record<string, unknown>)?.url,
     result.results?.[0]?.url,
     result.data?.[0]?.url,
   ].filter(Boolean) as string[]
@@ -224,7 +224,7 @@ export async function POST(request: NextRequest) {
           120000, // 2 min timeout for initial creation
         )
 
-        if (!task?.id) {
+        if (!(task as unknown as Record<string, unknown>)?.id) {
           console.log(`[video-gen] No task.id returned`)
           const storedTask = videoTasks.get(taskId)
           if (storedTask) { storedTask.status = 'error'; storedTask.error = 'no_task_id'; storedTask.userMessage = '⚠️ خطا در ایجاد تسک ویدئو. لطفاً دوباره تلاش کنید.' }
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if result already embedded
-        const initialTask = task as Record<string, unknown>
+        const initialTask = task as unknown as Record<string, unknown>
         const { videoUrls: initialUrls, audioUrl: initialAudio } = extractUrls(initialTask)
 
         if (initialUrls.length > 0) {

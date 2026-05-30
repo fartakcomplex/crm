@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   }
 
   const { title, type } = body
-  const mediaType = ['image', 'video', 'audio'].includes(type) ? type : 'image'
+  const mediaType = ['image', 'video', 'audio'].includes(type || '') ? (type || 'image') : 'image'
 
   // No title = return fallback
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check cache first
-    const cacheKey = getCacheKey(title.trim(), mediaType)
+    const cacheKey = getCacheKey((title || '').trim(), mediaType)
     const cached = researchCache.get(cacheKey)
     if (cached && Date.now() - cached.createdAt < CACHE_TTL_MS) {
       return NextResponse.json({
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     // Always return success with fallback — never block generation
     return NextResponse.json({
       success: true,
-      researchContext: `Professional ${mediaType} content about "${title.trim()}" with high quality and modern aesthetic.`,
+      researchContext: `Professional ${mediaType} content about "${(title || '').trim()}" with high quality and modern aesthetic.`,
       searchResults: [],
       fallback: true,
     })

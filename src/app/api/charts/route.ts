@@ -6,7 +6,7 @@ export async function GET() {
   try {
     // Monthly views data (last 12 months)
     const now = new Date()
-    const monthlyViews = []
+    const monthlyViews: Array<{month: string; views: number; posts: number; comments: number}> = []
     for (let i = 11; i >= 0; i--) {
       const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 0, 23, 59, 59)
@@ -44,7 +44,7 @@ export async function GET() {
     }))
 
     // Weekly activity (last 7 days)
-    const weeklyActivity = []
+    const weeklyActivity: Array<{day: string; posts: number; comments: number; users: number}> = []
     for (let i = 6; i >= 0; i--) {
       const dayStart = new Date(now)
       dayStart.setDate(dayStart.getDate() - i)

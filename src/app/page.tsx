@@ -40,6 +40,7 @@ import ScrollProgressIndicator from '@/components/cms/ScrollProgressIndicator'
 import { QuickAIChat } from '@/components/cms/QuickAIChat'
 import { KeyboardShortcuts, KeyboardShortcutsTrigger } from '@/components/cms/KeyboardShortcuts'
 import DarkModeToggle from '@/components/cms/DarkModeToggle'
+import LiveClockWidget from '@/components/cms/LiveClockWidget'
 import ActivityFeedWidget from '@/components/cms/ActivityFeedWidget'
 import QuickStatsBar from '@/components/cms/QuickStatsBar'
 import RecentCommentsWidget from '@/components/cms/RecentCommentsWidget'
@@ -790,7 +791,7 @@ function AppContent() {
       {/* Onboarding Wizard Overlay */}
       {showOnboarding && (
         <div className="fixed inset-0 z-50">
-          <DynamicOnboardingWizard onClose={() => setShowOnboarding(false)} />
+          <DynamicOnboardingWizard open={showOnboarding} onClose={() => setShowOnboarding(false)} />
         </div>
       )}
 
@@ -898,6 +899,9 @@ function AppContent() {
               {/* Dark Mode Toggle */}
               <DarkModeToggle />
 
+              {/* Live Clock Widget */}
+              <LiveClockWidget />
+
               {/* Notification Bell */}
               <NotificationBell
                 onClick={() => setNotificationSheetOpen(true)}
@@ -987,7 +991,7 @@ function AppContent() {
       <QuickBackupStatus />
 
       {/* Quick Action Toolbar */}
-      <QuickActionToolbar currentTab={activeTab} />
+      <QuickActionToolbar />
     </TooltipProvider>
   )
 }

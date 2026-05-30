@@ -22,15 +22,15 @@ export async function POST(request: NextRequest) {
     })
 
     const formattedResults = Array.isArray(results)
-      ? results.map((item: Record<string, unknown>) => ({
+      ? (results as any[]).map((item: Record<string, unknown>) => ({
           title: item.title || item.name || '',
           url: item.url || item.link || '',
           snippet: item.snippet || item.description || item.text || '',
           publishedDate: item.publishedDate || item.date || null,
           source: item.source || item.domain || '',
         }))
-      : results?.results
-        ? Array.from(results.results as unknown[]).map((item: Record<string, unknown>) => ({
+      : (results as any)?.results
+        ? Array.from((results as any).results as unknown[]).map((item: any) => ({
             title: item.title || '',
             url: item.url || item.link || '',
             snippet: item.snippet || item.description || '',

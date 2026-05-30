@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
 از Markdown برای فرمت‌بندی استفاده کن.`
 
     const response = await client.chat.completions.createVision({
+      model: 'default',
       messages: [
         {
           role: 'user',

@@ -253,9 +253,22 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
       <GradientOrb className="w-[400px] h-[400px] bg-cyan-500 top-1/3 left-1/2 -translate-x-1/2 opacity-20" />
       <FloatingParticles />
 
-      {/* Grid pattern overlay */}
+      {/* Animated gradient background mesh */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(217,70,239,0.06) 25%, rgba(6,182,212,0.05) 50%, rgba(139,92,246,0.08) 75%, rgba(217,70,239,0.06) 100%)', backgroundSize: '400% 400%' }} aria-hidden="true" />
+
+      {/* Dot grid pattern overlay */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: `radial-gradient(circle, rgba(139,92,246,0.18) 1px, transparent 1px)`,
+          backgroundSize: '32px 32px',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Subtle line grid */}
+      <div
+        className="absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage: `linear-gradient(rgba(139,92,246,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.3) 1px, transparent 1px)`,
           backgroundSize: '60px 60px',
@@ -312,7 +325,7 @@ function HeroSection({ onEnter }: { onEnter: () => void }) {
               <Button
                 size="lg"
                 onClick={onEnter}
-                className="gap-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white font-bold shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105 active:scale-95 transition-all px-8 h-13 text-base shine-effect cta-pulse"
+                className="gap-2.5 bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-600 hover:from-violet-500 hover:via-purple-500 hover:to-fuchsia-500 text-white font-bold shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:shadow-fuchsia-500/20 hover:scale-105 active:scale-95 transition-all duration-300 px-8 h-13 text-base ring-2 ring-violet-500/20 hover:ring-violet-400/40 cta-glow"
               >
                 <Rocket className="h-5 w-5" />
                 شروع رایگان
@@ -449,9 +462,11 @@ function StatsSection() {
                 whileHover={{ scale: 1.03, y: -4 }}
                 className="relative group"
               >
-                <Card className="relative overflow-hidden border-border/40 hover:border-violet-500/30 transition-all duration-300 bg-card/50 backdrop-blur-sm hover:shadow-xl hover:shadow-violet-500/10 card-elevated hover-lift card-gradient-border">
-                  <CardContent className="p-6 text-center">
-                    <stat.icon className={`h-8 w-8 mx-auto mb-3 ${stat.color} group-hover:scale-110 transition-transform`} />
+                <Card className="relative overflow-hidden border-border/30 hover:border-violet-500/40 transition-all duration-300 bg-card/40 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 card-elevated hover-lift">
+                  <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
+                  <CardContent className="p-6 text-center relative z-10">
+                    <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-br ${stat.color === 'text-violet-500' ? 'from-violet-500/15 to-purple-500/10' : stat.color === 'text-fuchsia-500' ? 'from-fuchsia-500/15 to-pink-500/10' : stat.color === 'text-emerald-500' ? 'from-emerald-500/15 to-teal-500/10' : 'from-amber-500/15 to-orange-500/10'} backdrop-blur-sm group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}><stat.icon className={`h-7 w-7 ${stat.color}`} /></div>
                     <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent stat-count-animate">
                       {stat.value}
                     </div>
@@ -516,14 +531,14 @@ function FeaturesSection() {
       icon: Globe,
       title: 'همگام‌سازی وردپرس',
       desc: 'اتصال یک‌طرفه و دوطرفه با سایت‌های وردپرسی برای مدیریت یکپارچه',
-      gradient: 'from-blue-500 to-indigo-600',
-      glow: 'group-hover:shadow-blue-500/20',
+      gradient: 'from-cyan-500 to-teal-600',
+      glow: 'group-hover:shadow-cyan-500/20',
     },
     {
       icon: Lock,
       title: 'امنیت پیشرفته',
       desc: 'احراز هویت چند مرحله‌ای، رمزگذاری داده‌ها و کنترل دسترسی نقش‌محور',
-      gradient: 'from-violet-600 to-indigo-700',
+      gradient: 'from-violet-600 to-fuchsia-700',
       glow: 'group-hover:shadow-violet-600/20',
     },
     {
@@ -947,6 +962,112 @@ function CTASection({ onEnter }: { onEnter: () => void }) {
                 بدون نیاز به کارت بانکی • شروع فوری • لغو در هر زمان
               </p>
             </div>
+          </div>
+        </AnimatedSection>
+      </div>
+    </section>
+  )
+}
+
+// ─── System Stats Bar ──────────────────────────────────────
+function SystemStatsBar() {
+  const [stats, setStats] = useState<{ totalUsers: number; totalProducts: number; totalOrders: number } | null>(null)
+  const [uptime, setUptime] = useState(0)
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('/api/stats')
+        if (res.ok) {
+          const data = await res.json()
+          setStats({
+            totalUsers: data.overview?.totalUsers ?? 0,
+            totalProducts: data.overview?.totalProducts ?? 0,
+            totalOrders: data.overview?.totalOrders ?? 0,
+          })
+        }
+      } catch { /* silently ignore */ }
+    }
+    fetchStats()
+    const interval = setInterval(fetchStats, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Track uptime since component mount
+  useEffect(() => {
+    const timer = setInterval(() => setUptime(u => u + 1), 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const formatUptime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600)
+    const m = Math.floor((seconds % 3600) / 60)
+    const s = seconds % 60
+    if (h > 0) return `${h}س ${m}د ${s}ث`
+    if (m > 0) return `${m}د ${s}ث`
+    return `${s}ث`
+  }
+
+  const badges = [
+    {
+      label: 'کاربران',
+      value: stats ? stats.totalUsers.toLocaleString('fa-IR') : '─',
+      icon: Users,
+      gradient: 'from-violet-500 to-purple-600',
+    },
+    {
+      label: 'محصولات',
+      value: stats ? stats.totalProducts.toLocaleString('fa-IR') : '─',
+      icon: ShoppingCart,
+      gradient: 'from-amber-500 to-orange-600',
+    },
+    {
+      label: 'سفارشات',
+      value: stats ? stats.totalOrders.toLocaleString('fa-IR') : '─',
+      icon: Receipt,
+      gradient: 'from-emerald-500 to-green-600',
+    },
+    {
+      label: 'آپتایم',
+      value: formatUptime(uptime),
+      icon: Activity,
+      gradient: 'from-cyan-500 to-teal-600',
+    },
+  ]
+
+  return (
+    <section className="relative py-10 md:py-14 bg-gradient-to-b from-transparent via-violet-500/[0.02] to-transparent">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" dir="rtl">
+        <AnimatedSection>
+          <div className="text-center mb-6">
+            <Badge className="mb-3 px-3 py-1 bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20">
+              <Activity className="h-3 w-3 ml-1.5" />
+              آمار سیستم
+            </Badge>
+            <p className="text-xs text-muted-foreground">داده‌های لحظه‌ای سامانه</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {badges.map((badge, i) => (
+              <motion.div
+                key={badge.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                viewport={{ once: true, amount: 0.3 }}
+                whileHover={{ scale: 1.05, y: -3 }}
+                className="relative group"
+              >
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300">
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${badge.gradient} flex items-center justify-center shadow-md shrink-0 group-hover:scale-110 transition-transform`}>
+                    <badge.icon className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground/90 tabular-nums stat-count-animate">{badge.value}</p>
+                    <p className="text-[10px] text-muted-foreground">{badge.label}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </AnimatedSection>
       </div>
