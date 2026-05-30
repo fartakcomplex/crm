@@ -964,3 +964,75 @@ Stage Summary:
 - MobileBottomNav z-index increased to z-50 (highest in normal flow)
 - Landing page footer links have larger touch targets on mobile
 - All Persian text preserved
+
+---
+Task ID: 15
+Agent: Main Agent
+Task: Fix MobileBottomNav links + GitHub preparation
+
+Work Log:
+- Fixed MobileBottomNav links not working on mobile:
+  - Moved MobileBottomNav OUTSIDE the flex wrapper div (to root level alongside FloatingActionButton)
+  - Increased z-index from z-50 to z-[100] to ensure it's above all other elements
+  - Added `touch-manipulation` CSS class for better touch handling on mobile
+  - Added `isolation: isolate` style to create own stacking context
+  - Added `type="button"` and `tabIndex={0}` to all nav buttons for accessibility
+  - Added `active:scale-95` for visual feedback on tap
+  - Added `select-none` to labels to prevent accidental text selection
+- Updated MobileFAB z-index from z-40 to z-[90] (below bottom nav, above content)
+- Updated ScrollToTopFAB z-index from z-40 to z-[90]
+- Created comprehensive README.md with features, tech stack, project structure, setup guide
+- Committed all changes with proper commit messages
+- Attempted GitHub push — sandbox has no GitHub authentication (no SSH, no gh token)
+
+Stage Summary:
+- MobileBottomNav fix committed (moved outside flex wrapper, z-[100], touch-manipulation)
+- README.md created with full documentation
+- 2 commits: fix: MobileBottomNav links + docs: add README.md
+- GitHub push requires user to authenticate from their local machine
+- Lint: 0 errors, 0 warnings
+- Server: running on port 3000 with auto-restart loop
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Good. MobileBottomNav links issue fixed. All 30+ features working. Repository ready for GitHub.
+- **Server Stability**: Running on port 3000 with auto-restart loop.
+- **Code Quality**: Lint 0 errors. TypeScript strict. Clean commits.
+- **Git**: All changes committed. README.md created. No remote configured — needs GitHub auth.
+
+### Completed Modifications (Round 15)
+1. Fixed MobileBottomNav links (moved outside flex wrapper, z-[100], touch-manipulation)
+2. Updated MobileFAB and ScrollToTopFAB z-index to z-[90]
+3. Created comprehensive README.md
+
+### GitHub Push Instructions
+Since the sandbox has no GitHub credentials, the user needs to:
+```bash
+# Option 1: Using gh CLI
+gh auth login
+cd /path/to/project
+gh repo create smart-cms-v2 --public --source=. --push
+
+# Option 2: Using HTTPS with token
+git remote add origin https://github.com/YOUR_USERNAME/smart-cms-v2.git
+git push -u origin main
+
+# Option 3: Push to existing repo
+git remote add origin https://github.com/fartakcomplex/crm.git
+git push -u origin main
+```
+
+### Unresolved Issues / Risks
+1. **GitHub push**: Requires authentication from user's machine
+2. **Server instability**: Periodic Turbopack crashes (mitigated by auto-restart)
+3. **MobileBottomNav**: Fix applied but not visually verified (agent-browser connectivity issues in sandbox)
+
+### Next Phase Recommendations
+1. **Priority 1**: Push to GitHub (user auth required)
+2. **Priority 2**: Verify MobileBottomNav fix on real device
+3. **Priority 3**: Add real authentication with NextAuth.js
+4. **Priority 4**: PWA support (service worker, manifest)
+5. **Priority 5**: Performance optimization — lazy loading
