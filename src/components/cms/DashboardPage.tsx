@@ -65,6 +65,8 @@ import DataExportDialog from '@/components/cms/DataExportDialog'
 import DashboardGreetingWidget from './DashboardGreetingWidget'
 import QuickDraftWidget from './QuickDraftWidget'
 import TopCustomersWidget from './TopCustomersWidget'
+import DashboardQuickActions from './DashboardQuickActions'
+import RecentOrdersWidget from './RecentOrdersWidget'
 
 // Persian labels
 const labels = {
@@ -224,7 +226,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
 
   return (
     <Card
-      className={`bg-gradient-to-br ${color} border-0 text-white stat-card stat-card-animated-border stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-200 animate-in`}
+      className={`bg-gradient-to-br ${color} border border-white/10 text-white stat-card stat-card-animated-border stat-card-gradient card-elevated hover-lift shadow-sm hover:shadow-xl hover:shadow-violet-500/5 transition-all duration-200 animate-in`}
       style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}
     >
       {/* Shine overlay */}
@@ -235,7 +237,7 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
         <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10 hover:bg-white/35 hover:scale-105 transition-all duration-200">{icon}</div>
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm opacity-80">{label}</p>
-          <p className="text-xl sm:text-2xl font-bold tabular-nums">{displayValue}</p>
+          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{displayValue}</p>
           {sparklineData && sparklineData.length >= 2 && (
             <div className="mt-1 opacity-70">
               <MiniSparkline
@@ -359,7 +361,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
   color: string; bgColor: string; delay?: number
 }) {
   return (
-    <Card className={`card-elevated hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
+    <Card className={`card-elevated hover-lift shadow-sm hover:shadow-md border border-border/50 hover:border-violet-500/20 transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
       <CardContent className="p-3.5 sm:p-5">
         <div className="flex items-center justify-between mb-2">
           <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color} drop-shadow-sm hover:scale-110 transition-transform duration-200`}>
@@ -374,7 +376,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
             </Badge>
           )}
         </div>
-        <p className="text-lg font-bold tabular-nums">{value}</p>
+        <p className="text-2xl sm:text-3xl font-bold tabular-nums">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>
       </CardContent>
     </Card>
@@ -1906,94 +1908,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Dashboard Greeting Widget */}
-      <div className="space-y-4 lg:space-y-6">
-      <DashboardGreetingWidget />
-
-      {/* Onboarding Tip Banner */}
-      <OnboardingTipBanner />
-
-      {/* Quick Stats Summary with Animated Counters & CSS Bar Charts */}
-      <DashboardQuickStatsSummary statsData={statsData ?? null} />
-
-      {/* Quick Stats Row */}
-      <QuickStatsRow />
-
-      {/* Today's Quick Overview */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <MiniTrendCard
-          label="بازدید امروز"
-          value="۱۲۴"
-          change="+۲۳٪"
-          trend="up"
-          icon={<Eye className="h-4 w-4" />}
-          color="text-emerald-600 dark:text-emerald-400"
-          bgColor="bg-emerald-100 dark:bg-emerald-900/20"
-          delay={0}
-        />
-        <MiniTrendCard
-          label="نظرات جدید"
-          value="۸"
-          change="+۴"
-          trend="up"
-          icon={<MessageCircle className="h-4 w-4" />}
-          color="text-amber-600 dark:text-amber-400"
-          bgColor="bg-amber-100 dark:bg-amber-900/20"
-          delay={50}
-        />
-        <MiniTrendCard
-          label="کاربران فعال"
-          value="۳"
-          change="۰٪"
-          trend="flat"
-          icon={<Users className="h-4 w-4" />}
-          color="text-cyan-600 dark:text-cyan-400"
-          bgColor="bg-cyan-100 dark:bg-cyan-900/20"
-          delay={100}
-        />
-        <MiniTrendCard
-          label="تسک‌های فعال"
-          value="۵"
-          change="-۱"
-          trend="down"
-          icon={<Target className="h-4 w-4" />}
-          color="text-rose-600 dark:text-rose-400"
-          bgColor="bg-rose-100 dark:bg-rose-900/20"
-          delay={150}
-        />
-      </div>
-
-      {/* System Health Widget — compact */}
-      <Card className="glass-card card-elevated">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="h-4 w-4 text-emerald-500" />
-            <span>سلامت سیستم</span>
-            <Badge className="badge-gradient-emerald text-[10px]">عالی</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-            {[
-              { label: 'سرور', value: 'فعال', status: 'ok', icon: Server },
-              { label: 'پایگاه داده', value: 'متصل', status: 'ok', icon: Database },
-              { label: 'فضای ذخیره', value: '۲.۴ GB', status: 'ok', icon: HardDrive },
-              { label: 'آپتایم', value: '۹۹.۹٪', status: 'ok', icon: Clock },
-            ].map(item => (
-              <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-background/60 hover-lift">
-                <item.icon className="h-4 w-4 text-emerald-500" />
-                <div>
-                  <p className="text-xs text-muted-foreground">{item.label}</p>
-                  <p className="text-sm font-medium">{item.value}</p>
-                </div>
-                <div className="mr-auto h-2 w-2 rounded-full bg-emerald-500 status-dot-pulse" />
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Stats Row */}
+      {/* ═══ Stats Row (compact — right at the top) ═══ */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
         <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} sparklineData={[2, 2, 3, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
@@ -2002,9 +1917,348 @@ export default function DashboardPage() {
         <StatCard icon={<Eye className="h-5 w-5" />} label={labels.totalViews} value={(statsData?.totalViews ?? 0).toLocaleString()} numericValue={statsData?.totalViews} color="from-teal-500 to-teal-700" delay={200} sparklineData={[100, 150, 120, 200, 180, 250, 300]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<DollarSign className="h-5 w-5" />} label={labels.revenue} value={`$${(statsData?.revenue ?? 0).toLocaleString()}`} numericValue={statsData?.revenue} color="from-amber-500 to-amber-700" delay={250} sparklineData={[50000, 60000, 45000, 80000, 70000, 90000, 78250]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
       </div>
+
+      {/* ═══════ Charts Section — Immediately after stats for visibility ═══════ */}
+      <Separator className="my-1 bg-border/30" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+
+        {/* ───── Monthly Views BarChart (Recharts) ───── */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-violet-500/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 animate-in" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.monthlyViews}</CardTitle>
+              <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">{labels.totalViews}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">آمار بازدید ماهانه صفحات</p>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={VIOLET_LIGHT} />
+                    <stop offset="100%" stopColor={VIOLET_DARK} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<PersianTooltip />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
+                <Bar
+                  dataKey="views"
+                  fill="url(#barGradient)"
+                  radius={[6, 6, 0, 0]}
+                  maxBarSize={40}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ───── Category Distribution PieChart (Recharts) ───── */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-fuchsia-500/10 bg-gradient-to-br from-fuchsia-500/5 to-pink-500/5 animate-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.categoryDist}</CardTitle>
+              <Badge variant="secondary" className="text-[10px] bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300">{(chartData?.categoryDistribution ?? []).length} دسته</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">توزیع محتوا در دسته‌بندی‌ها</p>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData?.categoryDistribution ?? []}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={3}
+                  dataKey="value"
+                  nameKey="name"
+                  label={renderPieLabel}
+                  labelLine={false}
+                  strokeWidth={0}
+                  isAnimationActive={true}
+                  animationDuration={800}
+                >
+                  {(chartData?.categoryDistribution ?? []).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<PieTooltip />} />
+                <Legend
+                  formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>}
+                  wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-violet-500/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 animate-in" style={{ animationDelay: '450ms', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.weeklyActivity}</CardTitle>
+              <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">{labels.posts} + {labels.comments}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">فعالیت هفتگی محتوا و نظرات</p>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CYAN_MAIN} />
+                    <stop offset="100%" stopColor={VIOLET_DARK} />
+                  </linearGradient>
+                  <linearGradient id="commentsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={EMERALD_MAIN} />
+                    <stop offset="100%" stopColor={VIOLET_DARK} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+                <XAxis
+                  dataKey="day"
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<PersianTooltip labelKey="comments" />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
+                <Bar dataKey="posts" fill="url(#postsGradient)" radius={[6, 6, 0, 0]} maxBarSize={24} name={labels.posts} isAnimationActive={true} animationDuration={800} />
+                <Bar dataKey="comments" fill="url(#commentsGradient)" radius={[6, 6, 0, 0]} maxBarSize={24} name={labels.comments} isAnimationActive={true} animationDuration={800} />
+                <Legend
+                  formatter={(value: string) => (
+                    <span className="text-xs text-muted-foreground">{value}</span>
+                  )}
+                  wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-cyan-500/10 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 animate-in" style={{ animationDelay: '525ms', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.monthlyViewsTrend}</CardTitle>
+              <Badge variant="secondary" className="text-[10px] bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">روند ۱۲ ماه</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">نمودار روند بازدید ماهانه</p>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={CYAN_MAIN} stopOpacity={0.35} />
+                    <stop offset="50%" stopColor={VIOLET_MAIN} stopOpacity={0.15} />
+                    <stop offset="100%" stopColor={VIOLET_MAIN} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={{ stroke: 'var(--border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<PersianTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="views"
+                  stroke={VIOLET_MAIN}
+                  strokeWidth={2.5}
+                  fill="url(#areaGradient)"
+                  dot={{ r: 4, fill: VIOLET_MAIN, strokeWidth: 2, stroke: 'var(--background)' }}
+                  activeDot={{ r: 6, fill: VIOLET_MAIN, stroke: 'var(--background)', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ───── Content Status PieChart (Recharts) ───── */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-fuchsia-500/10 bg-gradient-to-br from-fuchsia-500/5 to-pink-500/5 animate-in lg:col-span-2" style={{ animationDelay: '500ms', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.contentStatus}</CardTitle>
+              <Badge variant="secondary" className="text-[10px] bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300">{statsData?.totalPosts ?? 0} {labels.totalPosts}</Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">وضعیت انتشار مطالب</p>
+          </CardHeader>
+          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+            <div className="chart-glass rounded-xl p-3 sm:p-4 flex flex-col items-center">
+              <div className="min-h-[280px] md:min-h-[320px] lg:min-h-[360px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={contentStatusPieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    paddingAngle={4}
+                    dataKey="value"
+                    nameKey="name"
+                    label={renderPieLabel}
+                    labelLine={false}
+                    strokeWidth={0}
+                    isAnimationActive={true}
+                    animationDuration={800}
+                  >
+                    {contentStatusPieData.map((entry, index) => (
+                      <Cell key={`cs-cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<PieTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex items-center gap-6 mt-1">
+                {contentStatusPieData.map((entry, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
+                    <span className="text-xs text-muted-foreground">{entry.name}</span>
+                  </div>
+                ))}
+              </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Collapsible Sections */}
+      {/* ═══ Secondary Widgets (below charts) ═══ */}
+      <div className="space-y-4 lg:space-y-6">
+        {/* Dashboard Greeting Widget */}
+        <DashboardGreetingWidget />
+
+        {/* Onboarding Tip Banner */}
+        <OnboardingTipBanner />
+
+        {/* Quick Stats Summary with Animated Counters & CSS Bar Charts */}
+        <DashboardQuickStatsSummary statsData={statsData ?? null} />
+
+        {/* Quick Stats Row */}
+        <QuickStatsRow />
+
+        {/* Today's Quick Overview */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <MiniTrendCard
+            label="بازدید امروز"
+            value="۱۲۴"
+            change="+۲۳٪"
+            trend="up"
+            icon={<Eye className="h-4 w-4" />}
+            color="text-emerald-600 dark:text-emerald-400"
+            bgColor="bg-emerald-100 dark:bg-emerald-900/20"
+            delay={0}
+          />
+          <MiniTrendCard
+            label="نظرات جدید"
+            value="۸"
+            change="+۴"
+            trend="up"
+            icon={<MessageCircle className="h-4 w-4" />}
+            color="text-amber-600 dark:text-amber-400"
+            bgColor="bg-amber-100 dark:bg-amber-900/20"
+            delay={50}
+          />
+          <MiniTrendCard
+            label="کاربران فعال"
+            value="۳"
+            change="۰٪"
+            trend="flat"
+            icon={<Users className="h-4 w-4" />}
+            color="text-cyan-600 dark:text-cyan-400"
+            bgColor="bg-cyan-100 dark:bg-cyan-900/20"
+            delay={100}
+          />
+          <MiniTrendCard
+            label="تسک‌های فعال"
+            value="۵"
+            change="-۱"
+            trend="down"
+            icon={<Target className="h-4 w-4" />}
+            color="text-rose-600 dark:text-rose-400"
+            bgColor="bg-rose-100 dark:bg-rose-900/20"
+            delay={150}
+          />
+        </div>
+
+        {/* System Health Widget — compact */}
+        <Card className="glass-card card-elevated">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Activity className="h-4 w-4 text-emerald-500" />
+              <span>سلامت سیستم</span>
+              <Badge className="badge-gradient-emerald text-[10px]">عالی</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+              {[
+                { label: 'سرور', value: 'فعال', status: 'ok', icon: Server },
+                { label: 'پایگاه داده', value: 'متصل', status: 'ok', icon: Database },
+                { label: 'فضای ذخیره', value: '۲.۴ GB', status: 'ok', icon: HardDrive },
+                { label: 'آپتایم', value: '۹۹.۹٪', status: 'ok', icon: Clock },
+              ].map(item => (
+                <div key={item.label} className="flex items-center gap-2 p-2 rounded-lg bg-background/60 hover-lift">
+                  <item.icon className="h-4 w-4 text-emerald-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">{item.label}</p>
+                    <p className="text-sm font-medium">{item.value}</p>
+                  </div>
+                  <div className="mr-auto h-2 w-2 rounded-full bg-emerald-500 status-dot-pulse" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dashboard Quick Actions */}
+        <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
+          <CardHeader className="pb-3 pt-4 px-4">
+            <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickActionsNew}</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <DashboardQuickActions onAction={(action) => toast.info(`عملیات: ${action}`)} />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ═══════ Collapsible Sections ═══════ */}
       <Separator className="my-1 bg-border/30" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 divide-y divide-border/40 lg:divide-y-0 lg:divide-x lg:divide-border/40">
         {/* Quick Access Grid */}
@@ -2113,196 +2367,6 @@ export default function DashboardPage() {
           </div>
         </Section>
 
-        {/* ───── Monthly Views BarChart (Recharts) ───── */}
-        <Section title={labels.monthlyViews} defaultOpen={true} delay={350}>
-          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
-              <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={VIOLET_LIGHT} />
-                  <stop offset="100%" stopColor={VIOLET_DARK} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={{ stroke: 'var(--border)' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<PersianTooltip />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
-              <Bar
-                dataKey="views"
-                fill="url(#barGradient)"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={40}
-                isAnimationActive={true}
-                animationDuration={800}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-          </div>
-        </Section>
-
-        {/* ───── Category Distribution PieChart (Recharts) ───── */}
-        <Section title={labels.categoryDist} defaultOpen={false} delay={400}>
-          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData?.categoryDistribution ?? []}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={95}
-                paddingAngle={3}
-                dataKey="value"
-                nameKey="name"
-                label={renderPieLabel}
-                labelLine={false}
-                strokeWidth={0}
-                isAnimationActive={true}
-                animationDuration={800}
-              >
-                {(chartData?.categoryDistribution ?? []).map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<PieTooltip />} />
-              <Legend
-                formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>}
-                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          </div>
-        </Section>
-
-        {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
-        <Section title={labels.weeklyActivity} defaultOpen={false} delay={450}>
-          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
-              <defs>
-                <linearGradient id="postsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={CYAN_MAIN} />
-                  <stop offset="100%" stopColor={VIOLET_DARK} />
-                </linearGradient>
-                <linearGradient id="commentsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={EMERALD_MAIN} />
-                  <stop offset="100%" stopColor={VIOLET_DARK} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
-              <XAxis
-                dataKey="day"
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={{ stroke: 'var(--border)' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<PersianTooltip labelKey="comments" />} cursor={{ fill: 'var(--violet-500/5)', radius: 4 }} />
-              <Bar dataKey="posts" fill="url(#postsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.posts} isAnimationActive={true} animationDuration={800} />
-              <Bar dataKey="comments" fill="url(#commentsGradient)" radius={[4, 4, 0, 0]} maxBarSize={24} name={labels.comments} isAnimationActive={true} animationDuration={800} />
-              <Legend
-                formatter={(value: string) => (
-                  <span className="text-xs text-muted-foreground">{value}</span>
-                )}
-                wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-          </div>
-        </Section>
-
-        {/* ───── Content Status PieChart (Recharts) ───── */}
-        <Section title={labels.contentStatus} defaultOpen={false} delay={500}>
-          <div className="chart-glass rounded-xl p-3 sm:p-4 flex flex-col items-center">
-            <div className="min-h-[200px] sm:min-h-[250px] md:min-h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={contentStatusPieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={90}
-                  paddingAngle={4}
-                  dataKey="value"
-                  nameKey="name"
-                  label={renderPieLabel}
-                  labelLine={false}
-                  strokeWidth={0}
-                  isAnimationActive={true}
-                  animationDuration={800}
-                >
-                  {contentStatusPieData.map((entry, index) => (
-                    <Cell key={`cs-cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip content={<PieTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex items-center gap-6 mt-1">
-              {contentStatusPieData.map((entry, idx) => (
-                <div key={idx} className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
-                  <span className="text-xs text-muted-foreground">{entry.name}</span>
-                </div>
-              ))}
-            </div>
-            </div>
-          </div>
-        </Section>
-
-        {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
-        <Section title={labels.monthlyViewsTrend} defaultOpen={false} delay={525}>
-          <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
-              <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={VIOLET_MAIN} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={VIOLET_MAIN} stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
-              <XAxis
-                dataKey="month"
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={{ stroke: 'var(--border)' }}
-                tickLine={false}
-              />
-              <YAxis
-                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <Tooltip content={<PersianTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="views"
-                stroke={VIOLET_MAIN}
-                strokeWidth={2.5}
-                fill="url(#areaGradient)"
-                dot={{ r: 4, fill: VIOLET_MAIN, strokeWidth: 2, stroke: 'var(--background)' }}
-                activeDot={{ r: 6, fill: VIOLET_MAIN, stroke: 'var(--background)', strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-          </div>
-        </Section>
-
         {/* Popular Articles */}
         <Section title={labels.popularArticles} defaultOpen={false} delay={550}>
           <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -2366,12 +2430,6 @@ export default function DashboardPage() {
         {/* Top Customers Widget (Legacy — uses API data) */}
         <LegacyTopCustomersWidget />
 
-        {/* Calendar + Top Customers — 2-column grid (new standalone widgets) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
-          <CalendarWidget />
-          <TopCustomersWidget />
-        </div>
-
         {/* Quick Draft Widget */}
         <QuickDraftWidget />
 
@@ -2379,6 +2437,23 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
           <NotificationCenterWidget />
           <RecentActivityTimeline />
+        </div>
+
+        {/* Calendar + Top Customers + Recent Orders — 3-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+          <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-border/50">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.miniCalendar}</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4"><CalendarWidget /></CardContent>
+          </Card>
+          <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-border/50">
+            <CardHeader className="py-3 px-4">
+              <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.topCustomers}</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4"><TopCustomersWidget /></CardContent>
+          </Card>
+          <RecentOrdersWidget />
         </div>
 
         {/* Activity Feed Widget */}

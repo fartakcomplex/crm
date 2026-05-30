@@ -4,8 +4,8 @@ import { db } from '@/lib/db'
 // ─── Types ──────────────────────────────────────────────────────────
 
 interface BulkRequest {
-  action: 'delete' | 'publish' | 'draft'
-  type: 'posts' | 'users' | 'products'
+  action: 'delete' | 'publish' | 'draft' | 'archive'
+  type: 'posts' | 'users' | 'products' | 'tasks'
   ids: string[]
 }
 
@@ -17,14 +17,14 @@ export async function POST(request: NextRequest) {
     const { action, type, ids } = body
 
     // Validate inputs
-    if (!action || !['delete', 'publish', 'draft'].includes(action)) {
+    if (!action || !['delete', 'publish', 'draft', 'archive'].includes(action)) {
       return NextResponse.json(
         { success: false, error: 'عملیات نامعتبر است', affected: 0 },
         { status: 400 }
       )
     }
 
-    if (!type || !['posts', 'users', 'products'].includes(type)) {
+    if (!type || !['posts', 'users', 'products', 'tasks'].includes(type)) {
       return NextResponse.json(
         { success: false, error: 'نوع داده نامعتبر است', affected: 0 },
         { status: 400 }
@@ -57,7 +57,9 @@ export async function POST(request: NextRequest) {
             })
             affected = result.count
           } else {
-            const status = action === 'publish' ? 'published' : 'draft'
+            const status = action === 'publish' ? 'published'
+              : action === 'draft' ? 'draft'
+              : 'archived'
             const result = await tx.post.updateMany({
               where: { id: { in: ids } },
               data: { status },
@@ -74,7 +76,9 @@ export async function POST(request: NextRequest) {
             })
             affected = result.count
           } else {
-            const status = action === 'publish' ? 'active' : 'inactive'
+            const status = action === 'publish' ? 'active'
+              : action === 'draft' ? 'inactive'
+              : 'archived'
             const result = await tx.user.updateMany({
               where: { id: { in: ids } },
               data: { status },
@@ -91,8 +95,29 @@ export async function POST(request: NextRequest) {
             })
             affected = result.count
           } else {
-            const status = action === 'publish' ? 'active' : 'draft'
+            const status = action === 'publish' ? 'active'
+              : action === 'draft' ? 'draft'
+              : 'archived'
             const result = await tx.product.updateMany({
+              where: { id: { in: ids } },
+              data: { status },
+            })
+            affected = result.count
+          }
+          break
+        }
+
+        case 'tasks': {
+          if (action === 'delete') {
+            const result = await tx.task.deleteMany({
+              where: { id: { in: ids } },
+            })
+            affected = result.count
+          } else {
+            const status = action === 'publish' ? 'done'
+              : action === 'draft' ? 'in_progress'
+              : 'cancelled'
+            const result = await tx.task.updateMany({
               where: { id: { in: ids } },
               data: { status },
             })
@@ -107,17 +132,21 @@ export async function POST(request: NextRequest) {
       delete: 'حذف',
       publish: 'انتشار',
       draft: 'پیش‌نویس',
+      archive: 'بایگانی',
     }
 
     const typeLabels: Record<string, string> = {
       posts: 'مطالب',
       users: 'کاربران',
       products: 'محصولات',
+      tasks: 'وظایف',
     }
 
     return NextResponse.json({
       success: true,
       affected,
+      action,
+      type,
       message: `${actionLabels[action]} ${typeLabels[type]} با موفقیت انجام شد`,
     })
   } catch (error) {

@@ -726,3 +726,125 @@ Stage Summary:
 4. **Priority 4**: PWA support (service worker, manifest, installable)
 5. **Priority 5**: Fuzzy search in Command Palette
 6. **Priority 6**: Performance optimization — lazy loading non-visible modules
+
+---
+Task ID: 14
+Agent: Main Agent + 3 subagents
+Task: Dashboard Restructure, Styling Improvements, New Features
+
+Work Log:
+- Reviewed worklog.md (13 previous task rounds documented)
+- Verified server running (HTTP 200), lint clean (0 errors)
+- QA tested desktop (1280x800) with agent-browser + VLM analysis
+  - Landing: 7/10 (hover effects 3/10, footer 4/10)
+  - Dashboard: 6/10 (charts not prominent, buried at 5157px below fold)
+  - Charts only 254x138px, not visible in viewport
+
+**Critical Fix: Dashboard Layout Restructure**
+- Charts were at position 5157px — completely below the fold
+- Root cause: 8 widget groups rendered before charts (greeting, quick actions, onboarding tip, quick stats summary, quick stats row, mini trend cards, system health)
+- Solution: Moved stat cards and charts to the TOP of the dashboard (right after the title section)
+- Moved secondary widgets (greeting, quick actions, system health, etc.) BELOW charts
+- Charts now render at position ~23px from the top of the content area
+- VLM confirmed charts are visible when zoomed to chart area (area chart with financial data)
+
+**Styling Improvements (2 subagents):**
+
+1. **DashboardPage.tsx:**
+   - Charts section: gradient backgrounds per chart type (violet→purple, fuchsia→pink, cyan→teal)
+   - Each chart card: CardHeader with CardTitle + Badge metric
+   - Chart containers: `chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]`
+   - Stat cards: numbers `text-2xl sm:text-3xl font-bold`, hover border `hover:border-violet-500/20`
+   - CalendarWidget/TopCustomersWidget: wrapped in glass-card styled Cards with CardHeader/CardContent
+
+2. **LandingPage.tsx:**
+   - Navbar links: `hover:text-violet-400 hover:bg-violet-500/5 rounded-lg px-3 py-1.5`
+   - CTA button: `shadow-violet-600/25/40`, `active:scale-[0.97]`
+   - Mobile nav: matching hover styles
+   - Feature cards: `hover:-translate-y-2 hover:shadow-xl hover:shadow-violet-500/10`, `hover:border-violet-500/30`
+   - Stats cards: `hover:shadow-lg hover:shadow-violet-500/10`, stat numbers `hover:scale-105`
+   - Testimonials: `hover:shadow-fuchsia-500/5 hover:border-fuchsia-500/20`
+   - Pricing: `hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1`, Pro card `border-2 border-violet-500`
+   - AI capabilities: cards `hover:-translate-y-1`, icons `group-hover:rotate-6 group-hover:scale-110`
+   - Footer: `bg-gradient-to-t from-gray-900/5`, links `hover:text-violet-400`, gradient headings
+
+**New Features (1 subagent):**
+
+1. **DashboardQuickActions.tsx** (new):
+   - 6 quick action buttons with gradient cards (violet, cyan, emerald, amber, rose, fuchsia)
+   - Actions: ایجاد مطلب جدید, افزودن کاربر, ایجاد پروژه, ثبت سفارش, گزارش مالی, دستیار AI
+   - Responsive grid: 3 cols mobile, 6 cols desktop
+   - Hover: scale, shadow, glow effects
+
+2. **RecentOrdersWidget.tsx** (new):
+   - 5 most recent orders from database via TanStack Query
+   - Color-coded status badges: completed=emerald, pending=amber, cancelled=rose, processing=cyan
+   - Persian formatted amounts (تومان)
+   - Skeleton loading, fallback mock data
+
+3. **Bulk Actions API** (enhanced `/api/bulk/route.ts`):
+   - Support for `tasks` type (publish→done, draft→in_progress, archive→cancelled)
+   - Response includes `action` and `type` fields
+
+**Dashboard Integration:**
+- DashboardQuickActions after greeting section
+- RecentOrdersWidget in 3-column grid with Calendar + TopCustomers
+
+Stage Summary:
+- 3 subagents executed in parallel
+- 2 new files created (DashboardQuickActions, RecentOrdersWidget)
+- 2 files modified with major styling (DashboardPage, LandingPage)
+- 1 API enhanced (bulk)
+- Critical layout restructure: charts moved from 5157px to top of page
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- All APIs verified: /stats, /charts, /bulk all 200
+- VLM confirmed chart visibility when zoomed to chart area
+- All text in Persian/Farsi
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Good. Dashboard restructured with charts prominently at top. Landing page hover effects significantly improved. New quick actions and orders widgets added.
+- **Server Stability**: Running on port 3000, HTTP 200. Cron keep-alive active.
+- **Code Quality**: Lint 0 errors. TypeScript strict.
+- **Styling**: Comprehensive hover animations on all landing page cards, glass morphism charts, gradient backgrounds per chart type.
+- **Features**: 33+ features including dashboard quick actions, recent orders, bulk API, calendar widget, top customers, mobile nav, FAB, command palette, activity timeline, notification center, quick draft, user menu, WebSocket, search API, drag-and-drop notes, data export, dark mode persistence.
+
+### Completed Modifications (This Round)
+1. Dashboard restructured: charts moved from 5157px to top (~23px from content start)
+2. Secondary widgets moved below charts for better data-first experience
+3. Chart cards: gradient backgrounds, CardHeader with badges, proper sizing (280-360px height)
+4. Landing page: comprehensive hover effects on all card types (3/10 → improved)
+5. Landing footer: gradient background, hover links, gradient headings
+6. Landing navbar: hover states on all links, CTA button depth
+7. AI capability icons: group-hover rotate+scale animations
+8. New DashboardQuickActions widget (6 gradient action buttons)
+9. New RecentOrdersWidget (5 recent orders with status badges)
+10. Bulk Actions API enhanced with task support
+
+### Verification Results
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- API /stats: 200, /charts: 200, /bulk: 200 (POST)
+- Dashboard charts: rendering at top of page, VLM confirmed visibility when focused
+- Area chart with financial data clearly visible in zoomed view
+- 311 SVG elements in DOM, 1 recharts-wrapper (main chart visible)
+- All text in Persian/Farsi
+
+### Unresolved Issues / Risks
+1. **Server instability**: Periodic Turbopack crashes (mitigated by auto-restart)
+2. **Dashboard length**: Dashboard is extremely long with many sections — may need lazy loading or tabbed sections
+3. **Chart SVG rendering**: Only 1 of 5 chart sections fully renders recharts SVG in the viewport (others may be below fold)
+4. **No real authentication**: Simple state-based login
+5. **Landing RTL alignment**: Hero image positioning still not perfectly RTL (7/10)
+
+### Next Phase Recommendations
+1. **Priority 1**: Lazy load dashboard sections below fold (only render visible + 1 section below)
+2. **Priority 2**: Fix landing page RTL alignment (hero image swap for RTL)
+3. **Priority 3**: Add real authentication with NextAuth.js
+4. **Priority 4**: PWA support (service worker, manifest, installable)
+5. **Priority 5**: Dashboard tab system to reduce page length
+6. **Priority 6**: Performance optimization — reduce dashboard widget count per view

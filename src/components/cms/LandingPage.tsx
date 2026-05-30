@@ -169,7 +169,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
             <button
               key={link.href}
               onClick={() => scrollToSection(link.href)}
-              className="px-2.5 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-foreground hover:bg-accent/50 transition-all cursor-pointer animated-underline whitespace-nowrap overflow-visible"
+              className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-violet-400 hover:bg-violet-500/5 transition-all duration-200 cursor-pointer animated-underline whitespace-nowrap overflow-visible"
             >
               {link.label}
             </button>
@@ -188,7 +188,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
           </Button>
           <Button
             onClick={onEnter}
-            className="hidden sm:flex gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 transition-all hover:scale-[1.03] active:scale-95 btn-press"
+            className="hidden sm:flex gap-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-lg shadow-violet-600/25 hover:shadow-violet-600/40 transition-all hover:scale-[1.03] active:scale-[0.97] btn-press"
           >
             <Rocket className="h-4 w-4" />
             ورود به پنل
@@ -219,7 +219,7 @@ function Navbar({ onEnter }: { onEnter: () => void }) {
                 <button
                   key={link.href}
                   onClick={() => scrollToSection(link.href)}
-                  className="block w-full text-right px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-foreground hover:bg-accent/50 transition-all cursor-pointer"
+                  className="block w-full text-right px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-violet-400 hover:bg-violet-500/5 transition-all cursor-pointer"
                 >
                   {link.label}
                 </button>
@@ -463,12 +463,12 @@ function StatsSection() {
                 whileHover={{ scale: 1.03, y: -4 }}
                 className="relative group"
               >
-                <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/20 dark:border-violet-700/20 hover:border-violet-500/40 transition-all duration-300 backdrop-blur-md hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 hover:scale-[1.02] card-elevated hover-lift">
+                <Card className="relative overflow-hidden bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5 dark:from-violet-500/10 dark:to-fuchsia-500/10 border border-violet-200/20 dark:border-violet-700/20 hover:border-violet-500/20 transition-all duration-300 backdrop-blur-md hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-1 hover:scale-[1.02] card-elevated hover-lift">
                   <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 via-transparent to-fuchsia-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500" />
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-violet-500/30 to-transparent" />
                   <CardContent className="p-4 sm:p-6 text-center relative z-10">
                     <div className={`w-14 h-14 rounded-2xl mx-auto mb-3 flex items-center justify-center bg-gradient-to-br ${stat.color === 'text-violet-500' ? 'from-violet-500/15 to-purple-500/10' : stat.color === 'text-fuchsia-500' ? 'from-fuchsia-500/15 to-pink-500/10' : stat.color === 'text-emerald-500' ? 'from-emerald-500/15 to-teal-500/10' : 'from-amber-500/15 to-orange-500/10'} backdrop-blur-sm group-hover:scale-110 group-hover:shadow-lg transition-all duration-300`}><stat.icon className={`h-7 w-7 ${stat.color}`} /></div>
-                    <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent stat-count-animate">
+                    <div className="text-3xl md:text-4xl font-bold mb-1 bg-gradient-to-l from-violet-600 to-fuchsia-600 bg-clip-text text-transparent stat-count-animate hover:scale-105 transition-transform">
                       {stat.value}
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-nowrap">{stat.label}</p>
@@ -573,7 +573,7 @@ function FeaturesSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
           {features.map((f, i) => (
             <AnimatedSection key={f.title} delay={i * 0.07}>
-              <Card className={`group relative overflow-hidden border-border/40 hover:border-violet-300/50 dark:hover:border-violet-600/50 transition-all duration-300 bg-card/50 backdrop-blur-sm hover:shadow-2xl hover:-translate-y-1.5 ${f.glow} cursor-default h-full card-gradient-border card-press card-shimmer`}>
+              <Card className={`group relative overflow-hidden border-border/40 hover:border-violet-500/30 dark:hover:border-violet-600/50 transition-all duration-300 bg-card/50 backdrop-blur-sm hover:-translate-y-2 hover:shadow-xl hover:shadow-violet-500/10 ${f.glow} cursor-default h-full card-gradient-border card-press card-shimmer`}>
                 <CardContent className="p-6 md:p-8">
                   <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${f.gradient} flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                     <f.icon className="h-6 w-6 text-white" />
@@ -707,9 +707,9 @@ function AICapabilitiesSection() {
             <AnimatedSection key={cap.title} delay={i * 0.06}>
               <motion.div
                 whileHover={{ scale: 1.02, y: -4 }}
-                className="group flex items-start gap-4 p-5 rounded-xl border border-border/40 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 transition-all duration-300 cursor-default card-gradient-border min-w-0"
+                className="group flex items-start gap-4 p-5 rounded-xl border border-border/40 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-violet-500/30 hover:shadow-lg hover:shadow-violet-500/10 hover:-translate-y-1 transition-all duration-300 cursor-default card-gradient-border min-w-0"
               >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center shrink-0 group-hover:from-violet-500/20 group-hover:to-fuchsia-500/20 transition-all">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 flex items-center justify-center shrink-0 group-hover:from-violet-500/20 group-hover:to-fuchsia-500/20 group-hover:rotate-6 group-hover:scale-110 transition-all duration-300">
                   <cap.icon className="h-5 w-5 text-violet-500 group-hover:text-violet-400 transition-colors" />
                 </div>
                 <div className="min-w-0">
@@ -769,7 +769,7 @@ function TestimonialsSection() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
             <AnimatedSection key={t.name} delay={i * 0.12}>
-              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-violet-500/5 hover:border-violet-500/20 transition-all duration-300 hover:-translate-y-1 h-full card-elevated card-gradient-border">
+              <Card className="relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm hover:shadow-lg hover:shadow-fuchsia-500/5 hover:border-fuchsia-500/20 transition-all duration-300 hover:-translate-y-1 h-full card-elevated card-gradient-border">
                 <CardContent className="p-6 md:p-8">
                   {/* Stars */}
                   <div className="flex gap-1 mb-4">
@@ -854,7 +854,7 @@ function PricingSection({ onEnter }: { onEnter: () => void }) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, i) => (
             <AnimatedSection key={plan.name} delay={i * 0.1}>
-              <Card className={`relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col card-gradient-border card-press ${plan.popular ? 'border-2 border-violet-500 shadow-lg shadow-violet-500/20 scale-[1.02] lg:scale-105' : 'hover:border-violet-300/50 hover:shadow-lg transition-all duration-300 card-elevated'}`}>
+              <Card className={`relative overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all duration-300 h-full flex flex-col card-gradient-border card-press ${plan.popular ? 'border-2 border-violet-500 shadow-lg shadow-violet-500/20 scale-[1.02] lg:scale-105 hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 transition-all duration-300' : 'hover:border-violet-500/30 hover:shadow-xl hover:shadow-violet-500/15 hover:-translate-y-1 transition-all duration-300 card-elevated'}`}>
                 {plan.popular && (
                   <div className="absolute top-0 right-0 left-0">
                     <div className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-semibold py-1.5 text-center">
@@ -1086,7 +1086,7 @@ function Footer() {
   }
 
   return (
-    <footer id="footer" className="relative border-t border-violet-500/20 bg-card/30 backdrop-blur-sm">
+    <footer id="footer" className="relative border-t border-violet-500/20 bg-gradient-to-t from-gray-900/5 to-transparent bg-card/30 backdrop-blur-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16" dir="rtl">
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-12">
           {/* Brand */}
@@ -1108,11 +1108,11 @@ function Footer() {
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-semibold text-sm mb-4">{title}</h4>
+              <h4 className="font-semibold text-sm tracking-wide mb-4 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">{title}</h4>
               <ul className="space-y-3 gap-4 flex flex-col">
                 {links.map(link => (
                   <li key={link}>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors animated-underline">
+                    <a href="#" className="text-sm text-muted-foreground hover:text-violet-400 transition-colors animated-underline">
                       {link}
                     </a>
                   </li>
