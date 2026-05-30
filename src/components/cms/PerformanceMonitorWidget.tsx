@@ -74,7 +74,7 @@ export default function PerformanceMonitorWidget() {
   }, [updateMetrics])
 
   return (
-    <div className="fixed bottom-20 left-4 z-40" dir="rtl">
+    <div className="hidden md:block fixed bottom-20 left-4 z-40" dir="rtl">
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(prev => !prev)}

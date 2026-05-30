@@ -50,7 +50,7 @@ export default function NotificationHistoryWidget() {
   }, [markAllNotificationsRead])
 
   return (
-    <div className="fixed bottom-14 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+    <div className="hidden md:flex fixed bottom-14 left-1/2 -translate-x-1/2 z-40 flex-col items-center">
       {/* ── Trigger Button ── */}
       <button
         onClick={() => setIsOpen(prev => !prev)}

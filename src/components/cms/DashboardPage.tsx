@@ -141,6 +141,9 @@ const labels = {
   noteDeleted: 'یادداشت حذف شد',
   noNotes: 'یادداشتی وجود ندارد',
   noNotesDesc: 'با کلیک روی دکمه + یک یادداشت جدید ایجاد کنید',
+  // Additional labels
+  totalRevenue: 'کل درآمد',
+  noCustomers: 'مشتری‌ای یافت نشد',
   // Clock widget labels
   clockWidgetTitle: 'ساعت و تاریخ',
   // Quick stats summary
@@ -233,11 +236,11 @@ function StatCard({ icon, label, value, color, delay, numericValue, sparklineDat
       <div className="absolute inset-0 rounded-[inherit] overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full hover:translate-x-full transition-transform duration-700 ease-out" />
       </div>
-      <CardContent className="p-4 sm:p-5 flex items-center gap-3 relative z-10">
+      <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 relative z-10">
         <div className="bg-white/25 rounded-xl p-2.5 backdrop-blur-sm drop-shadow-md ring-1 ring-white/10 hover:bg-white/35 hover:scale-105 transition-all duration-200">{icon}</div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm opacity-80">{label}</p>
-          <p className="text-2xl sm:text-3xl font-bold tabular-nums">{displayValue}</p>
+          <p className="text-[11px] sm:text-sm opacity-80">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold tabular-nums">{displayValue}</p>
           {sparklineData && sparklineData.length >= 2 && (
             <div className="mt-1 opacity-70">
               <MiniSparkline
@@ -272,7 +275,7 @@ function Section({ title, defaultOpen, children, delay }: {
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent className="pt-0 pb-4">{children}</CardContent>
+          <CardContent className="pt-0 pb-3 sm:pb-4">{children}</CardContent>
         </CollapsibleContent>
       </Card>
     </Collapsible>
@@ -362,7 +365,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
 }) {
   return (
     <Card className={`card-elevated hover-lift shadow-sm hover:shadow-md border border-border/50 hover:border-violet-500/20 transition-all duration-300 animate-in`} style={{ animationDelay: `${delay ?? 0}ms`, animationFillMode: 'both' }}>
-      <CardContent className="p-3.5 sm:p-5">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-2">
           <div className={`h-8 w-8 rounded-lg ${bgColor} flex items-center justify-center ${color} drop-shadow-sm hover:scale-110 transition-transform duration-200`}>
             {icon}
@@ -376,7 +379,7 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
             </Badge>
           )}
         </div>
-        <p className="text-2xl sm:text-3xl font-bold tabular-nums">{value}</p>
+        <p className="text-xl sm:text-2xl font-bold tabular-nums">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>
       </CardContent>
     </Card>
@@ -387,19 +390,19 @@ function MiniTrendCard({ icon, label, value, change, trend, color, bgColor, dela
 
 function DashboardSkeleton() {
   return (
-    <div className="max-w-[1600px] mx-auto w-full space-y-6 p-4 sm:p-5 md:p-6 lg:p-8 animate-in">
+    <div className="max-w-[1600px] mx-auto w-full space-y-6 p-3 sm:p-5 md:p-6 lg:p-8 animate-in">
       <div className="flex items-center gap-3">
         <Skeleton className="h-8 w-40 loading-shimmer" />
         <Skeleton className="h-5 w-20 loading-shimmer" />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl loading-shimmer" />
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-xl p-4 glass-card chart-shimmer animate-in" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
+          <div key={i} className="rounded-xl p-3 sm:p-4 glass-card chart-shimmer animate-in" style={{ animationDelay: `${i * 100}ms`, animationFillMode: 'both' }}>
             <div className="space-y-3">
               <Skeleton className="h-4 w-32 loading-shimmer" />
               <Skeleton className="h-40 w-full loading-shimmer" />
@@ -672,10 +675,10 @@ const quickActionItems = [
 function QuickActionsWidget() {
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickActionsNew}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         <div className="grid grid-cols-3 gap-2.5">
           {quickActionItems.map((action, i) => (
             <button
@@ -700,10 +703,10 @@ function ActivityTimelineWidget({ activities }: { activities: Array<{ id: string
   const recent = activities.slice(0, 5)
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.activityTimeline}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {recent.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <Activity className="h-8 w-8 mb-2 opacity-20" />
@@ -763,10 +766,10 @@ function PopularPostsWidget({ popularPosts }: { popularPosts: Array<{ title: str
   const maxViews = posts.length > 0 ? Math.max(...posts.map(p => p.views), 1) : 1
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.popularPostsNew}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {posts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
             <Star className="h-8 w-8 mb-2 opacity-20" />
@@ -809,10 +812,10 @@ function PopularPostsWidget({ popularPosts }: { popularPosts: Array<{ title: str
 function SystemHealthWidget() {
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.systemHealth}</CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         <div className="space-y-4">
           {/* Database */}
           <div className="flex items-center justify-between">
@@ -925,7 +928,7 @@ function MiniCalendarWidget() {
 
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.miniCalendar}</CardTitle>
           <Badge variant="secondary" className="text-xs font-medium bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
@@ -933,7 +936,7 @@ function MiniCalendarWidget() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {/* Week day headers */}
         <div className="grid grid-cols-7 gap-0.5 mb-1.5">
           {PERSIAN_WEEK_DAYS.map((d, i) => (
@@ -1037,7 +1040,7 @@ function QuickNotesWidget({ notes }: { notes: QuickNote[] }) {
 
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0 col-span-1 md:col-span-2 lg:col-span-3">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickNotes}</CardTitle>
           <Button
@@ -1050,7 +1053,7 @@ function QuickNotesWidget({ notes }: { notes: QuickNote[] }) {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {sortedNotes.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/20 dark:to-purple-900/20 flex items-center justify-center mb-3">
@@ -1231,7 +1234,7 @@ function AnalyticsWidget() {
 
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0 lg:col-span-3">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />
@@ -1242,7 +1245,7 @@ function AnalyticsWidget() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {ANALYTICS_METRICS.map((metric, i) => (
             <div
@@ -1606,7 +1609,7 @@ function RevenueTrendWidget() {
 
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
@@ -1622,7 +1625,7 @@ function RevenueTrendWidget() {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {isLoading ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -1707,13 +1710,13 @@ function LegacyTopCustomersWidget() {
 
   return (
     <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-      <CardHeader className="pb-3 pt-4 px-4">
+      <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
         <CardTitle className="text-base text-violet-700 dark:text-violet-300 flex items-center gap-2">
           <UserCircle className="h-4 w-4" />
           {labels.topCustomers}
         </CardTitle>
       </CardHeader>
-      <CardContent className="px-4 pb-4">
+      <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -1812,7 +1815,7 @@ function FloatingActionBar() {
   ]
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4">
+    <div className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4">
       {/* Expanded action buttons */}
       <div
         className={`absolute bottom-full mb-3 left-1/2 -translate-x-1/2 flex items-center gap-2 transition-all duration-300 ${
@@ -1874,17 +1877,17 @@ export default function DashboardPage() {
   if (isLoading) return <DashboardSkeleton />
 
   return (
-    <div className="max-w-[1600px] mx-auto w-full space-y-6 p-4 sm:p-5 md:p-6 lg:p-8 page-enter">
+    <div className="max-w-[1600px] mx-auto w-full space-y-4 sm:space-y-6 p-3 sm:p-5 md:p-6 lg:p-8 page-enter">
       {/* Welcome Banner */}
       <Card className="relative overflow-hidden glass-card border-0 shadow-sm">
         <div className="absolute inset-0 bg-gradient-to-l from-violet-600/10 via-purple-500/5 to-fuchsia-500/10 dark:from-violet-600/20 dark:via-purple-500/10 dark:to-fuchsia-500/10 pointer-events-none" />
-        <CardContent className="p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+        <CardContent className="p-3 sm:p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 relative z-10">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25 float-animation">
-              <Sparkles className="h-7 w-7 text-white" />
+            <div className="h-10 w-10 sm:h-14 sm:w-14 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25 float-animation">
+              <Sparkles className="h-5 w-5 sm:h-7 sm:w-7 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold gradient-text">{labels.title}</h1>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text">{labels.title}</h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-0.5">{labels.subtitle}</p>
             </div>
           </div>
@@ -1909,7 +1912,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* ═══ Stats Row (compact — right at the top) ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 lg:gap-4">
         <StatCard icon={<FileText className="h-5 w-5" />} label={labels.totalPosts} value={statsData?.totalPosts ?? '—'} numericValue={statsData?.totalPosts} color="from-violet-500 to-violet-700" delay={0} sparklineData={[3, 5, 2, 8, 4, 6, 6]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<Users className="h-5 w-5" />} label={labels.totalUsers} value={statsData?.totalUsers ?? '—'} numericValue={statsData?.totalUsers} color="from-purple-500 to-purple-700" delay={50} sparklineData={[2, 2, 3, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
         <StatCard icon={<UserCircle className="h-5 w-5" />} label={labels.totalCustomers} value={statsData?.totalCustomers ?? '—'} numericValue={statsData?.totalCustomers} color="from-fuchsia-500 to-fuchsia-700" delay={100} sparklineData={[1, 2, 2, 3, 3, 4, 4]} sparklineColor="rgba(255,255,255,0.8)" trend="up" />
@@ -1920,19 +1923,19 @@ export default function DashboardPage() {
 
       {/* ═══════ Charts Section — Immediately after stats for visibility ═══════ */}
       <Separator className="my-1 bg-border/30" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
 
         {/* ───── Monthly Views BarChart (Recharts) ───── */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-violet-500/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 animate-in" style={{ animationDelay: '350ms', animationFillMode: 'both' }}>
-          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pt-4 sm:px-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.monthlyViews}</CardTitle>
               <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">{labels.totalViews}</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">آمار بازدید ماهانه صفحات</p>
           </CardHeader>
-          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
-            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+          <CardContent className="px-3 sm:px-5 pb-3 sm:pb-5">
+            <div className="chart-glass rounded-xl p-2 sm:p-3 md:p-4 min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                 <defs>
@@ -1970,15 +1973,15 @@ export default function DashboardPage() {
 
         {/* ───── Category Distribution PieChart (Recharts) ───── */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-fuchsia-500/10 bg-gradient-to-br from-fuchsia-500/5 to-pink-500/5 animate-in" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
-          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pt-4 sm:px-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.categoryDist}</CardTitle>
               <Badge variant="secondary" className="text-[10px] bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300">{(chartData?.categoryDistribution ?? []).length} دسته</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">توزیع محتوا در دسته‌بندی‌ها</p>
           </CardHeader>
-          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
-            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+          <CardContent className="px-3 sm:px-5 pb-3 sm:pb-5">
+            <div className="chart-glass rounded-xl p-2 sm:p-3 md:p-4 min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -2013,15 +2016,15 @@ export default function DashboardPage() {
 
         {/* ───── Weekly Activity Grouped BarChart (Recharts) ───── */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-violet-500/10 bg-gradient-to-br from-violet-500/5 to-purple-500/5 animate-in" style={{ animationDelay: '450ms', animationFillMode: 'both' }}>
-          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pt-4 sm:px-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.weeklyActivity}</CardTitle>
               <Badge variant="secondary" className="text-[10px] bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">{labels.posts} + {labels.comments}</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">فعالیت هفتگی محتوا و نظرات</p>
           </CardHeader>
-          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
-            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+          <CardContent className="px-3 sm:px-5 pb-3 sm:pb-5">
+            <div className="chart-glass rounded-xl p-2 sm:p-3 md:p-4 min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData?.weeklyActivity ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                 <defs>
@@ -2063,15 +2066,15 @@ export default function DashboardPage() {
 
         {/* ───── Monthly Views Trend AreaChart (Recharts) ───── */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-cyan-500/10 bg-gradient-to-br from-cyan-500/5 to-teal-500/5 animate-in" style={{ animationDelay: '525ms', animationFillMode: 'both' }}>
-          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pt-4 sm:px-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.monthlyViewsTrend}</CardTitle>
               <Badge variant="secondary" className="text-[10px] bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300">روند ۱۲ ماه</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">نمودار روند بازدید ماهانه</p>
           </CardHeader>
-          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
-            <div className="chart-glass rounded-xl p-3 sm:p-4 min-h-[280px] md:min-h-[320px] lg:min-h-[360px]">
+          <CardContent className="px-3 sm:px-5 pb-3 sm:pb-5">
+            <div className="chart-glass rounded-xl p-2 sm:p-3 md:p-4 min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData?.monthlyViews ?? []} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                 <defs>
@@ -2111,16 +2114,16 @@ export default function DashboardPage() {
 
         {/* ───── Content Status PieChart (Recharts) ───── */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-fuchsia-500/10 bg-gradient-to-br from-fuchsia-500/5 to-pink-500/5 animate-in lg:col-span-2" style={{ animationDelay: '500ms', animationFillMode: 'both' }}>
-          <CardHeader className="pb-2 pt-4 px-4 sm:px-5">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pt-4 sm:px-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base lg:text-lg text-violet-700 dark:text-violet-300 font-semibold">{labels.contentStatus}</CardTitle>
               <Badge variant="secondary" className="text-[10px] bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-900/30 dark:text-fuchsia-300">{statsData?.totalPosts ?? 0} {labels.totalPosts}</Badge>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">وضعیت انتشار مطالب</p>
           </CardHeader>
-          <CardContent className="px-4 sm:px-5 pb-4 sm:pb-5">
+          <CardContent className="px-3 sm:px-5 pb-3 sm:pb-5">
             <div className="chart-glass rounded-xl p-3 sm:p-4 flex flex-col items-center">
-              <div className="min-h-[280px] md:min-h-[320px] lg:min-h-[360px] w-full">
+              <div className="min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -2160,7 +2163,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══ Secondary Widgets (below charts) ═══ */}
-      <div className="space-y-4 lg:space-y-6">
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
         {/* Dashboard Greeting Widget */}
         <DashboardGreetingWidget />
 
@@ -2174,7 +2177,7 @@ export default function DashboardPage() {
         <QuickStatsRow />
 
         {/* Today's Quick Overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
           <MiniTrendCard
             label="بازدید امروز"
             value="۱۲۴"
@@ -2249,10 +2252,10 @@ export default function DashboardPage() {
 
         {/* Dashboard Quick Actions */}
         <Card className="glass-card hover-lift shadow-sm hover:shadow-md transition-all duration-300 animate-in border-0">
-          <CardHeader className="pb-3 pt-4 px-4">
+          <CardHeader className="pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4">
             <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.quickActionsNew}</CardTitle>
           </CardHeader>
-          <CardContent className="px-4 pb-4">
+          <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4">
             <DashboardQuickActions onAction={(action) => toast.info(`عملیات: ${action}`)} />
           </CardContent>
         </Card>
@@ -2260,7 +2263,7 @@ export default function DashboardPage() {
 
       {/* ═══════ Collapsible Sections ═══════ */}
       <Separator className="my-1 bg-border/30" />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-6 divide-y divide-border/40 lg:divide-y-0 lg:divide-x lg:divide-border/40">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 divide-y divide-border/40 lg:divide-y-0 lg:divide-x lg:divide-border/40">
         {/* Quick Access Grid */}
         <Section title={labels.quickActionsNew} defaultOpen={true} delay={100}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -2403,11 +2406,11 @@ export default function DashboardPage() {
       {/* ═══════ New Dashboard Widgets ═══════ */}
       <Separator className="my-2 bg-border/30" />
       {/* Analytics Overview Widget — full width */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         <AnalyticsWidget />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 divide-y divide-border/40 md:divide-y-0 md:divide-x md:divide-border/40">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 divide-y divide-border/40 md:divide-y-0 md:divide-x md:divide-border/40">
 
         {/* Activity Timeline Widget */}
         <ActivityTimelineWidget activities={activitiesData} />
@@ -2434,24 +2437,24 @@ export default function DashboardPage() {
         <QuickDraftWidget />
 
         {/* Notification Center + Recent Activity Timeline */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-5">
           <NotificationCenterWidget />
           <RecentActivityTimeline />
         </div>
 
         {/* Calendar + Top Customers + Recent Orders — 3-column grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-border/50">
-            <CardHeader className="py-3 px-4">
+            <CardHeader className="py-2 px-3 sm:py-3 sm:px-4">
               <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.miniCalendar}</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4"><CalendarWidget /></CardContent>
+            <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4"><CalendarWidget /></CardContent>
           </Card>
           <Card className="glass-card hover-lift shadow-sm hover:shadow-lg hover:shadow-violet-500/5 transition-all duration-300 border border-border/50">
-            <CardHeader className="py-3 px-4">
+            <CardHeader className="py-2 px-3 sm:py-3 sm:px-4">
               <CardTitle className="text-base text-violet-700 dark:text-violet-300">{labels.topCustomers}</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4"><TopCustomersWidget /></CardContent>
+            <CardContent className="px-3 sm:px-4 pb-3 sm:pb-4"><TopCustomersWidget /></CardContent>
           </Card>
           <RecentOrdersWidget />
         </div>
@@ -2474,7 +2477,7 @@ export default function DashboardPage() {
 
       {/* ═══════ New Feature Widgets ═══════ */}
       <Separator className="my-2 bg-border/30" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Recent Activity Feed */}
         <Card className="glass-card card-elevated">
           <CardHeader className="pb-3">
@@ -2515,7 +2518,7 @@ export default function DashboardPage() {
       </div>
 
       <Separator className="my-2 bg-border/30" />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
         <NotificationSoundToggle />
 
         {/* Color Theme Customizer */}

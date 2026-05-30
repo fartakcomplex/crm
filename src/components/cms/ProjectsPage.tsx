@@ -149,11 +149,11 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-xl sm:text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
@@ -166,7 +166,7 @@ export default function ProjectsPage() {
       {/* Stats Overview */}
       {projectsData.length > 0 && (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3">
             {/* کل پروژه‌ها */}
             <Card className="glass-card card-metric hover-lift shine-effect shadow-sm hover:shadow-lg transition-all duration-300 animate-in card-elevated" style={{ animationDelay: '0ms', animationFillMode: 'both' }}>
               <CardContent className="p-4 flex items-center gap-4">
@@ -247,7 +247,7 @@ export default function ProjectsPage() {
 
       {/* Filters */}
       <Card className="glass-card-cyan card-elevated shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder={labels.search} value={search} onChange={e => setSearch(e.target.value)} className="pr-10" />

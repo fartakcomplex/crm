@@ -287,11 +287,11 @@ export default function TasksPage() {
   // ──────────────────────────── Render ────────────────────────────
 
   return (
-    <div className="space-y-5 p-4 sm:p-6 page-enter" dir="rtl">
+    <div className="space-y-4 sm:space-y-5 p-3 sm:p-4 md:p-6 page-enter" dir="rtl">
       {/* ═══════════════ Header ═══════════════ */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gradient-violet">{labels.title}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gradient-violet">{labels.title}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
         </div>
         <Button
@@ -512,7 +512,7 @@ export default function TasksPage() {
                             <div className="flex items-center gap-1 text-muted-foreground/40 cursor-grab">
                               <GripVertical className="h-3.5 w-3.5" />
                             </div>
-                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                            <div className="flex items-center gap-0.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation()
@@ -522,21 +522,21 @@ export default function TasksPage() {
                                     handleStatusChange(task.id, KANBAN_COLUMNS[currentIndex + 1].id)
                                   }
                                 }}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-accent hover:bg-green-500/10 transition-colors shine-effect"
+                                className="h-10 w-10 sm:h-9 sm:w-9 rounded-md flex items-center justify-center text-muted-foreground hover:text-green-600 hover:bg-accent hover:bg-green-500/10 transition-colors shine-effect sm:opacity-0 sm:group-hover:opacity-100"
                                 title="انتقال به مرحله بعد"
                               >
                                 <ArrowUpDown className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openEdit(task, e)}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-accent hover:bg-blue-500/10 transition-colors shine-effect"
+                                className="h-10 w-10 sm:h-9 sm:w-9 rounded-md flex items-center justify-center text-muted-foreground hover:text-blue-600 hover:bg-accent hover:bg-blue-500/10 transition-colors shine-effect sm:opacity-0 sm:group-hover:opacity-100"
                                 title={labels.edit}
                               >
                                 <Edit className="h-3 w-3" />
                               </button>
                               <button
                                 onClick={(e) => openDelete(task.id, e)}
-                                className="h-9 w-9 sm:h-10 sm:w-10 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-accent hover:bg-red-500/10 transition-colors shine-effect"
+                                className="h-10 w-10 sm:h-9 sm:w-9 rounded-md flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-accent hover:bg-red-500/10 transition-colors shine-effect sm:opacity-0 sm:group-hover:opacity-100"
                                 title={labels.delete}
                               >
                                 <Trash2 className="h-3 w-3" />

@@ -133,11 +133,11 @@ export default function CommentsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 page-enter reveal-on-scroll">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 page-enter reveal-on-scroll">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-xl sm:text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
@@ -190,7 +190,7 @@ export default function CommentsPage() {
 
       {/* Filters + Sort */}
       <Card className="glass-card-rose card-elevated shadow-sm">
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="p-3 sm:p-4 space-y-3">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="relative flex-1">
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

@@ -595,7 +595,7 @@ function FloatingActionButton({ onNavigate, onOpenQuickDraft }: { onNavigate: (t
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex flex-col-reverse items-center gap-3">
+    <div className="hidden md:flex fixed bottom-6 left-6 z-40 flex-col-reverse items-center gap-3">
       {open && quickActions.map((action, i) => (
         <button
           key={action.id}
@@ -633,34 +633,34 @@ function MobileFAB({ onAction }: { onAction: (action: string) => void }) {
   ]
 
   return (
-    <div className="md:hidden fixed bottom-20 left-4 z-30" dir="rtl">
+    <div className="md:hidden fixed bottom-[68px] left-4 z-40" dir="rtl">
       {/* Expanded actions */}
       <AnimatePresence>
         {expanded && fabActions.map((action, idx) => (
           <motion.button
             key={action.id}
             initial={{ opacity: 0, y: 20, scale: 0.8 }}
-            animate={{ opacity: 1, y: -12 * (idx + 1) - idx * 48, scale: 1 }}
+            animate={{ opacity: 1, y: -12 * (idx + 1) - idx * 44, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.8 }}
             transition={{ duration: 0.2, delay: idx * 0.05 }}
             onClick={() => { onAction(action.id); setExpanded(false) }}
-            className={`absolute left-0 flex items-center gap-2 bg-gradient-to-l ${action.gradient} text-white rounded-full pl-3 pr-4 py-2.5 shadow-lg active:scale-95 transition-transform`}
+            className={`absolute left-0 flex items-center gap-2 bg-gradient-to-l ${action.gradient} text-white rounded-full pl-3 pr-4 py-2 shadow-lg active:scale-95 transition-transform`}
           >
-            <action.icon className="h-4 w-4" />
-            <span className="text-xs font-medium">{action.label}</span>
+            <action.icon className="h-3.5 w-3.5" />
+            <span className="text-[11px] font-medium">{action.label}</span>
           </motion.button>
         ))}
       </AnimatePresence>
       {/* Main FAB button */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`relative flex items-center justify-center w-14 h-14 rounded-full shadow-xl active:scale-90 transition-all duration-300 ${
+        className={`relative flex items-center justify-center w-12 h-12 rounded-full shadow-lg active:scale-90 transition-all duration-300 ${
           expanded
             ? 'bg-red-500 hover:bg-red-600 rotate-45'
             : 'bg-gradient-to-br from-violet-500 to-fuchsia-600 hover:shadow-violet-500/40'
         }`}
       >
-        <Plus className="h-6 w-6 text-white transition-transform duration-300" />
+        <Plus className="h-5 w-5 text-white transition-transform duration-300" />
       </button>
     </div>
   )
@@ -684,7 +684,7 @@ function ScrollToTopFAB() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className="md:hidden fixed bottom-20 right-4 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg active:scale-90 transition-all"
+      className="md:hidden fixed bottom-[68px] right-4 z-40 flex items-center justify-center w-10 h-10 rounded-full bg-card/90 backdrop-blur-sm border border-border/60 shadow-lg active:scale-90 transition-all"
       dir="rtl"
       aria-label="بازگشت به بالا"
     >
@@ -799,8 +799,8 @@ function MobileBottomNav({ activeTab, onTabChange }: { activeTab: string; onTabC
   ]
 
   return (
-    <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom" dir="rtl">
-      <div className="flex items-center justify-around h-16 px-1">
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-card/95 backdrop-blur-xl border-t border-border/60 safe-bottom" dir="rtl">
+      <div className="flex items-center justify-around h-14 px-1">
         {quickTabs.map(tab => {
           const isActive = activeTab === tab.id
           return (
@@ -1058,7 +1058,7 @@ function AppContent() {
         )}
 
         {/* ─── Main Content ─── */}
-        <main className="flex-1 min-w-0 flex flex-col pb-16 md:pb-0">
+        <main className="flex-1 min-w-0 flex flex-col pb-14 md:pb-0">
           {/* Top Bar */}
           <header className="sticky top-0 z-20 h-14 pt-safe border-b border-border/60 bg-background/70 backdrop-blur-xl flex items-center justify-between px-4 md:px-6">
             <div className="flex items-center gap-3">

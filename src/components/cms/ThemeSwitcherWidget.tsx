@@ -138,7 +138,7 @@ export default function ThemeSwitcherWidget() {
   const isDark = theme === 'dark'
 
   return (
-    <div className="fixed bottom-20 right-6 z-40" dir="rtl">
+    <div className="hidden md:block fixed bottom-20 right-6 z-40" dir="rtl">
       <Popover>
         <PopoverTrigger asChild>
           <Button

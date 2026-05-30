@@ -793,11 +793,11 @@ export default function StorePage() {
   // ══════════════════════════════════════════════════════════════════════════
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 page-enter">
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gradient-violet">مدیریت فروشگاه</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gradient-violet">مدیریت فروشگاه</h1>
           <p className="text-sm text-muted-foreground mt-0.5">مدیریت کامل محصولات، سفارشات و تنظیمات فروشگاه</p>
         </div>
         <div className="flex items-center gap-2">

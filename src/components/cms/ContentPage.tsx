@@ -327,11 +327,11 @@ export default function ContentPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 page-enter">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-xl sm:text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>
@@ -374,7 +374,7 @@ export default function ContentPage() {
 
       {/* Filters */}
       <Card className="glass-card card-elevated shadow-sm">
-        <CardContent className="p-4 flex flex-col sm:flex-row gap-3">
+        <CardContent className="p-3 sm:p-4 flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -512,7 +512,7 @@ export default function ContentPage() {
                               <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-cyan-100 to-cyan-200 dark:from-cyan-900/30 dark:to-cyan-800/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 shrink-0 shadow-sm">
                                 <FileText className="h-4 w-4" />
                               </div>
-                              <div className="font-medium max-w-[200px] truncate animated-underline">
+                              <div className="font-medium max-w-[120px] sm:max-w-[200px] truncate animated-underline">
                                 {post.title}
                                 {post.featured && (
                                   <span className="inline-flex items-center gap-0.5 ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-sm">
@@ -555,16 +555,16 @@ export default function ContentPage() {
                         {visibleColumns.actions && (
                           <TableCell>
                             <div className="flex items-center gap-1">
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-accent hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
+                              <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-9 sm:w-9 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 hover:bg-accent hover:bg-cyan-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); setPreviewPost(post) }} title={labels.preview}>
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-accent hover:bg-violet-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openQuickView(post) }} title="مشاهده سریع">
+                              <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-9 sm:w-9 text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-accent hover:bg-violet-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openQuickView(post) }} title="مشاهده سریع">
                                 <Eye className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 hover:bg-accent hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
+                              <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-9 sm:w-9 hover:bg-accent hover:scale-110 active:scale-95 transition-transform duration-150" onClick={e => { e.stopPropagation(); openEdit(post) }}>
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
-                              <Button size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 text-red-500 hover:text-red-600 hover:bg-accent hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
+                              <Button size="icon" variant="ghost" className="h-10 w-10 sm:h-9 sm:w-9 text-red-500 hover:text-red-600 hover:bg-accent hover:bg-red-500/10 hover:scale-110 active:scale-95 transition-all duration-150" onClick={e => { e.stopPropagation(); openDelete(post.id) }}>
                                 <Trash2 className="h-3.5 w-3.5" />
                               </Button>
                             </div>

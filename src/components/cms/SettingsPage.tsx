@@ -322,11 +322,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6 page-enter stagger-children">
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6 page-enter stagger-children">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-xl sm:text-2xl font-bold gradient-text">
             {labels.title}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{labels.subtitle}</p>

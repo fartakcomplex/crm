@@ -147,7 +147,7 @@ export default function RecentCommentsWidget() {
   }, [])
 
   return (
-    <div className="fixed bottom-6 left-6 z-40 flex flex-col items-start gap-3" style={{ direction: 'ltr' }}>
+    <div className="hidden md:flex fixed bottom-6 left-6 z-40 flex-col items-start gap-3" style={{ direction: 'ltr' }}>
       {/* ─── Comments Panel ─── */}
       <div
         ref={panelRef}

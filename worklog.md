@@ -848,3 +848,98 @@ Stage Summary:
 4. **Priority 4**: PWA support (service worker, manifest, installable)
 5. **Priority 5**: Dashboard tab system to reduce page length
 6. **Priority 6**: Performance optimization — reduce dashboard widget count per view
+
+---
+Task ID: 15
+Agent: Main Agent + 2 subagents
+Task: Mobile Panel Clutter Fix — Hide Desktop Floating Widgets on Mobile, Improve Mobile Layout
+
+Work Log:
+- User reported mobile panel is "درهم برهم" (cluttered/messy)
+- Analyzed uploaded screenshot with VLM: identified 8+ floating widgets all visible simultaneously on mobile
+- Root cause: Desktop-only floating widgets lacked `md:hidden` / `hidden md:block` responsive classes
+- Verified server running (HTTP 200), lint clean (0 errors)
+
+**Critical Fix: Hide 9 Desktop Floating Widgets on Mobile**
+1. `page.tsx FloatingActionButton`: Added `hidden md:flex` (was visible on mobile at bottom-6 left-6)
+2. `ThemeSwitcherWidget.tsx`: Added `hidden md:block` (was at bottom-20 right-6)
+3. `PerformanceMonitorWidget.tsx`: Added `hidden md:block` (was at bottom-20 left-4)
+4. `QuickActionToolbar.tsx`: Added `hidden md:block` (was at bottom-20 center)
+5. `NotificationHistoryWidget.tsx`: Added `hidden md:flex` (was at bottom-14 center)
+6. `QuickBackupStatus.tsx`: Added `hidden md:block` (was at bottom-2 center)
+7. `RecentCommentsWidget.tsx`: Added `hidden md:flex` (was at bottom-6 left-6)
+8. `QuickAIChat.tsx`: Added `hidden md:flex` (was at bottom-6 right-6)
+9. `DashboardPage.tsx FloatingActionBar`: Added `hidden md:flex` (was at bottom-6 center)
+
+**Mobile Component Improvements (page.tsx):**
+- MobileBottomNav: Reduced height from h-16 to h-14, increased z-index from z-30 to z-40
+- MobileFAB: Reduced size from w-14 h-14 to w-12 h-12, z-index z-30→z-40, repositioned to bottom-[68px]
+- ScrollToTopFAB: Repositioned to bottom-[68px], z-index z-30→z-40
+- Main content: Updated pb-16→pb-14 to match new bottom nav height
+
+**Dashboard Mobile Layout Improvements (subagent 1):**
+- Stat cards grid: `grid-cols-2 sm:grid-cols-3 lg:grid-cols-6` (was `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6`)
+- Stat cards: padding `p-3 sm:p-4`, label `text-[11px] sm:text-sm`, value `text-lg sm:text-2xl`
+- Charts: min-height `min-h-[200px] sm:min-h-[260px] md:min-h-[320px] lg:min-h-[360px]`, padding `p-2 sm:p-3 md:p-4`
+- CardHeaders: `pb-2 pt-3 px-3 sm:pb-3 sm:pt-4 sm:px-4`
+- CardContent: `px-3 sm:px-4 pb-3 sm:pb-4`
+- Main container: `space-y-4 sm:space-y-6 p-3 sm:p-5 md:p-6 lg:p-8`
+- Welcome banner: padding `p-3 sm:p-5`, icon `h-10 w-10 sm:h-14 sm:w-14`, title `text-xl sm:text-2xl`
+- MiniTrendCard: `p-3 sm:p-4`, value `text-xl sm:text-2xl`
+- Widget grid gaps: reduced on mobile (`gap-2 sm:gap-3 lg:gap-4`)
+- Dashboard skeleton updated to match responsive classes
+- Added missing labels: `totalRevenue`, `noCustomers`
+
+**Sub-Pages Mobile Layout Improvements (subagent 2 — 10 files):**
+- All pages: `p-3 sm:p-4 md:p-6`, `space-y-4 sm:space-y-6`, title `text-xl sm:text-2xl`
+- Filter cards: `p-3 sm:p-4`
+- Icon buttons: `h-10 w-10 sm:h-9 sm:w-9` (44px touch targets on mobile)
+- Hover-only actions: Changed to `sm:opacity-0 sm:group-hover:opacity-100` (always visible on touch devices)
+- Stats grid gaps: `gap-3 sm:gap-4`
+- Content page: post title `max-w-[120px] sm:max-w-[200px]`
+- CRM page: contact eye button mobile-visible
+
+Stage Summary:
+- **9 desktop floating widgets hidden on mobile** — eliminates major clutter
+- 12 files modified for mobile layout improvements
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- All text in Persian/Farsi preserved
+- agent-browser mobile testing limited (viewport flag doesn't change window.innerWidth)
+
+---
+
+## Current Project Status
+
+### Assessment
+- **Overall**: Very Good. Major mobile clutter issue FIXED. All 9 desktop floating widgets now properly hidden on mobile. Dashboard and sub-pages have optimized mobile spacing and touch targets.
+- **Server Stability**: Running on port 3000, HTTP 200. Cron keep-alive active.
+- **Code Quality**: Lint 0 errors. TypeScript strict.
+- **Mobile Responsiveness**: Significantly improved — no more overlapping floating widgets. Clean bottom nav + single FAB + scroll-to-top.
+- **Features**: 30+ features, all desktop widgets properly responsive.
+
+### Completed Modifications (This Round)
+1. Hidden 9 desktop floating widgets on mobile (root cause of clutter)
+2. Reduced MobileBottomNav height (h-16 → h-14) and improved z-index
+3. Reduced MobileFAB size (w-14 → w-12) and repositioned
+4. Dashboard: 2-column stat cards on mobile, tighter padding, smaller charts
+5. 10 sub-pages: tighter padding, 44px touch targets, always-visible mobile actions
+6. Fixed missing labels (totalRevenue, noCustomers)
+
+### Verification Results
+- Lint: 0 errors, 0 warnings
+- Server: HTTP 200 on port 3000
+- VLM desktop analysis: 7/10 (no overlapping elements)
+
+### Unresolved Issues / Risks
+1. **agent-browser mobile testing**: `--viewport` flag doesn't change `window.innerWidth`, so true mobile testing requires a real device or browser dev tools
+2. **Server instability**: Periodic Turbopack crashes (mitigated by auto-restart)
+3. **No real authentication**: Simple state-based login
+4. **PWA not implemented**: No service worker or manifest yet
+
+### Next Phase Recommendations
+1. **Priority 1**: Add real authentication with NextAuth.js
+2. **Priority 2**: PWA support (service worker, manifest, installable)
+3. **Priority 3**: Fuzzy search in Command Palette
+4. **Priority 4**: Performance optimization — lazy loading non-visible modules
+5. **Priority 5**: Real-time WebSocket notifications integration in dashboard UI

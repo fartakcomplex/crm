@@ -180,7 +180,7 @@ export default function QuickBackupStatus() {
   if (!backupInfo) return null
 
   return (
-    <div ref={containerRef} className="fixed bottom-2 left-1/2 -translate-x-1/2 z-30" dir="rtl">
+    <div ref={containerRef} className="hidden md:block fixed bottom-2 left-1/2 -translate-x-1/2 z-30" dir="rtl">
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button
